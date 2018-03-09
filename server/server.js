@@ -6,17 +6,17 @@ takeSix = new TakeSix();
 var deck = new Array();
 
 var values = [
-    1, 1, 2, 1, 5, 1, 1, 3, 1, 1,
-    1, 1, 2, 1, 5, 1, 1, 3, 1, 1,
-    1, 1, 2, 1, 5, 1, 1, 3, 1, 1, //2
-    1, 1, 2, 1, 5, 1, 1, 3, 1, 1,
-    1, 1, 2, 1, 5, 1, 1, 3, 1, 1, //4
-    1, 1, 2, 1, 5, 1, 1, 3, 1, 1,
-    1, 1, 2, 1, 5, 1, 1, 3, 1, 1, // 6
-    1, 1, 2, 1, 5, 1, 1, 3, 1, 1,
-    1, 1, 2, 1, 5, 1, 1, 3, 1, 1, //8
-    1, 1, 2, 1, 5, 1, 1, 3, 1, 1, //9
-    1, 1, 2, 1
+    1, 1, 1, 1, 2,1, 1, 1, 1,
+    3, 5, 1, 1, 1, 2, 1, 1, 1, 1,
+    3, 1, 5, 1, 1, 2, 1, 1, 1, 1, //2
+    3, 1, 1, 5, 1, 2, 1, 3, 1, 1,
+    3, 1, 1, 1, 5, 2, 1, 1, 1, 1, //4
+    3, 1, 1, 1, 1, 7, 1, 1, 1, 1,
+    3, 1, 1, 1, 1, 2, 5, 1, 1, 1, // 6
+    1, 1, 1, 1, 1, 2, 1, 5, 1, 1,
+    3, 1, 1, 1, 1, 2, 1, 1, 5, 1, //8
+    3, 1, 1, 1, 1, 2, 1, 1, 1, 5, //9
+    3, 1, 1, 1
 ];
 
 
@@ -111,6 +111,7 @@ wsServer.on('request', function(request) {
                         userCards.push(getOneCard());
                     }
                     let user = takeSix.addUser(connection,msg.name,userCards);
+                    let lst = takeSix.getUserList();
                     let packet = {
                         messageType: "newUser",
                         name: msg.name,
@@ -119,12 +120,17 @@ wsServer.on('request', function(request) {
                         row2:row2,
                         row3:row3,
                         row4:row4,
-                        message:"Welcome! Press the start button when all the players have joined"
+                        message:"Welcome! Press the start button when all the players have joined",
+                        users:lst
                     }
                     payload =JSON.stringify(packet);
+                    connection.send(payload);
+                    packet.messageType = "newPlayer";
+                    packet.message = msg.name+ " is now Playing\n\n";
+                    takeSix.broadCastMessage(msg.name,packet);
                     break;
             }
-            connection.send(payload);
+
         }
         else if (message.type === 'binary') {
             console.log('Received Binary Message of ' + message.binaryData.length + ' bytes');

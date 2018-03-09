@@ -20,7 +20,7 @@ class TakeSix {
           this.row4 = row4;
   }
   addUser (connection, id, cards) {
-    var user = {connection:connection, id:id, cards:cards,score:0,currentCard:{}};
+    var user = {connection:connection, id:id, cards:cards,score:0,currentCard:{},playing:false};
     this.users.push(user);
     return user;
   }
@@ -29,19 +29,28 @@ class TakeSix {
 
     if (user) {
       this.users = this.users.filter((user) => user.id !== id);
+
     }
 
     return user;
   }
+  broadCastMessage(id,packet){
+      let lst = this.users.filter((user) => user.id !== id);
+      lst.map((u) => {
+          packet.cards=u.cards;
+          u.connection.send(JSON.stringify(packet));
+      });
+  }
   getUser (id) {
     return this.users.filter((user) => user.id === id)[0]
   }
-  // getUserList (room) {
-  //   var users = this.users.filter((user) => user.room === room);
-  //   var namesArray = users.map((user) => user.name);
-  //
-  //   return namesArray;
-  // }
+   getUserList () {
+       var namesArray = this.users.map((user) => {
+         return {name:user.id,score:user.score,card:user.currentCard,playing:user.playing};
+       });
+
+       return namesArray;
+   }
 }
 
 module.exports = {TakeSix};
