@@ -1,7 +1,8 @@
 var WebSocketServer = require('websocket').server;
 var http = require('http');
+const {TakeSix} = require('./../utils/TakeSix.js');
 
-
+takeSix = new TakeSix();
 var deck = new Array();
 
 var values = [
@@ -57,6 +58,13 @@ function getOneCard()
 
 deck = getDeck();
 shuffle();
+let row1=[getOneCard()];
+let row2=[getOneCard()];
+let row3=[getOneCard()];
+let row4=[getOneCard()];
+
+
+takeSix.addCardRows(row1,row2,row3,row4);
 
 var server = http.createServer(function(request, response) {
     console.log((new Date()) + ' Received request for ' + request.url);
@@ -89,13 +97,34 @@ wsServer.on('request', function(request) {
       console.log((new Date()) + ' Connection from origin ' + request.origin + ' rejected.');
       return;
     }
-    
+    let payload = "";
     var connection = request.accept('echo-protocol', request.origin);
     console.log((new Date()) + ' Connection accepted.');
     connection.on('message', function(message) {
         if (message.type === 'utf8') {
             console.log('xReceived Message: ' + JSON.parse( message.utf8Data));
-            connection.sendUTF(message.utf8Data);
+            msg = JSON.parse( message.utf8Data);
+            switch(msg.type){
+                case "newUser":
+                    let userCards = [];
+                    for (i = 0; i < 10; i++) {
+                        userCards.push(getOneCard());
+                    }
+                    let user = takeSix.addUser(connection,msg.name,userCards);
+                    let packet = {
+                        messageType: "newUser",
+                        name: msg.name,
+                        cards:userCards,
+                        row1:row1,
+                        row2:row2,
+                        row3:row3,
+                        row4:row4,
+                        message:"Welcome! Press the start button when all the players have joined"
+                    }
+                    payload =JSON.stringify(packet);
+                    break;
+            }
+            connection.send(payload);
         }
         else if (message.type === 'binary') {
             console.log('Received Binary Message of ' + message.binaryData.length + ' bytes');
