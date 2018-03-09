@@ -97,6 +97,16 @@ wsServer.on('request', function(request) {
       console.log((new Date()) + ' Connection from origin ' + request.origin + ' rejected.');
       return;
     }
+    function compare(a, b) {
+        if (a.rank<b.rank) {
+            return -1;
+        }
+        if (a.rank>b.rank) {
+            return 1;
+        }
+        // a must be equal to b
+        return 0;
+    }
     let payload = "";
     var connection = request.accept('echo-protocol', request.origin);
     console.log((new Date()) + ' Connection accepted.');
@@ -115,7 +125,7 @@ wsServer.on('request', function(request) {
                     let packet = {
                         messageType: "newUser",
                         name: msg.name,
-                        cards:userCards,
+                        cards:userCards.sort(compare),
                         row1:row1,
                         row2:row2,
                         row3:row3,
