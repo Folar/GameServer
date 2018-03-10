@@ -6,7 +6,7 @@ takeSix = new TakeSix();
 var deck = new Array();
 
 var values = [
-       1, 1, 1, 1, 2,1, 1, 1, 1,
+    1, 1, 1, 1, 2, 1, 1, 1, 1,
     3, 5, 1, 1, 1, 2, 1, 1, 1, 1,
     3, 1, 5, 1, 1, 2, 1, 1, 1, 1, //2
     3, 1, 1, 5, 1, 2, 1, 1, 1, 1,
@@ -20,25 +20,21 @@ var values = [
 ];
 
 
-function getDeck()
-{
+function getDeck() {
     var deck = new Array();
 
-        for(var i = 0; i < values.length; i++)
-        {
-            var card = {value: values[i], rank: i+1};
-            deck.push(card);
-        }
+    for (var i = 0; i < values.length; i++) {
+        var card = {value: values[i], rank: i + 1};
+        deck.push(card);
+    }
 
     return deck;
 }
 
-function shuffle()
-{
+function shuffle() {
     // for 1000 turns
     // switch the values of two random cards
-    for (var i = 0; i < 1000; i++)
-    {
+    for (var i = 0; i < 1000; i++) {
         var location1 = Math.floor((Math.random() * deck.length));
         var location2 = Math.floor((Math.random() * deck.length));
         var tmp = deck[location1];
@@ -48,33 +44,32 @@ function shuffle()
     }
 }
 
-function getOneCard()
-{
+function getOneCard() {
     // remove top card from deck
-    var card = deck[deck.length-1];
-    deck.splice(deck.length-1, 1);
+    var card = deck[deck.length - 1];
+    deck.splice(deck.length - 1, 1);
     return card;
 }
 
 deck = getDeck();
 shuffle();
-let row1=[getOneCard()];
-let row2=[getOneCard()];
-let row3=[getOneCard()];
-let row4=[getOneCard()];
+let row1 = [getOneCard()];
+let row2 = [getOneCard()];
+let row3 = [getOneCard()];
+let row4 = [getOneCard()];
 
 
-takeSix.addCardRows(row1,row2,row3,row4);
+takeSix.addCardRows(row1, row2, row3, row4);
 
-var server = http.createServer(function(request, response) {
+var server = http.createServer(function (request, response) {
     console.log((new Date()) + ' Received request for ' + request.url);
     response.writeHead(404);
     response.end();
 });
-server.listen(9081, function() {
+server.listen(9081, function () {
     console.log((new Date()) + ' Server is listening on port 9081');
 });
- 
+
 wsServer = new WebSocketServer({
     httpServer: server,
     // You should not use autoAcceptConnections for production
@@ -84,60 +79,72 @@ wsServer = new WebSocketServer({
     // to accept it.
     autoAcceptConnections: false
 });
- 
+
 function originIsAllowed(origin) {
-  // put logic here to detect whether the specified origin is allowed.
-  return true;
+    // put logic here to detect whether the specified origin is allowed.
+    return true;
 }
- 
-wsServer.on('request', function(request) {
+
+wsServer.on('request', function (request) {
     if (!originIsAllowed(request.origin)) {
-      // Make sure we only accept requests from an allowed origin
-      request.reject();
-      console.log((new Date()) + ' Connection from origin ' + request.origin + ' rejected.');
-      return;
+        // Make sure we only accept requests from an allowed origin
+        request.reject();
+        console.log((new Date()) + ' Connection from origin ' + request.origin + ' rejected.');
+        return;
     }
     function compare(a, b) {
-        if (a.rank<b.rank) {
+        if (a.rank < b.rank) {
             return -1;
         }
-        if (a.rank>b.rank) {
+        if (a.rank > b.rank) {
             return 1;
         }
         // a must be equal to b
         return 0;
     }
+
+    function preparePacket(type, message, userCards) {
+        return {
+            messageType: type,
+            cards: {},
+            row1: row1,
+            row2: row2,
+            row3: row3,
+            row4: row4,
+            message: message,
+            users: takeSix.getUserList()
+        }
+    }
+
     let payload = "";
     var connection = request.accept('echo-protocol', request.origin);
     console.log((new Date()) + ' Connection accepted.');
-    connection.on('message', function(message) {
+    connection.on('message', function (message) {
         if (message.type === 'utf8') {
-            console.log('xReceived Message: ' + JSON.parse( message.utf8Data));
-            msg = JSON.parse( message.utf8Data);
-            switch(msg.type){
+            console.log('xReceived Message: ' + JSON.parse(message.utf8Data));
+            msg = JSON.parse(message.utf8Data);
+            let lst = takeSix.getUserList();
+            let packet = null;
+            switch (msg.type) {
+                case "startGame":
+
+                    packet = preparePacket("newUser", "Welcome! Press the Start button when all the players have joined");
+                    payload = JSON.stringify(packet);
+                    connection.send(payload);
+                    break;
                 case "newUser":
                     let userCards = [];
                     for (i = 0; i < 10; i++) {
                         userCards.push(getOneCard());
                     }
-                    let user = takeSix.addUser(connection,msg.name,userCards);
-                    let lst = takeSix.getUserList();
-                    let packet = {
-                        messageType: "newUser",
-                        name: msg.name,
-                        cards:userCards.sort(compare),
-                        row1:row1,
-                        row2:row2,
-                        row3:row3,
-                        row4:row4,
-                        message:"Welcome! Press the start button when all the players have joined",
-                        users:lst
-                    }
-                    payload =JSON.stringify(packet);
-                    connection.send(payload);
+                    let user = takeSix.addUser(connection, msg.name, userCards);
+                    packet = preparePacket("newUser", "Welcome! Press the Start button when all the players have joined");
+                    payload = JSON.stringify(packet);
+                    takeSix.send(msg.name, packet);
+
                     packet.messageType = "newPlayer";
-                    packet.message = msg.name+ " is now Playing\n\n";
-                    takeSix.broadCastMessage(msg.name,packet);
+                    packet.message = msg.name + " is now Playing\n\n";
+                    takeSix.broadCastMessage(msg.name, packet);
                     break;
             }
 
@@ -147,7 +154,7 @@ wsServer.on('request', function(request) {
             connection.sendBytes(message.binaryData);
         }
     });
-    connection.on('close', function(reasonCode, description) {
+    connection.on('close', function (reasonCode, description) {
         console.log((new Date()) + ' Peer ' + connection.remoteAddress + ' disconnected.');
     });
 });
