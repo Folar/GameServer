@@ -24,7 +24,7 @@ function getDeck() {
     var deck = new Array();
 
     for (var i = 0; i < values.length; i++) {
-        var card = {value: values[i], rank: i + 1};
+        var card = {value: values[i], rank: i + 1,state:0};
         deck.push(card);
     }
 
@@ -112,6 +112,7 @@ wsServer.on('request', function (request) {
             row3: row3,
             row4: row4,
             message: message,
+            state:0,
             users: takeSix.getUserList()
         }
     }
@@ -126,11 +127,30 @@ wsServer.on('request', function (request) {
             let lst = takeSix.getUserList();
             let packet = null;
             switch (msg.type) {
-                case "startGame":
+                case "startingGame":
+                    takeSix.setState(msg.name,2) ;
+                    let ulst = takeSix.getByNotState(2);
+                    let str = "";
+                    if (ulst.length== 0){
+                        str = "Let the games begin! Select your first Card";
+                        takeSix.setAllState(3) ;
 
-                    packet = preparePacket("newUser", "Welcome! Press the Start button when all the players have joined");
-                    payload = JSON.stringify(packet);
-                    connection.send(payload);
+                    }else {
+                        str = "Wating for "
+                        let cnt = 1;
+                        for (let item in ulst) {
+                            str = str + ulst[item].id;
+                            if (cnt != ulst.length) {
+                                str = str + ", ";
+                            } else {
+                                str = str + " to click Start";
+                            }
+                            cnt++;
+
+                        }
+                    }
+                    packet = preparePacket("message", str);
+                    takeSix.broadCastAll(packet);
                     break;
                 case "newUser":
                     let userCards = [];
@@ -139,7 +159,6 @@ wsServer.on('request', function (request) {
                     }
                     let user = takeSix.addUser(connection, msg.name, userCards);
                     packet = preparePacket("newUser", "Welcome! Press the Start button when all the players have joined");
-                    payload = JSON.stringify(packet);
                     takeSix.send(msg.name, packet);
 
                     packet.messageType = "newPlayer";

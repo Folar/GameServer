@@ -20,7 +20,7 @@ class TakeSix {
     }
 
     addUser(connection, id, cards) {
-        var user = {connection: connection, id: id, cards: cards, score: 0, currentCard: {}, playing: false};
+        var user = {connection: connection, id: id, cards: cards, score: 0, currentCard: {},state:1, playing: false};
         this.users.push(user);
         return user;
     }
@@ -47,28 +47,49 @@ class TakeSix {
         return 0;
     }
 
-    broadCastAll(id, packet) {
+
+    getByNotState(state) {
+        return this.users.filter((user) => user.state !== state);
+    }
+    getByState(state) {
+        return this.users.filter((user) => user.state === state);
+    }
+    setState(id,state) {
+        let u = this.users.filter((user) => user.id === id)[0];
+        u.state = state;
+        u.cards.map((y) => {
+            y.state = state;
+        });
+    }
+
+    setAllState(state) {
         let lst = this.users;
         lst.map((u) => {
+            u.state = state;
+            u.cards.map((y) => {
+                y.state = state;
+            });
+        });
+    }
+    sendPacket(lst, packet) {
+        lst.map((u) => {
+            packet.state = u.state;
             packet.cards = u.cards.sort(this.compare);
             u.connection.send(JSON.stringify(packet));
         });
     }
-
+    broadCastAll( packet) {
+        let lst = this.users;
+        this.sendPacket(lst, packet);
+    }
     send(id, packet) {
         let lst = this.users.filter((user) => user.id === id);
-        lst.map((u) => {
-            packet.cards = u.cards.sort(this.compare);
-            u.connection.send(JSON.stringify(packet));
-        });
+        this.sendPacket(lst, packet) ;
     }
 
     broadCastMessage(id, packet) {
         let lst = this.users.filter((user) => user.id !== id);
-        lst.map((u) => {
-            packet.cards = u.cards.sort(this.compare);
-            u.connection.send(JSON.stringify(packet));
-        });
+        this.sendPacket(lst, packet) ;
     }
 
     getUser(id) {
