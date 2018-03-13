@@ -126,11 +126,28 @@ wsServer.on('request', function (request) {
             msg = JSON.parse(message.utf8Data);
             let lst = takeSix.getUserList();
             let packet = null;
+            let ulst;
+            let str;
             switch (msg.type) {
+                case "selectCard":
+                    takeSix.setState(msg.name,4) ;
+                    takeSix.removeCard(msg.name,msg.card.rank);
+                    ulst = takeSix.getByNotState(4);
+                    if (ulst.length== 0){
+                        takeSix.sortUsersByCardRank();
+                        str = "All players have selected their card for this round. " +
+                        takeSix.getUserList()[0].name +" places their card first";
+                        takeSix.setAllState(5) ;
+                        packet = preparePacket("message", str );
+                    }else {
+                        packet = preparePacket("message", msg.name + " selected a card for this round ");
+                    }
+                    takeSix.broadCastAll(packet);
+                    break;
                 case "startingGame":
                     takeSix.setState(msg.name,2) ;
-                    let ulst = takeSix.getByNotState(2);
-                    let str = "";
+                    ulst = takeSix.getByNotState(2);
+                    str = "";
                     if (ulst.length== 0){
                         str = "Let the games begin! Select your first Card";
                         takeSix.setAllState(3) ;
