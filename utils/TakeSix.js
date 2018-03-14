@@ -69,9 +69,6 @@ class TakeSix {
     setState(id, state) {
         let u = this.users.filter((user) => user.id === id)[0];
         u.state = state;
-        u.cards.map((y) => {
-            y.state = state;
-        });
     }
 
     removeCard(id, rank) {
@@ -100,6 +97,7 @@ class TakeSix {
     sortUsersByCardRank(){
         this.users.sort(this.compareUsers);
     }
+
     sendPacket(lst, packet) {
         lst.map((u) => {
             packet.state = u.state;
@@ -108,9 +106,21 @@ class TakeSix {
         });
     }
 
+    fillinPacket(id, packet) {
+        let u = this.users.filter((user) => user.id === id)[0];
+        packet.state = u.state;
+        packet.cards = u.cards.sort(this.compare);
+
+    }
+
     broadCastAll(packet) {
         let lst = this.users;
         this.sendPacket(lst, packet);
+    }
+
+    sendCustomPacket(id, packet) {
+        let u = this.users.filter((user) => user.id === id)[0];
+        u.connection.send(JSON.stringify(packet));
     }
 
     send(id, packet) {

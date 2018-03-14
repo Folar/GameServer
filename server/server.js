@@ -34,10 +34,10 @@ function getDeck() {
 function shuffle() {
     // for 1000 turns
     // switch the values of two random cards
-    for (var i = 0; i < 1000; i++) {
-        var location1 = Math.floor((Math.random() * deck.length));
-        var location2 = Math.floor((Math.random() * deck.length));
-        var tmp = deck[location1];
+    for (let i = 0; i < 1000; i++) {
+        let location1 = Math.floor((Math.random() * deck.length));
+        let location2 = Math.floor((Math.random() * deck.length));
+        let tmp = deck[location1];
 
         deck[location1] = deck[location2];
         deck[location2] = tmp;
@@ -46,7 +46,7 @@ function shuffle() {
 
 function getOneCard() {
     // remove top card from deck
-    var card = deck[deck.length - 1];
+    let card = deck[deck.length - 1];
     deck.splice(deck.length - 1, 1);
     return card;
 }
@@ -117,6 +117,36 @@ wsServer.on('request', function (request) {
         }
     }
 
+   function  prepareForPlacement(packet,rank)
+    {
+        let pkt = JSON.parse(JSON.stringify(packet));  //deepCopy
+        let rows = [pkt.row1, pkt.row2, pkt.row3, pkt.row4];
+        let min = 200;
+        let rmin = -1;
+        let idx = 0;
+        for (item in rows) {
+            if (rank > rows[item][rows[item].length - 1].rank) {
+                if (min > rank - rows[item][rows[item].length - 1].rank) {
+                    min = rank - rows[item][rows[item].length - 1].rank;
+                    rmin = idx;
+                }
+            }
+            idx++;
+        }
+        if (rmin >= 0) {
+            rows[rmin][rows[rmin].length - 1].state = 1;
+            pkt.message = packet.message + " should place their card, In row " + (rmin + 1);
+        } else {
+            pkt.message = packet.message + " can replace any row "
+            for (item in rows) {
+                rows[item][0].state = 1;
+
+            }
+
+        }
+        return pkt;
+    }
+
     let payload = "";
     var connection = request.accept('echo-protocol', request.origin);
     console.log((new Date()) + ' Connection accepted.');
@@ -135,14 +165,22 @@ wsServer.on('request', function (request) {
                     ulst = takeSix.getByNotState(4);
                     if (ulst.length== 0){
                         takeSix.sortUsersByCardRank();
-                        str = "All players have selected their card for this round. " +
-                        takeSix.getUserList()[0].name +" places their card first";
+                        str = "All players have selected their card for this round. " + takeSix.getUserList()[0].name ;
                         takeSix.setAllState(5) ;
+
                         packet = preparePacket("message", str );
+                        let pkt = preparePacket("message", str );
+
+                        takeSix.fillinPacket(takeSix.getUserList()[0].name,pkt);
+                         pkt = prepareForPlacement(pkt,msg.card.rank)
+                        packet.message = pkt.message;
+                        takeSix.broadCastMessage(takeSix.getUserList()[0].name, packet);
+
+                        takeSix.sendCustomPacket(takeSix.getUserList()[0].name, pkt);
                     }else {
                         packet = preparePacket("message", msg.name + " selected a card for this round ");
+                        takeSix.broadCastAll(packet);
                     }
-                    takeSix.broadCastAll(packet);
                     break;
                 case "startingGame":
                     takeSix.setState(msg.name,2) ;
