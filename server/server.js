@@ -59,7 +59,7 @@ let row3 = [getOneCard()];
 let row4 = [getOneCard()];
 
 
-takeSix.addCardRows(row1, row2, row3, row4);
+takeSix.setCardRows(row1, row2, row3, row4);
 
 var server = http.createServer(function (request, response) {
     console.log((new Date()) + ' Received request for ' + request.url);
@@ -103,22 +103,24 @@ wsServer.on('request', function (request) {
         return 0;
     }
 
-    function preparePacket(type, message, userCards) {
+    function preparePacket(type, message) {
         return {
             messageType: type,
             cards: {},
-            row1: row1,
-            row2: row2,
-            row3: row3,
-            row4: row4,
+            row1: null,
+            row2: null,
+            row3: null,
+            row4: null,
             message: message,
             state:0,
-            users: takeSix.getUserList()
+            users: []
         }
     }
 
    function  prepareForPlacement(packet,rank)
     {
+
+        console.log("prepareForPlacement rank ="+rank);
         let pkt = JSON.parse(JSON.stringify(packet));  //deepCopy
         let rows = [pkt.row1, pkt.row2, pkt.row3, pkt.row4];
         let min = 200;
@@ -126,9 +128,12 @@ wsServer.on('request', function (request) {
         let idx = 0;
         for (item in rows) {
             if (rank > rows[item][rows[item].length - 1].rank) {
-                if (min > rank - rows[item][rows[item].length - 1].rank) {
+                if (min > rank - rows[item][rows[item].length - 1].rank &&
+                    (rank - rows[item][rows[item].length - 1].rank)>0) {
                     min = rank - rows[item][rows[item].length - 1].rank;
                     rmin = idx;
+                    console.log("prepareForPlacement row="+idx +" card="+ rows[item][rows[item].length - 1].rank
+                                  + " min="+min);
                 }
             }
             idx++;
@@ -156,9 +161,46 @@ wsServer.on('request', function (request) {
             msg = JSON.parse(message.utf8Data);
             let lst = takeSix.getUserList();
             let packet = null;
+            let pkt = null;
             let ulst;
             let str;
             switch (msg.type) {
+                case "placeCard":
+                    takeSix.setState(msg.name,6) ;
+                    takeSix.stopPlaying(msg.name) ;
+                    str = msg.name + " placed their card for this round. ";
+                    let rows = takeSix.getCardRows();
+
+                    if (msg.card.rank < takeSix.getCurrentCard(msg.name).rank && rows[msg.row-1].length < 5) {
+                        rows[msg.row-1].push(takeSix.getCurrentCard(msg.name));
+                    } else{
+                        takeSix.score(msg.name,rows[msg.row-1]);
+                        let newRow = [];
+                        newRow.push(takeSix.getCurrentCard(msg.name));
+                        takeSix.setOneRow(msg.row,newRow);
+                    }
+
+                    ulst = takeSix.getByNotState(6);
+                    if (ulst.length== 0){
+                        takeSix.setAllState(3);
+                        packet = preparePacket("message", str );
+                        takeSix.broadCastAll(packet);
+
+                    } else {
+                        packet = preparePacket("message", "" );
+                        pkt = preparePacket("message", str +  ulst[0].id);
+
+                        takeSix.fillinPacket(ulst[0].id,pkt);
+                        pkt = prepareForPlacement(pkt,ulst[0].currentCard.rank)
+                        packet.message = pkt.message;
+                        takeSix.broadCastMessage(ulst[0].id, packet);
+
+                        takeSix.sendCustomPacket(ulst[0].id, pkt);
+
+                    }
+
+
+                    break;
                 case "selectCard":
                     takeSix.setState(msg.name,4) ;
                     takeSix.removeCard(msg.name,msg.card.rank);
@@ -169,10 +211,10 @@ wsServer.on('request', function (request) {
                         takeSix.setAllState(5) ;
 
                         packet = preparePacket("message", str );
-                        let pkt = preparePacket("message", str );
+                        pkt = preparePacket("message", str );
 
                         takeSix.fillinPacket(takeSix.getUserList()[0].name,pkt);
-                         pkt = prepareForPlacement(pkt,msg.card.rank)
+                         pkt = prepareForPlacement(pkt,takeSix.users[0].currentCard.rank)
                         packet.message = pkt.message;
                         takeSix.broadCastMessage(takeSix.getUserList()[0].name, packet);
 

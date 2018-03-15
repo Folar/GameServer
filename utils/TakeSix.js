@@ -12,16 +12,40 @@ class TakeSix {
         this.row4 = [];
     }
 
-    addCardRows(row1, row2, row3, row4) {
+    setOneRow(idx, row) {
+        switch (idx) {
+            case 1:
+                this.row1 = row;
+                break;
+            case 2:
+                this.row2 = row;
+                break;
+            case 3:
+                this.row3 = row;
+                break;
+            case 4:
+                this.row4 = row;
+                break;
+        }
+
+    }
+
+    setCardRows(row1, row2, row3, row4) {
         this.row1 = row1;
         this.row2 = row2;
         this.row3 = row3;
         this.row4 = row4;
     }
 
+    getCardRows() {
+        return [this.row1, this.row2, this.row3, this.row4];
+    }
+
     addUser(connection, id, cards) {
-        var user = {connection: connection, id: id, cards: cards, score: 0, currentCard:  {value: 0, rank: 0,state:0},
-                    state: 1, playing: false};
+        var user = {
+            connection: connection, id: id, cards: cards, score: 0, currentCard: {value: 0, rank: 0, state: 0},
+            state: 1, playing: false
+        };
         this.users.push(user);
         return user;
     }
@@ -58,6 +82,7 @@ class TakeSix {
         // a must be equal to b
         return 0;
     }
+
     getByNotState(state) {
         return this.users.filter((user) => user.state !== state);
     }
@@ -85,6 +110,27 @@ class TakeSix {
         u.playing = true;
     }
 
+    stopPlaying(id) {
+        this.users.filter((user) => user.id === id)[0].playing = false;
+
+    }
+
+    score(id, row) {
+        let s = 0;
+
+        for (let item in row) {
+            s += row[item].value;
+        }
+        this.users.filter((user) => user.id === id)[0].score += s;
+
+
+    }
+
+    getCurrentCard(id) {
+        return this.users.filter((user) => user.id === id)[0].currentCard;
+
+    }
+
     setAllState(state) {
         let lst = this.users;
         lst.map((u) => {
@@ -94,14 +140,20 @@ class TakeSix {
             });
         });
     }
-    sortUsersByCardRank(){
-        this.users.sort(this.compareUsers);
+
+    sortUsersByCardRank() {
+        this.users = this.users.sort(this.compareUsers);
     }
 
     sendPacket(lst, packet) {
         lst.map((u) => {
             packet.state = u.state;
             packet.cards = u.cards.sort(this.compare);
+            packet.row1 = this.row1;
+            packet.row2 = this.row2;
+            packet.row3 = this.row3;
+            packet.row4 = this.row4;
+            packet.users = this.getUserList();
             u.connection.send(JSON.stringify(packet));
         });
     }
@@ -110,6 +162,11 @@ class TakeSix {
         let u = this.users.filter((user) => user.id === id)[0];
         packet.state = u.state;
         packet.cards = u.cards.sort(this.compare);
+        packet.row1 = this.row1;
+        packet.row2 = this.row2;
+        packet.row3 = this.row3;
+        packet.row4 = this.row4;
+        packet.users = this.getUserList();
 
     }
 
@@ -139,8 +196,12 @@ class TakeSix {
 
     getUserList() {
         var namesArray = this.users.map((user) => {
-            return {name: user.id, score: user.score, card:user.state ==5 ? user.currentCard :{value: 0, rank: "",state:0},
-                    playing: user.playing};
+            return {
+                name: user.id,
+                score: user.score,
+                card: user.state == 5 ? user.currentCard : {value: 0, rank: "", state: 0},
+                playing: user.playing
+            };
         });
 
         return namesArray;
