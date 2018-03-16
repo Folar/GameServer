@@ -171,7 +171,7 @@ wsServer.on('request', function (request) {
                     str = msg.name + " placed their card for this round. ";
                     let rows = takeSix.getCardRows();
 
-                    if (msg.card.rank < takeSix.getCurrentCard(msg.name).rank && rows[msg.row-1].length < 5) {
+                    if (rows[msg.row-1][rows[msg.row-1].length-1].rank < takeSix.getCurrentCard(msg.name).rank && rows[msg.row-1].length < 5) {
                         rows[msg.row-1].push(takeSix.getCurrentCard(msg.name));
                     } else{
                         takeSix.score(msg.name,rows[msg.row-1]);
