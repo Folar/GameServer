@@ -5,61 +5,7 @@ const {TakeSix} = require('./../utils/TakeSix.js');
 takeSix = new TakeSix();
 var deck = new Array();
 
-var values = [
-    1, 1, 1, 1, 2, 1, 1, 1, 1,
-    3, 5, 1, 1, 1, 2, 1, 1, 1, 1,
-    3, 1, 5, 1, 1, 2, 1, 1, 1, 1, //2
-    3, 1, 1, 5, 1, 2, 1, 1, 1, 1,
-    3, 1, 1, 1, 5, 2, 1, 1, 1, 1, //4
-    3, 1, 1, 1, 1, 7, 1, 1, 1, 1,
-    3, 1, 1, 1, 1, 2, 5, 1, 1, 1, // 6
-    1, 1, 1, 1, 1, 2, 1, 5, 1, 1,
-    3, 1, 1, 1, 1, 2, 1, 1, 5, 1, //8
-    3, 1, 1, 1, 1, 2, 1, 1, 1, 5, //9
-    3, 1, 1, 1
-];
 
-
-function getDeck() {
-    var deck = new Array();
-
-    for (var i = 0; i < values.length; i++) {
-        var card = {value: values[i], rank: i + 1,state:0};
-        deck.push(card);
-    }
-
-    return deck;
-}
-
-function shuffle() {
-    // for 1000 turns
-    // switch the values of two random cards
-    for (let i = 0; i < 1000; i++) {
-        let location1 = Math.floor((Math.random() * deck.length));
-        let location2 = Math.floor((Math.random() * deck.length));
-        let tmp = deck[location1];
-
-        deck[location1] = deck[location2];
-        deck[location2] = tmp;
-    }
-}
-
-function getOneCard() {
-    // remove top card from deck
-    let card = deck[deck.length - 1];
-    deck.splice(deck.length - 1, 1);
-    return card;
-}
-
-deck = getDeck();
-shuffle();
-let row1 = [getOneCard()];
-let row2 = [getOneCard()];
-let row3 = [getOneCard()];
-let row4 = [getOneCard()];
-
-
-takeSix.setCardRows(row1, row2, row3, row4);
 
 var server = http.createServer(function (request, response) {
     console.log((new Date()) + ' Received request for ' + request.url);
@@ -116,7 +62,17 @@ wsServer.on('request', function (request) {
             users: []
         }
     }
+    function  reshuffle(){
+        deck = getDeck();
+        shuffle();
+        let row1 = [getOneCard()];
+        let row2 = [getOneCard()];
+        let row3 = [getOneCard()];
+        let row4 = [getOneCard()];
 
+        takeSix.setCardRows(row1, row2, row3, row4);
+
+    }
    function  prepareForPlacement(packet,rank)
     {
 
@@ -171,7 +127,8 @@ wsServer.on('request', function (request) {
                     str = msg.name + " placed their card for this round. ";
                     let rows = takeSix.getCardRows();
 
-                    if (rows[msg.row-1][rows[msg.row-1].length-1].rank < takeSix.getCurrentCard(msg.name).rank && rows[msg.row-1].length < 5) {
+                    if (rows[msg.row-1][rows[msg.row-1].length-1].rank < takeSix.getCurrentCard(msg.name).rank &&
+                        rows[msg.row-1].length < TakeSix.NUMBER_TAKE) {
                         rows[msg.row-1].push(takeSix.getCurrentCard(msg.name));
                     } else{
                         takeSix.score(msg.name,rows[msg.row-1]);
@@ -181,8 +138,15 @@ wsServer.on('request', function (request) {
                     }
 
                     ulst = takeSix.getByNotState(6);
-                    if (ulst.length== 0){
+                    if (ulst.length== 0) {
                         takeSix.setAllState(3);
+                        if (takeSix.users[0].cards.length != 0){
+                            str +=  " Start round " + (11- takeSix.users[0].cards.length ) + ".";
+                        } else {
+                            takeSix.reshuffle();
+                            str +=  " Reshuffle deck and continue play."
+
+                        }
                         packet = preparePacket("message", str );
                         takeSix.broadCastAll(packet);
 
@@ -250,11 +214,8 @@ wsServer.on('request', function (request) {
                     takeSix.broadCastAll(packet);
                     break;
                 case "newUser":
-                    let userCards = [];
-                    for (i = 0; i < 10; i++) {
-                        userCards.push(getOneCard());
-                    }
-                    let user = takeSix.addUser(connection, msg.name, userCards);
+
+                    let user = takeSix.addUser(connection, msg.name);
                     packet = preparePacket("newUser", "Welcome! Press the Start button when all the players have joined");
                     takeSix.send(msg.name, packet);
 

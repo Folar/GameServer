@@ -1,15 +1,74 @@
-// addUser(id, name, room)
-// removeUser(id)
-// getUser(id)
-// getUserList(room)
+
 
 class TakeSix {
+
+
+
     constructor() {
         this.users = [];
-        this.row1 = [];
-        this.row2 = [];
-        this.row3 = [];
-        this.row4 = [];
+
+        this.newDeal();
+    }
+    static get NUMBER_DEALT() {
+        return 5;
+    }
+
+    static get NUMBER_TAKE() {
+        return 2;
+    }
+
+    newDeal() {
+        this.deck = this.getDeck();
+        this.shuffle();
+        this.row1 = [this.getOneCard()];
+        this.row2 = [this.getOneCard()];
+        this.row3 = [this.getOneCard()];
+        this.row4 = [this.getOneCard()];
+    }
+
+
+    calcValue(i) {
+        if (i % 10 == 0)
+            return 3;
+        if (i % 11 == 0) {
+            if (i == 55)
+                return 7;
+            return 5;
+        }
+        if (i % 5 == 0)
+            return 2;
+        return 1;
+    }
+
+    getDeck() {
+        var deck = new Array();
+
+        for (var i = 0; i < 104; i++) {
+            var card = {value: this.calcValue(i + 1), rank: i + 1, state: 0};
+            deck.push(card);
+        }
+
+        return deck;
+    }
+
+    shuffle() {
+        // for 1000 turns
+        // switch the values of two random cards
+        for (let i = 0; i < 1000; i++) {
+            let location1 = Math.floor((Math.random() * this.deck.length));
+            let location2 = Math.floor((Math.random() * this.deck.length));
+            let tmp = this.deck[location1];
+
+            this.deck[location1] = this.deck[location2];
+            this.deck[location2] = tmp;
+        }
+    }
+
+    getOneCard() {
+        // remove top card from deck
+        let card = this.deck[this.deck.length - 1];
+        this.deck.splice(this.deck.length - 1, 1);
+        return card;
     }
 
     setOneRow(idx, row) {
@@ -41,10 +100,32 @@ class TakeSix {
         return [this.row1, this.row2, this.row3, this.row4];
     }
 
-    addUser(connection, id, cards) {
+    getUserCards() {
+        let userCards = [];
+        for (let i = 0; i < TakeSix.NUMBER_DEALT; i++) { // NUMBER
+            userCards.push(this.getOneCard());
+        }
+        return userCards;
+    }
+
+    reshuffle() {
+        this.newDeal();
+        let lst = this.users;
+        lst.map((u) => {
+            u.cards = this.getUserCards();
+
+        });
+    }
+
+    addUser(connection, id) {
         var user = {
-            connection: connection, id: id, cards: cards, score: 0, currentCard: {value: 0, rank: 0, state: 0},
-            state: 1, playing: false
+            connection: connection,
+            id: id,
+            cards: this.getUserCards(),
+            score: 0,
+            currentCard: {value: 0, rank: 0, state: 0},
+            state: 1,
+            playing: false
         };
         this.users.push(user);
         return user;
