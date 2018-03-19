@@ -10,13 +10,31 @@ class TakeSix {
         this.newDeal();
     }
     static get NUMBER_DEALT() {
-        return 5;
+        return 4;
     }
 
     static get NUMBER_TAKE() {
         return 2;
     }
+    static get NUMBER_GOAL() {
+        return 10;
+    }
 
+    formatNameList(ulst){
+        let cnt = 1;
+        let str = "";
+        for (let item in ulst) {
+            str = str + ulst[item]
+            if (cnt != ulst.length) {
+                str = str + ", ";
+            } else {
+                str = str ;
+            }
+            cnt++;
+
+        }
+        return str;
+    }
     newDeal() {
         this.deck = this.getDeck();
         this.shuffle();
@@ -88,6 +106,32 @@ class TakeSix {
         }
 
     }
+
+    findMinMax(){
+        let min= 200;
+        let max = -1;
+        let minNames = [];
+        let maxNames = [];
+        let ulst = this.users;
+        for (let item in ulst) {
+            if(ulst[item].score <min){
+                min= ulst[item].score;
+                minNames = [];
+                minNames.push(ulst[item].id);
+            } else  if(ulst[item].score ==min){
+                minNames.push(ulst[item].id)
+            }
+            if(ulst[item].score > max){
+                max= ulst[item].score;
+                maxNames = [];
+                maxNames.push(ulst[item].id);
+            } else  if(ulst[item].score ==max){
+                maxNames.push(ulst[item].id)
+            }
+        }
+        return [min,minNames,max,maxNames];
+    }
+
 
     setCardRows(row1, row2, row3, row4) {
         this.row1 = row1;

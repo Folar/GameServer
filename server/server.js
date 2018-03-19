@@ -6,7 +6,6 @@ takeSix = new TakeSix();
 var deck = new Array();
 
 
-
 var server = http.createServer(function (request, response) {
     console.log((new Date()) + ' Received request for ' + request.url);
     response.writeHead(404);
@@ -58,11 +57,12 @@ wsServer.on('request', function (request) {
             row3: null,
             row4: null,
             message: message,
-            state:0,
+            state: 0,
             users: []
         }
     }
-    function  reshuffle(){
+
+    function reshuffle() {
         deck = getDeck();
         shuffle();
         let row1 = [getOneCard()];
@@ -73,10 +73,10 @@ wsServer.on('request', function (request) {
         takeSix.setCardRows(row1, row2, row3, row4);
 
     }
-   function  prepareForPlacement(packet,rank)
-    {
 
-        console.log("prepareForPlacement rank ="+rank);
+    function prepareForPlacement(packet, rank) {
+
+        console.log("prepareForPlacement rank =" + rank);
         let pkt = JSON.parse(JSON.stringify(packet));  //deepCopy
         let rows = [pkt.row1, pkt.row2, pkt.row3, pkt.row4];
         let min = 200;
@@ -85,11 +85,11 @@ wsServer.on('request', function (request) {
         for (item in rows) {
             if (rank > rows[item][rows[item].length - 1].rank) {
                 if (min > rank - rows[item][rows[item].length - 1].rank &&
-                    (rank - rows[item][rows[item].length - 1].rank)>0) {
+                    (rank - rows[item][rows[item].length - 1].rank) > 0) {
                     min = rank - rows[item][rows[item].length - 1].rank;
                     rmin = idx;
-                    console.log("prepareForPlacement row="+idx +" card="+ rows[item][rows[item].length - 1].rank
-                                  + " min="+min);
+                    console.log("prepareForPlacement row=" + idx + " card=" + rows[item][rows[item].length - 1].rank
+                        + " min=" + min);
                 }
             }
             idx++;
@@ -122,40 +122,59 @@ wsServer.on('request', function (request) {
             let str;
             switch (msg.type) {
                 case "placeCard":
-                    takeSix.setState(msg.name,6) ;
-                    takeSix.stopPlaying(msg.name) ;
+                    takeSix.setState(msg.name, 6);
+                    takeSix.stopPlaying(msg.name);
                     str = msg.name + " placed their card for this round. ";
                     let rows = takeSix.getCardRows();
 
-                    if (rows[msg.row-1][rows[msg.row-1].length-1].rank < takeSix.getCurrentCard(msg.name).rank &&
-                        rows[msg.row-1].length < TakeSix.NUMBER_TAKE) {
-                        rows[msg.row-1].push(takeSix.getCurrentCard(msg.name));
-                    } else{
-                        takeSix.score(msg.name,rows[msg.row-1]);
+                    if (rows[msg.row - 1][rows[msg.row - 1].length - 1].rank < takeSix.getCurrentCard(msg.name).rank &&
+                        rows[msg.row - 1].length < TakeSix.NUMBER_TAKE) {
+                        rows[msg.row - 1].push(takeSix.getCurrentCard(msg.name));
+                    } else {
+                        takeSix.score(msg.name, rows[msg.row - 1]);
                         let newRow = [];
                         newRow.push(takeSix.getCurrentCard(msg.name));
-                        takeSix.setOneRow(msg.row,newRow);
+                        takeSix.setOneRow(msg.row, newRow);
                     }
 
                     ulst = takeSix.getByNotState(6);
-                    if (ulst.length== 0) {
+                    if (ulst.length == 0) {
                         takeSix.setAllState(3);
-                        if (takeSix.users[0].cards.length != 0){
-                            str +=  " Start round " + (11- takeSix.users[0].cards.length ) + ".";
+                        if (takeSix.users[0].cards.length != 0) {
+                            str += " Start round " + (11 - takeSix.users[0].cards.length ) + ".";
                         } else {
-                            takeSix.reshuffle();
-                            str +=  " Reshuffle deck and continue play."
+                            let tally = takeSix.findMinMax();
+                            let min = tally[0];
+                            let minNames = tally[1];
+                            let max = tally[2];
+                            let maxNames = tally[3];
+
+                            if(max >= TakeSix.NUMBER_GOAL){
+                                str += "With a score of "+ min +" "+
+                                    takeSix.formatNameList(minNames)+ " is/are  the WINNER(S)!!";
+                                str += " With a score of "+ max +" "+
+                                    takeSix.formatNameList(maxNames)+ " is/are  the LOSER(S)!!";
+                            }
+                            else {
+                                takeSix.reshuffle();
+                                str += "With a score of "+ min +" "+
+                                    takeSix.formatNameList(minNames)+ " is/are  the leader(s). ";
+                                str += " With a score of "+ max +" "+
+                                    takeSix.formatNameList(maxNames)+ " is/are  bringing up the rear";
+                                str += " The deck will be reshuffle and play will continue."
+                            }
+
 
                         }
-                        packet = preparePacket("message", str );
+                        packet = preparePacket("message", str);
                         takeSix.broadCastAll(packet);
 
                     } else {
-                        packet = preparePacket("message", "" );
-                        pkt = preparePacket("message", str +  ulst[0].id);
+                        packet = preparePacket("message", "");
+                        pkt = preparePacket("message", str + ulst[0].id);
 
-                        takeSix.fillinPacket(ulst[0].id,pkt);
-                        pkt = prepareForPlacement(pkt,ulst[0].currentCard.rank)
+                        takeSix.fillinPacket(ulst[0].id, pkt);
+                        pkt = prepareForPlacement(pkt, ulst[0].currentCard.rank)
                         packet.message = pkt.message;
                         takeSix.broadCastMessage(ulst[0].id, packet);
 
@@ -166,49 +185,45 @@ wsServer.on('request', function (request) {
 
                     break;
                 case "selectCard":
-                    takeSix.setState(msg.name,4) ;
-                    takeSix.removeCard(msg.name,msg.card.rank);
+                    takeSix.setState(msg.name, 4);
+                    takeSix.removeCard(msg.name, msg.card.rank);
                     ulst = takeSix.getByNotState(4);
-                    if (ulst.length== 0){
+                    if (ulst.length == 0) {
                         takeSix.sortUsersByCardRank();
-                        str = "All players have selected their card for this round. " + takeSix.getUserList()[0].name ;
-                        takeSix.setAllState(5) ;
+                        str = "All players have selected their card for this round. " + takeSix.getUserList()[0].name;
+                        takeSix.setAllState(5);
 
-                        packet = preparePacket("message", str );
-                        pkt = preparePacket("message", str );
+                        packet = preparePacket("message", str);
+                        pkt = preparePacket("message", str);
 
-                        takeSix.fillinPacket(takeSix.getUserList()[0].name,pkt);
-                         pkt = prepareForPlacement(pkt,takeSix.users[0].currentCard.rank)
+                        takeSix.fillinPacket(takeSix.getUserList()[0].name, pkt);
+                        pkt = prepareForPlacement(pkt, takeSix.users[0].currentCard.rank)
                         packet.message = pkt.message;
                         takeSix.broadCastMessage(takeSix.getUserList()[0].name, packet);
 
                         takeSix.sendCustomPacket(takeSix.getUserList()[0].name, pkt);
-                    }else {
+                    } else {
                         packet = preparePacket("message", msg.name + " selected a card for this round ");
                         takeSix.broadCastAll(packet);
                     }
                     break;
                 case "startingGame":
-                    takeSix.setState(msg.name,2) ;
+                    takeSix.setState(msg.name, 2);
                     ulst = takeSix.getByNotState(2);
                     str = "";
-                    if (ulst.length== 0){
+                    if (ulst.length == 0) {
                         str = "Let the games begin! Select your first Card";
-                        takeSix.setAllState(3) ;
+                        takeSix.setAllState(3);
 
-                    }else {
+                    } else {
                         str = "Wating for "
                         let cnt = 1;
+                        let names = [];
                         for (let item in ulst) {
-                            str = str + ulst[item].id;
-                            if (cnt != ulst.length) {
-                                str = str + ", ";
-                            } else {
-                                str = str + " to click Start";
-                            }
-                            cnt++;
-
+                            names.push(ulst[item].id);
                         }
+                        str += takeSix.formatNameList(names) + " to click Start";
+
                     }
                     packet = preparePacket("message", str);
                     takeSix.broadCastAll(packet);
