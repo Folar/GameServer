@@ -148,19 +148,22 @@ wsServer.on('request', function (request) {
                             let minNames = tally[1];
                             let max = tally[2];
                             let maxNames = tally[3];
-
+                            let wstatus = minNames.length > 1? " are the WINNERS!!" : " is the WINNER!!";
+                            let lstatus = minNames.length > 1? " are the LOOSERS!!" : " is the LOOSER!!";
+                            let astatus = minNames.length > 1? " are the leaders." : " is the leader.";
+                            let rstatus = minNames.length > 1? " are bringing up the rear." : " is bringing up the rear.";
                             if(max >= TakeSix.NUMBER_GOAL){
                                 str += "With a score of "+ min +" "+
-                                    takeSix.formatNameList(minNames)+ " is/are  the WINNER(S)!!";
+                                    takeSix.formatNameList(minNames)+ wstatus;
                                 str += " With a score of "+ max +" "+
-                                    takeSix.formatNameList(maxNames)+ " is/are  the LOSER(S)!!";
+                                    takeSix.formatNameList(maxNames)+ lstatus;
                             }
                             else {
                                 takeSix.reshuffle();
                                 str += "With a score of "+ min +" "+
-                                    takeSix.formatNameList(minNames)+ " is/are  the leader(s). ";
+                                    takeSix.formatNameList(minNames)+ astatus;
                                 str += " With a score of "+ max +" "+
-                                    takeSix.formatNameList(maxNames)+ " is/are  bringing up the rear";
+                                    takeSix.formatNameList(maxNames)+ rstatus;
                                 str += " The deck will be reshuffle and play will continue."
                             }
 
