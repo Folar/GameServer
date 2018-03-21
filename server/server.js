@@ -2,9 +2,9 @@ var WebSocketServer = require('websocket').server;
 var http = require('http');
 const {TakeSix} = require('./../utils/TakeSix.js');
 
-takeSix = new TakeSix();
+let takeSix = new TakeSix();
 var deck = new Array();
-
+let gameStarted = false;
 
 var server = http.createServer(function (request, response) {
     console.log((new Date()) + ' Received request for ' + request.url);
@@ -193,7 +193,9 @@ wsServer.on('request', function (request) {
                     ulst = takeSix.getByNotState(4);
                     if (ulst.length == 0) {
                         takeSix.sortUsersByCardRank();
-                        str = "All players have selected their card for this round. " + takeSix.getUserList()[0].name;
+                        str =msg.name + " selected  " + msg.card.rank +
+                            " as their card for this round. All cards have now been Selected. " +
+                             takeSix.getUserList()[0].name;
                         takeSix.setAllState(5);
 
                         packet = preparePacket("message", str);
@@ -206,7 +208,8 @@ wsServer.on('request', function (request) {
 
                         takeSix.sendCustomPacket(takeSix.getUserList()[0].name, pkt);
                     } else {
-                        packet = preparePacket("message", msg.name + " selected a card for this round ");
+                        packet = preparePacket("message", msg.name + " selected  " + msg.card.rank +
+                            " as their card for this round.");
                         takeSix.broadCastAll(packet);
                     }
                     break;
@@ -215,6 +218,7 @@ wsServer.on('request', function (request) {
                     ulst = takeSix.getByNotState(2);
                     str = "";
                     if (ulst.length == 0) {
+                        gameStarted = true;
                         str = "Let the games begin! Select your first Card";
                         takeSix.setAllState(3);
 
@@ -233,8 +237,19 @@ wsServer.on('request', function (request) {
                     break;
                 case "newUser":
 
-                    let user = takeSix.addUser(connection, msg.name);
-                    packet = preparePacket("newUser", "Welcome! Press the Start button when all the players have joined");
+
+                    if(takeSix.chkForDuplicateName(msg.name)){
+                        packet = preparePacket("dupUser", msg.name +" has already signed on, please choose another");
+                        connection.send(JSON.stringify(packet));
+                    }
+                    else {
+                        let user = takeSix.addUser(connection, msg.name);
+                        packet = preparePacket("newUser", "Welcome! Press the Start button when all the players have joined");
+
+                    }
+
+
+
                     takeSix.send(msg.name, packet);
 
                     packet.messageType = "newPlayer";

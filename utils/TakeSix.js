@@ -107,6 +107,16 @@ class TakeSix {
 
     }
 
+    chkForDuplicateName(n){
+        let ulst = this.users;
+        for (let item in ulst) {
+            if (ulst[item].id === n) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     findMinMax(){
         let min= 200;
         let max = -1;
