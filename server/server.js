@@ -157,6 +157,7 @@ wsServer.on('request', function (request) {
                                     takeSix.formatNameList(minNames)+ wstatus;
                                 str += " With a score of "+ max +" "+
                                     takeSix.formatNameList(maxNames)+ lstatus;
+                                gameStarted = false;
                             }
                             else {
                                 takeSix.reshuffle();
@@ -241,20 +242,27 @@ wsServer.on('request', function (request) {
                     if(takeSix.chkForDuplicateName(msg.name)){
                         packet = preparePacket("dupUser", msg.name +" has already signed on, please choose another");
                         connection.send(JSON.stringify(packet));
+                        break;
                     }
                     else {
-                        let user = takeSix.addUser(connection, msg.name);
-                        packet = preparePacket("newUser", "Welcome! Press the Start button when all the players have joined");
+                        let user = null
+                        if(gameStarted){
+                            user = takeSix.addWatchers(connection, msg.name);
+                            packet = preparePacket("newWatcher", "The game has already started, but you can still watch the game");
+                            takeSix.sendWatcher(msg.name, packet);
 
+                        }
+                        else {
+                            user = takeSix.addUser(connection, msg.name);
+                            packet = preparePacket("newUser", "Welcome! Press the Start button when all the players have joined");
+                            takeSix.send(msg.name, packet);
+
+                            packet.messageType = "newPlayer";
+                            packet.message = msg.name + " is now Playing\n\n";
+                            takeSix.broadCastMessage(msg.name, packet);
+                        }
                     }
 
-
-
-                    takeSix.send(msg.name, packet);
-
-                    packet.messageType = "newPlayer";
-                    packet.message = msg.name + " is now Playing\n\n";
-                    takeSix.broadCastMessage(msg.name, packet);
                     break;
             }
 

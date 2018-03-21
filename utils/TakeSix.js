@@ -1,14 +1,13 @@
-
-
 class TakeSix {
-
 
 
     constructor() {
         this.users = [];
+        this.watchers = [];
 
         this.newDeal();
     }
+
     static get NUMBER_DEALT() {
         return 4;
     }
@@ -16,11 +15,12 @@ class TakeSix {
     static get NUMBER_TAKE() {
         return 2;
     }
+
     static get NUMBER_GOAL() {
         return 10;
     }
 
-    formatNameList(ulst){
+    formatNameList(ulst) {
         let cnt = 1;
         let str = "";
         for (let item in ulst) {
@@ -28,13 +28,14 @@ class TakeSix {
             if (cnt != ulst.length) {
                 str = str + ", ";
             } else {
-                str = str ;
+                str = str;
             }
             cnt++;
 
         }
         return str;
     }
+
     newDeal() {
         this.deck = this.getDeck();
         this.shuffle();
@@ -107,7 +108,7 @@ class TakeSix {
 
     }
 
-    chkForDuplicateName(n){
+    chkForDuplicateName(n) {
         let ulst = this.users;
         for (let item in ulst) {
             if (ulst[item].id === n) {
@@ -117,29 +118,29 @@ class TakeSix {
         return false;
     }
 
-    findMinMax(){
-        let min= 200;
+    findMinMax() {
+        let min = 200;
         let max = -1;
         let minNames = [];
         let maxNames = [];
         let ulst = this.users;
         for (let item in ulst) {
-            if(ulst[item].score <min){
-                min= ulst[item].score;
+            if (ulst[item].score < min) {
+                min = ulst[item].score;
                 minNames = [];
                 minNames.push(ulst[item].id);
-            } else  if(ulst[item].score ==min){
+            } else if (ulst[item].score == min) {
                 minNames.push(ulst[item].id)
             }
-            if(ulst[item].score > max){
-                max= ulst[item].score;
+            if (ulst[item].score > max) {
+                max = ulst[item].score;
                 maxNames = [];
                 maxNames.push(ulst[item].id);
-            } else  if(ulst[item].score ==max){
+            } else if (ulst[item].score == max) {
                 maxNames.push(ulst[item].id)
             }
         }
-        return [min,minNames,max,maxNames];
+        return [min, minNames, max, maxNames];
     }
 
 
@@ -182,6 +183,20 @@ class TakeSix {
             playing: false
         };
         this.users.push(user);
+        return user;
+    }
+
+    addWatchers(connection, id) {
+        var user = {
+            connection: connection,
+            id: id,
+            cards: [],
+            score: 0,
+            currentCard: {value: 0, rank: 0, state: 0},
+            state: 10,
+            playing: false
+        };
+        this.watchers.push(user);
         return user;
     }
 
@@ -308,6 +323,8 @@ class TakeSix {
     broadCastAll(packet) {
         let lst = this.users;
         this.sendPacket(lst, packet);
+        lst = this.watchers;
+        this.sendPacket(lst, packet);
     }
 
     sendCustomPacket(id, packet) {
@@ -320,8 +337,14 @@ class TakeSix {
         this.sendPacket(lst, packet);
     }
 
+    sendWatcher(id, packet) {
+        let lst = this.watchers.filter((user) => user.id === id);
+        this.sendPacket(lst, packet);
+    }
     broadCastMessage(id, packet) {
         let lst = this.users.filter((user) => user.id !== id);
+        this.sendPacket(lst, packet);
+        lst = this.watchers;
         this.sendPacket(lst, packet);
     }
 
