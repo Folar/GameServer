@@ -285,7 +285,19 @@ wsServer.on('request', function (request) {
             connection.sendBytes(message.binaryData);
         }
     });
+
+    connection.on('error', function (evt) {
+        packet = preparePacket("message", "Someone left the game,please start again");
+        gameStarted = false;
+        packet.buttonText = "Again?";
+        takeSix.broadCastAll(packet);
+        takeSix.removeAllConnections();
+        console.log((new Date()) + ' error ' + connection.remoteAddress + ' disconnected.');
+    });
     connection.on('close', function (reasonCode, description) {
+        if(takeSix.users.length == 1){
+            takeSix.removeAllConnections();
+        }
         console.log((new Date()) + ' Peer ' + connection.remoteAddress + ' disconnected.');
     });
 });

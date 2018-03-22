@@ -8,11 +8,11 @@ class TakeSix {
         this.newDeal();
     }
     static get NUMBER_TAKE() {
-        return 2;
+        return 5;
     }
 
     static get NUMBER_DEALT() {
-        return 5;
+        return 10;
     }
 
     static get NUMBER_PLAYERS() {
@@ -20,7 +20,7 @@ class TakeSix {
     }
 
     static get NUMBER_GOAL() {
-        return 1;
+        return 66;
     }
 
     formatNameList(ulst) {
