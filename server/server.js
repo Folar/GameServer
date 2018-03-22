@@ -194,8 +194,7 @@ wsServer.on('request', function (request) {
                     ulst = takeSix.getByNotState(4);
                     if (ulst.length == 0) {
                         takeSix.sortUsersByCardRank();
-                        str =msg.name + " selected  " + msg.card.rank +
-                            " as their card for this round. All cards have now been Selected. " +
+                        str =msg.name + " selected a card for this round. All cards have now been Selected. " +
                              takeSix.getUserList()[0].name;
                         takeSix.setAllState(5);
 
@@ -209,8 +208,7 @@ wsServer.on('request', function (request) {
 
                         takeSix.sendCustomPacket(takeSix.getUserList()[0].name, pkt);
                     } else {
-                        packet = preparePacket("message", msg.name + " selected  " + msg.card.rank +
-                            " as their card for this round.");
+                        packet = preparePacket("message", msg.name + " selected  a card for this round.");
                         takeSix.broadCastAll(packet);
                     }
                     break;
@@ -251,6 +249,11 @@ wsServer.on('request', function (request) {
                             packet = preparePacket("newWatcher", "The game has already started, but you can still watch the game");
                             takeSix.sendWatcher(msg.name, packet);
 
+                        } else if (takeSix.users.length == TakeSix.NUMBER_PLAYERS ){
+                            user = takeSix.addWatchers(connection, msg.name);
+                            packet = preparePacket("newWatcher", "The game has already has "+TakeSix.NUMBER_PLAYERS+
+                                " players, but you can still watch the game");
+                            takeSix.sendWatcher(msg.name, packet);
                         }
                         else {
                             user = takeSix.addUser(connection, msg.name);

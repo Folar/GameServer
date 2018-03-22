@@ -7,13 +7,16 @@ class TakeSix {
 
         this.newDeal();
     }
+    static get NUMBER_TAKE() {
+        return 4;
+    }
 
     static get NUMBER_DEALT() {
         return 4;
     }
 
-    static get NUMBER_TAKE() {
-        return 2;
+    static get NUMBER_PLAYERS() {
+        return 10;
     }
 
     static get NUMBER_GOAL() {
