@@ -16,7 +16,7 @@ class TakeSix {
     }
 
     static get NUMBER_PLAYERS() {
-        return 10;
+        return  10;
     }
 
     static get NUMBER_GOAL() {
