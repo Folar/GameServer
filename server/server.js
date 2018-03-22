@@ -5,14 +5,14 @@ const {TakeSix} = require('./../utils/TakeSix.js');
 let takeSix = new TakeSix();
 var deck = new Array();
 let gameStarted = false;
-
+const port = process.env.PORT || 9081;
 var server = http.createServer(function (request, response) {
     console.log((new Date()) + ' Received request for ' + request.url);
     response.writeHead(404);
     response.end();
 });
-server.listen(9081, function () {
-    console.log((new Date()) + ' Server is listening on port 9081');
+server.listen(port, function () {
+    console.log((new Date()) + ' Server is listening on port '+port);
 });
 
 wsServer = new WebSocketServer({
