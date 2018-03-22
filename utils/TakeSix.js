@@ -8,11 +8,11 @@ class TakeSix {
         this.newDeal();
     }
     static get NUMBER_TAKE() {
-        return 4;
+        return 2;
     }
 
     static get NUMBER_DEALT() {
-        return 4;
+        return 5;
     }
 
     static get NUMBER_PLAYERS() {
@@ -20,7 +20,7 @@ class TakeSix {
     }
 
     static get NUMBER_GOAL() {
-        return 10;
+        return 1;
     }
 
     formatNameList(ulst) {
@@ -298,6 +298,12 @@ class TakeSix {
         this.users = this.users.sort(this.compareUsers);
     }
 
+    closeSockets(lst) {
+        lst.map((u) => {
+            u.connection.close();
+        });
+    }
+
     sendPacket(lst, packet) {
         lst.map((u) => {
             packet.state = u.state;
@@ -323,6 +329,16 @@ class TakeSix {
 
     }
 
+    removeAllConnections(){
+        let lst = this.users;
+        this.closeSockets(lst);
+        lst = this.watchers;
+        this.closeSockets(lst);
+        this.watchers = [];
+        this.users = [];
+        this.newDeal();
+
+    }
     broadCastAll(packet) {
         let lst = this.users;
         this.sendPacket(lst, packet);

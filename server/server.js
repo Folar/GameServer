@@ -58,6 +58,7 @@ wsServer.on('request', function (request) {
             row4: null,
             message: message,
             state: 0,
+            buttonText: "Start",
             users: []
         }
     }
@@ -142,6 +143,8 @@ wsServer.on('request', function (request) {
                         takeSix.setAllState(3);
                         if (takeSix.users[0].cards.length != 0) {
                             str += " Start round " + (11 - takeSix.users[0].cards.length ) + ".";
+                            packet = preparePacket("message", str);
+                            takeSix.broadCastAll(packet);
                         } else {
                             let tally = takeSix.findMinMax();
                             let min = tally[0];
@@ -158,6 +161,10 @@ wsServer.on('request', function (request) {
                                 str += " With a score of "+ max +" "+
                                     takeSix.formatNameList(maxNames)+ lstatus;
                                 gameStarted = false;
+                                packet = preparePacket("message", str);
+                                packet.buttonText = "Again?";
+                                takeSix.broadCastAll(packet);
+                                takeSix.removeAllConnections();
                             }
                             else {
                                 takeSix.reshuffle();
@@ -166,12 +173,15 @@ wsServer.on('request', function (request) {
                                 str += " With a score of "+ max +" "+
                                     takeSix.formatNameList(maxNames)+ rstatus;
                                 str += " The deck will be reshuffle and play will continue."
+                                packet = preparePacket("message", str);
+                                takeSix.broadCastAll(packet);
                             }
 
 
                         }
-                        packet = preparePacket("message", str);
-                        takeSix.broadCastAll(packet);
+
+
+
 
                     } else {
                         packet = preparePacket("message", "");
