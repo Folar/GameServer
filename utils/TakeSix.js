@@ -8,11 +8,11 @@ class TakeSix {
         this.newDeal();
     }
     static get NUMBER_TAKE() {
-        return 5;
+        return 2;
     }
 
     static get NUMBER_DEALT() {
-        return 10;
+        return 3;
     }
 
     static get NUMBER_PLAYERS() {
@@ -275,7 +275,7 @@ class TakeSix {
             s += row[item].value;
         }
         this.users.filter((user) => user.id === id)[0].score += s;
-
+        return s;
 
     }
 

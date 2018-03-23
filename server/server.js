@@ -114,7 +114,7 @@ wsServer.on('request', function (request) {
     console.log((new Date()) + ' Connection accepted.');
     connection.on('message', function (message) {
         if (message.type === 'utf8') {
-            console.log('xReceived Message: ' + JSON.parse(message.utf8Data));
+            //console.log('xReceived Message: ' + JSON.parse(message.utf8Data));
             msg = JSON.parse(message.utf8Data);
             let lst = takeSix.getUserList();
             let packet = null;
@@ -127,13 +127,19 @@ wsServer.on('request', function (request) {
                     takeSix.stopPlaying(msg.name);
                     str = msg.name + " placed their card for this round. ";
                     let rows = takeSix.getCardRows();
+                    let moo = false;
+                    let score = 0;
+                    let msgType = "message"
 
                     if (rows[msg.row - 1][rows[msg.row - 1].length - 1].rank < takeSix.getCurrentCard(msg.name).rank &&
                         rows[msg.row - 1].length < TakeSix.NUMBER_TAKE) {
                         rows[msg.row - 1].push(takeSix.getCurrentCard(msg.name));
                     } else {
-                        takeSix.score(msg.name, rows[msg.row - 1]);
+                        score =takeSix.score(msg.name, rows[msg.row - 1]);
+                        str += msg.name + " added "+score+ " bulls to there score. ";
                         let newRow = [];
+                        if(rows[msg.row - 1].length ==  TakeSix.NUMBER_TAKE)
+                            msgType ="mooSound";
                         newRow.push(takeSix.getCurrentCard(msg.name));
                         takeSix.setOneRow(msg.row, newRow);
                     }
@@ -143,7 +149,7 @@ wsServer.on('request', function (request) {
                         takeSix.setAllState(3);
                         if (takeSix.users[0].cards.length != 0) {
                             str += " Start round " + (11 - takeSix.users[0].cards.length ) + ".";
-                            packet = preparePacket("message", str);
+                            packet = preparePacket(msgType, str);
                             takeSix.broadCastAll(packet);
                         } else {
                             let tally = takeSix.findMinMax();
@@ -161,7 +167,7 @@ wsServer.on('request', function (request) {
                                 str += " With a score of "+ max +" "+
                                     takeSix.formatNameList(maxNames)+ lstatus;
                                 gameStarted = false;
-                                packet = preparePacket("message", str);
+                                packet = preparePacket(msgType, str);
                                 packet.buttonText = "Again?";
                                 takeSix.broadCastAll(packet);
                                 takeSix.removeAllConnections();
@@ -173,7 +179,7 @@ wsServer.on('request', function (request) {
                                 str += " With a score of "+ max +" "+
                                     takeSix.formatNameList(maxNames)+ rstatus;
                                 str += " The deck will be reshuffle and play will continue."
-                                packet = preparePacket("message", str);
+                                packet = preparePacket(msgType, str);
                                 takeSix.broadCastAll(packet);
                             }
 
@@ -184,8 +190,8 @@ wsServer.on('request', function (request) {
 
 
                     } else {
-                        packet = preparePacket("message", "");
-                        pkt = preparePacket("message", str + ulst[0].id);
+                        packet = preparePacket(msgType, "");
+                        pkt = preparePacket(msgType, str + ulst[0].id);
 
                         takeSix.fillinPacket(ulst[0].id, pkt);
                         pkt = prepareForPlacement(pkt, ulst[0].currentCard.rank)
