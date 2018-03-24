@@ -8,7 +8,7 @@ class TakeSix {
         this.newDeal();
     }
     static get NUMBER_TAKE() {
-        return 2;
+        return 5;
     }
     static get NUMBER_TlME_RESTART() {
         return 1;
@@ -17,7 +17,7 @@ class TakeSix {
         return 3;
     }
     static get NUMBER_DEALT() {
-        return 3;
+        return 10;
     }
 
     static get NUMBER_PLAYERS() {
