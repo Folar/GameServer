@@ -118,13 +118,11 @@ wsServer.on('request', function (request) {
         packet.buttonText = "Again?"
         takeSix.broadCastAll(packet);
         takeSix.removeAllConnections();
-        clearTimeout(myTimer);
     }
     function restartGameWarn() {
         let packet = preparePacket("message", "There has been no game activity for "+TakeSix.NUMBER_TlME_WARN +" minutes. "+
                                 "The game server will restart in "+TakeSix.NUMBER_TlME_RESTART+ " minute, if no activity is detected" );
         takeSix.broadCastAll(packet);
-        clearTimeout(myTimer);
         myTimer = setTimeout(restartGame, 60000 * TakeSix.NUMBER_TlME_RESTART);
     }
     function resetTimer(){
