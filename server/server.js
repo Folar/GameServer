@@ -320,17 +320,17 @@ wsServer.on('request', function (request) {
     });
 
     connection.on('error', function (evt) {
-        packet = preparePacket("message", "Someone left the game,please start again");
-
-        ;
-        takeSix.broadCastAll(packet);
-        takeSix.removeAllConnections();
-        console.log((new Date()) + ' error ' + connection.remoteAddress + ' disconnected.');
+        // packet = preparePacket("message", "Someone left the game,please start again");
+        //
+        // ;
+        // takeSix.broadCastAll(packet);
+        // takeSix.removeAllConnections();
+        // console.log((new Date()) + ' error ' + connection.remoteAddress + ' disconnected.');
     });
     connection.on('close', function (reasonCode, description) {
-        if(takeSix.users.length == 1){
-            takeSix.removeAllConnections();
-        }
+        // if(takeSix.users.length == 1){
+        //     takeSix.removeAllConnections();
+        // }
         console.log((new Date()) + ' Peer ' + connection.remoteAddress + ' disconnected.');
     });
 });
