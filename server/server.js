@@ -59,6 +59,7 @@ wsServer.on('request', function (request) {
             message: message,
             state: 0,
             buttonText: "Start",
+            reanimate:false,
             users: []
         }
     }
@@ -109,6 +110,32 @@ wsServer.on('request', function (request) {
         return pkt;
     }
 
+    let myTimer = null;
+    let lastTime = Date();
+    function restartGame() {
+        let packet = preparePacket("message", "The game server is restarting");
+        gameStarted = false;
+        packet.buttonText = "Again?"
+        takeSix.broadCastAll(packet);
+        takeSix.removeAllConnections();
+        clearTimeout(myTimer);
+    }
+    function restartGameWarn() {
+        let packet = preparePacket("message", "There has been no game activity for "+TakeSix.NUMBER_TlME_WARN +" minutes. "+
+                                "The game server will restart in "+TakeSix.NUMBER_TlME_RESTART+ " minute, if no activity is detected" );
+        takeSix.broadCastAll(packet);
+        clearTimeout(myTimer);
+        myTimer = setTimeout(restartGame, 60000 * TakeSix.NUMBER_TlME_RESTART);
+    }
+    function resetTimer(){
+        if (myTimer !== null){
+            clearTimeout(myTimer);
+            lastTime = Date();
+        }
+        myTimer = setTimeout(restartGameWarn, 60000 * TakeSix.NUMBER_TlME_WARN);
+        
+    }
+
     let payload = "";
     var connection = request.accept('echo-protocol', request.origin);
     console.log((new Date()) + ' Connection accepted.');
@@ -121,6 +148,7 @@ wsServer.on('request', function (request) {
             let pkt = null;
             let ulst;
             let str;
+            resetTimer();
             switch (msg.type) {
                 case "placeCard":
                     takeSix.setState(msg.name, 6);
@@ -180,6 +208,7 @@ wsServer.on('request', function (request) {
                                     takeSix.formatNameList(maxNames)+ rstatus;
                                 str += " The deck will be reshuffle and play will continue."
                                 packet = preparePacket(msgType, str);
+                                packet.reanimate = true;
                                 takeSix.broadCastAll(packet);
                             }
 
@@ -275,7 +304,7 @@ wsServer.on('request', function (request) {
                             user = takeSix.addUser(connection, msg.name);
                             packet = preparePacket("newUser", "Welcome! Press the Start button when all the players have joined");
                             takeSix.send(msg.name, packet);
-
+                            packet.reanimate = true;
                             packet.messageType = "newPlayer";
                             packet.message = msg.name + " is now Playing\n\n";
                             takeSix.broadCastMessage(msg.name, packet);
@@ -294,8 +323,8 @@ wsServer.on('request', function (request) {
 
     connection.on('error', function (evt) {
         packet = preparePacket("message", "Someone left the game,please start again");
-        gameStarted = false;
-        packet.buttonText = "Again?";
+
+        ;
         takeSix.broadCastAll(packet);
         takeSix.removeAllConnections();
         console.log((new Date()) + ' error ' + connection.remoteAddress + ' disconnected.');
