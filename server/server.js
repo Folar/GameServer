@@ -1,9 +1,9 @@
 var WebSocketServer = require('websocket').server;
 var http = require('http');
 const {TakeSix} = require('./../utils/TakeSix.js');
-
 let takeSix = new TakeSix();
 var deck = new Array();
+myTimer = null;
 let gameStarted = false;
 const port = process.env.PORT || 9081;
 var server = http.createServer(function (request, response) {
@@ -110,7 +110,6 @@ wsServer.on('request', function (request) {
         return pkt;
     }
 
-    let myTimer = null;
     let canReset = true;
     function restartGame() {
         canReset =false;
@@ -122,7 +121,7 @@ wsServer.on('request', function (request) {
         takeSix.removeAllConnections();
         myTimer = null;
         canReset = true;
-        console.log("start of restartgame") ;
+        console.log("end of restartgame") ;
     }
 
     function resetTimer(){
@@ -135,7 +134,7 @@ wsServer.on('request', function (request) {
             clearTimeout(myTimer);
             console.log("reset timer")
         }
-        myTimer = setTimeout(restartGame, 60000 * TakeSix.NUMBER_TlME_WARN);
+        myTimer = setTimeout(restartGame, 60000 * TakeSix.NUMBER_TlME_WARN );
         
     }
 
