@@ -90,8 +90,8 @@ wsServer.on('request', function (request) {
                     (rank - rows[item][rows[item].length - 1].rank) > 0) {
                     min = rank - rows[item][rows[item].length - 1].rank;
                     rmin = idx;
-                    console.log("prepareForPlacement row=" + idx + " card=" + rows[item][rows[item].length - 1].rank
-                        + " min=" + min);
+                  //  console.log("prepareForPlacement row=" + idx + " card=" + rows[item][rows[item].length - 1].rank
+                    //    + " min=" + min);
                 }
             }
             idx++;
@@ -111,25 +111,29 @@ wsServer.on('request', function (request) {
     }
 
     let myTimer = null;
-    let lastTime = Date();
+    let canReset = true;
     function restartGame() {
+        canReset =false;
+        console.log("start of restartgame") ;
         let packet = preparePacket("message", "There has been no game activity for "+TakeSix.NUMBER_TlME_WARN
-            +" minutes.The Game Server is restarting");
+            +" minutes.The Game Server has been restarted. Reload FolarGames in your browser");
         gameStarted = false;
-        packet.buttonText = "Again?"
         takeSix.broadCastAll(packet);
         takeSix.removeAllConnections();
+        myTimer = null;
+        canReset = true;
+        console.log("start of restartgame") ;
     }
-    function restartGameWarn() {
-        let packet = preparePacket("message", "There has been no game activity for "+TakeSix.NUMBER_TlME_WARN +" minutes. "+
-                                "The game server will restart in "+TakeSix.NUMBER_TlME_RESTART+ " minute, if no activity is detected" );
-        takeSix.broadCastAll(packet);
-        myTimer = setTimeout(restartGame, 60000 * TakeSix.NUMBER_TlME_RESTART);
-    }
+
     function resetTimer(){
+        if (!canReset){
+            console.log("no of reset timer")
+            return;
+        }
+        console.log("start of reset timer")
         if (myTimer !== null){
             clearTimeout(myTimer);
-            lastTime = Date();
+            console.log("reset timer")
         }
         myTimer = setTimeout(restartGame, 60000 * TakeSix.NUMBER_TlME_WARN);
         

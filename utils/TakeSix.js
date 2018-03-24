@@ -10,11 +10,9 @@ class TakeSix {
     static get NUMBER_TAKE() {
         return 5;
     }
-    static get NUMBER_TlME_RESTART() {
-        return 1;
-    }
+
     static get NUMBER_TlME_WARN() {
-        return 1;
+        return 4;
     }
     static get NUMBER_DEALT() {
         return 10;
