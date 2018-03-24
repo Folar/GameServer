@@ -167,7 +167,7 @@ wsServer.on('request', function (request) {
                         rows[msg.row - 1].push(takeSix.getCurrentCard(msg.name));
                     } else {
                         score =takeSix.score(msg.name, rows[msg.row - 1]);
-                        str += msg.name + " added "+score+ " bulls to there score. ";
+                        str += msg.name + " added "+score+ " bulls to their score. ";
                         let newRow = [];
                         if(rows[msg.row - 1].length ==  TakeSix.NUMBER_TAKE)
                             msgType ="mooSound";
