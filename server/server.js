@@ -1,11 +1,15 @@
 var WebSocketServer = require('websocket').server;
 var http = require('http');
 const {TakeSix} = require('./../utils/TakeSix.js');
+const {Choice} = require('./../utils/Choice.js');
 let takeSix = new TakeSix();
+let choice= new Choice();
 var deck = new Array();
 myTimer = null;
 let gameStarted = false;
 const port = process.env.PORT || 9081;
+
+
 var server = http.createServer(function (request, response) {
     console.log((new Date()) + ' Received request for ' + request.url);
     response.writeHead(404);
@@ -30,7 +34,12 @@ function originIsAllowed(origin) {
     return true;
 }
 
+
 wsServer.on('request', function (request) {
+
+    function roll(dice){
+       return  choice.roll(dice);
+    }
     if (!originIsAllowed(request.origin)) {
         // Make sure we only accept requests from an allowed origin
         request.reject();
@@ -46,6 +55,14 @@ wsServer.on('request', function (request) {
         }
         // a must be equal to b
         return 0;
+    }
+    function prepareChoicePacket(type, message,data) {
+        return {
+            messageType: type,
+            message: message,
+            data:data,
+            users: []
+        }
     }
 
     function preparePacket(type, message) {
@@ -129,14 +146,14 @@ wsServer.on('request', function (request) {
             console.log("no of reset timer")
             return;
         }
-        console.log("start of reset timer")
+
         if (myTimer !== null){
             clearTimeout(myTimer);
-            console.log("reset timer")
         }
         myTimer = setTimeout(restartGame, 60000 * TakeSix.NUMBER_TlME_WARN );
         
     }
+
 
     let payload = "";
     var connection = request.accept('echo-protocol', request.origin);
@@ -152,6 +169,16 @@ wsServer.on('request', function (request) {
             let str;
             resetTimer();
             switch (msg.type) {
+                case "choiceRoll":
+                    packet =prepareChoicePacket("choosePair","click on the gray boxes to make your fiirst choice",
+                                                roll(msg.dice));
+                    connection.send(JSON.stringify(packet));
+                    break;
+                case "choosePairs":
+                    packet =prepareChoicePacket("choosePair","click on the gray boxes to make your Second choice",
+                        choice.setSecondDieChoices(msg.rank,msg.pos));
+                    connection.send(JSON.stringify(packet));
+                    break;
                 case "placeCard":
                     takeSix.setState(msg.name, 6);
                     takeSix.stopPlaying(msg.name);
