@@ -176,7 +176,7 @@ wsServer.on('request', function (request) {
                     break;
                 case "choosePairs":
                     packet =prepareChoicePacket("choosePair","click on the gray boxes to make your Second choice",
-                        choice.setSecondDieChoices(msg.rank,msg.pos));
+                        choice.setSecondDieChoices(msg.rank,msg.pos,msg.gaitor));
                     connection.send(JSON.stringify(packet));
                     break;
                 case "placeCard":

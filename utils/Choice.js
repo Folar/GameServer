@@ -17,8 +17,16 @@ class Choice {
         this.state = {
             dice: [0, 0, 0, 0, 0],
             currentClicks: 0,
-            gaitors: [2, 5, 6],
-            gaitorData: [],
+            gaitors: [],
+            gaitorsDisplay: ['-', '-', '-'],
+            gaitorCount: [0, 0, 0],
+            gaitorChoice: 0,
+            gaitorsIndex: [0, 0, 0, 0, 0, 0, 0],
+            gaitorsState: [
+                [0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 0, 0, 0, 0, 0]
+            ],
             choices: [],
             diceState: [
                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
@@ -47,7 +55,7 @@ class Choice {
                     currentRoll: []
                 },
                 {
-                    count: 3,  //2
+                    count: 0,  //2
                     score: 0,
                     currentRoll: []
                 },
@@ -62,7 +70,7 @@ class Choice {
                     currentRoll: []
                 },
                 {
-                    count: 5, //
+                    count: 0, //
                     score: 0,
                     currentRoll: []
                 },
@@ -126,6 +134,7 @@ class Choice {
         return ( this.state.gaitors.includes(d));
     }
 
+
     setCheckState() {
         let data = this.state.diceData;
 
@@ -133,10 +142,19 @@ class Choice {
             for (let i = 0; i < data[item].count; i++) {
                 this.state.diceState[item][i] = 4;
             }
-            for (let i = data[item].count; i < 9; i++) {
+            for (let i = data[item].count; i < 10; i++) {
                 this.state.diceState[item][i] = 0;
             }
         }
+        for (let j = 0; j < 3; j++) {
+            for (let i = 0; i < this.state.gaitorCount[j]; i++) {
+                this.state.gaitorsState[j][i] = 4;
+            }
+            for (let i = this.state.gaitorCount[j]; i < 8; i++) {
+                this.state.gaitorsState[j][i] = 0;
+            }
+        }
+
     }
 
     setFirstDieChoices(results) {
@@ -187,7 +205,7 @@ class Choice {
 
     chk2ndPairs(d1, d2, d3) {
         let data = this.state.diceData[d1 + d2];
-        if (this.isGaitorsFull() && !this.isAGaitor(d3)) {
+        if (this.isGaitorsFull() && !this.isAGaitor(d3) && this.howManyGaitorsInRoll(this.state.dice) != 0) {
             return;
         }
         if (this.state.diceState[d1 + d2][data.count] == 3) {
@@ -197,14 +215,32 @@ class Choice {
         }
 
     }
-    undoSecondChoice(val, pos){
+
+    undoSecondChoice(val, pos) {
+        let idx = this.state.gaitorsIndex[this.state.gaitorChoice];
+        this.state.gaitorsState[idx][this.state.gaitorCount[idx]] = 0;
+        if (this.state.gaitorCount[idx] == 0) {
+            this.state.gaitors.splice(-1, 1);
+            this.state.gaitorsDisplay[idx] = '-';
+        }
+        this.state.gaitorChoice = 0;
         this.state.choices = [];
         this.roll(this.state.dice);
         return this.setSecondDieChoices(val, pos);
     }
-    setSecondDieChoices(val, pos) {
+
+    setSecondDieChoices(val, pos, gaitors) {
+        if (gaitors) {
+            this.state.choices = [];
+            if (pos == 0) {
+                // undo gaitor choice
+                this.state.gaitors.splice(-1, 1);
+                this.state.gaitorsDisplay[val] = '-';
+            }
+            return this.roll(this.state.dice);
+        }
         let data = this.state.diceData[val];
-        let results = []
+        let results = [];
         let cr = data.currentRoll;
 
         if (this.state.diceState[val][pos] == 3) {
@@ -225,7 +261,7 @@ class Choice {
         } else {
             this.state.choices.push(val);
 
-            if ( this.state.choices.length == 1) {
+            if (this.state.choices.length == 1) {
                 this.setCheckState();
                 this.state.diceState[val][data.count] = 3;
                 for (let item in cr) {
@@ -236,19 +272,40 @@ class Choice {
                 }
             } else {
                 this.setSecondCheckState(val);
+                let sum = this.state.dice[0] + this.state.dice[1] + this.state.dice[2] + this.state.dice[3] + this.state.dice[4];
+                this.setGaitor(sum - (this.state.choices[0] + this.state.choices[1]));
             }
         }
         return this.state;
 
     }
+
+
+    setGaitor(g) {
+        if (!this.isAGaitor(g)) {
+
+            if (this.isGaitorsFull()) {
+                return;
+            }
+            // a new gaitor
+            this.state.gaitorsIndex[g] = this.state.gaitors.length;
+            this.state.gaitorsDisplay[this.state.gaitors.length] = g;
+            this.state.gaitors.push(g);
+        }
+        let idx = this.state.gaitorsIndex[g];
+        this.state.gaitorsState[idx][this.state.gaitorCount[idx]] = 3;
+        this.state.gaitorChoice = g;
+    }
+
+
     setSecondCheckState(val) {
         let data = this.state.diceData;
         for (let item in data) {
             for (let i = 0; i < data[item].count; i++) {
                 this.state.diceState[item][i] = 4;
             }
-            for (let i = data[item].count; i < 9; i++) {
-                if (this.state.diceState[item][i] != 3){
+            for (let i = data[item].count; i < 10; i++) {
+                if (this.state.diceState[item][i] != 3) {
                     this.state.diceState[item][i] = 0;
                 }
             }
