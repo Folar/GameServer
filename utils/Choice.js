@@ -137,9 +137,12 @@ class Choice {
     }
 
     confirm(){
-        this.state.diceData[this.state.choices[0]].count++;
-        this.state.diceData[this.state.choices[1]].count++;
-        this.state.gaitorCount[this.state.gaitorsIndex[this.state.gaitorChoice]]++;
+        if(this.state.diceData[this.state.choices[0]].count <10)
+            this.state.diceData[this.state.choices[0]].count++;
+        if(this.state.diceData[this.state.choices[1]].count <10)
+            this.state.diceData[this.state.choices[1]].count++;
+        if (this.state.gaitorChoice > 0)
+            this.state.gaitorCount[this.state.gaitorsIndex[this.state.gaitorChoice]]++;
         this.setCheckState();
         this.state.gameState = 0;
         return this.state;
@@ -164,7 +167,7 @@ class Choice {
             for (let i = 0; i < data[item].count; i++) {
                 this.state.diceState[item][i] = 4;
             }
-            for (let i = data[item].count; i < 10; i++) {
+            for (let i = data[item].count; i < 12; i++) {
                 this.state.diceState[item][i] = 0;
             }
             let s = this.getScore( item, data[item].count);
@@ -243,23 +246,27 @@ class Choice {
     }
 
     undoSecondChoice(val, pos) {
-        let idx = this.state.gaitorsIndex[this.state.gaitorChoice];
-        this.state.gaitorsState[idx][this.state.gaitorCount[idx]] = 0;
-        if (this.state.gaitorCount[idx] == 0) {
-            this.state.gaitors.splice(-1, 1);
-            this.state.gaitorsDisplay[idx] = '-';
+        let idx =0;
+        if (this.state.gaitorChoice != 0) {
+            idx = this.state.gaitorsIndex[this.state.gaitorChoice];
+
+            this.state.gaitorsState[idx][this.state.gaitorCount[idx]] = 0;
+            if (this.state.gaitorCount[idx] == 0) {
+                this.state.gaitors.splice(-1, 1);
+                this.state.gaitorsDisplay[idx] = '-';
+            }
         }
         this.state.gaitorChoice = 0;
         this.state.choices = [];
         this.roll(this.state.dice);
-        return this.setSecondDieChoices(val, pos);
+        return this.setSecondDieChoices(val, pos,false);
     }
 
     setSecondDieChoices(val, pos, gaitors) {
-        if (gaitors) {
+        if (gaitors) { // undo gaitor choice
             this.state.choices = [];
             if (pos == 0) {
-                // undo gaitor choice
+
                 this.state.gaitors.splice(-1, 1);
                 this.state.gaitorsDisplay[val] = '-';
             }
@@ -331,7 +338,7 @@ class Choice {
             for (let i = 0; i < data[item].count; i++) {
                 this.state.diceState[item][i] = 4;
             }
-            for (let i = data[item].count; i < 10; i++) {
+            for (let i = data[item].count; i < 12; i++) {
                 if (this.state.diceState[item][i] != 3) {
                     this.state.diceState[item][i] = 0;
                 }
