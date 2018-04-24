@@ -18,6 +18,7 @@ class Choice {
             dice: [0, 0, 0, 0, 0],
             currentClicks: 0,
             gaitors: [],
+            gameState:0,
             gaitorsDisplay: ['-', '-', '-'],
             gaitorCount: [0, 0, 0],
             gaitorChoice: 0,
@@ -43,6 +44,7 @@ class Choice {
                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
                 [0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
             ],
+            totalScore:0,
             diceData: [
                 {
                     count: 0,
@@ -134,10 +136,30 @@ class Choice {
         return ( this.state.gaitors.includes(d));
     }
 
+    confirm(){
+        this.state.diceData[this.state.choices[0]].count++;
+        this.state.diceData[this.state.choices[1]].count++;
+        this.state.gaitorCount[this.state.gaitorsIndex[this.state.gaitorChoice]]++;
+        this.setCheckState();
+        this.state.gameState = 0;
+        return this.state;
+    }
+
+    getScore(row, count){
+        if (count == 0 || count == 5 )
+            return 0;
+        if  (count < 5 )
+            return -200;
+        if (row == 2 || row == 12){
+            return 100 * (count - 5);
+        }
+        return (30 + 10 * Math.abs(7- row)) * (count - 5);
+
+    }
 
     setCheckState() {
         let data = this.state.diceData;
-
+        let ts = 0;
         for (let item in data) {
             for (let i = 0; i < data[item].count; i++) {
                 this.state.diceState[item][i] = 4;
@@ -145,7 +167,11 @@ class Choice {
             for (let i = data[item].count; i < 10; i++) {
                 this.state.diceState[item][i] = 0;
             }
+            let s = this.getScore( item, data[item].count);
+            data[item].score = s;
+            ts += s;
         }
+        this.state.totalScore = ts;
         for (let j = 0; j < 3; j++) {
             for (let i = 0; i < this.state.gaitorCount[j]; i++) {
                 this.state.gaitorsState[j][i] = 4;
@@ -299,6 +325,7 @@ class Choice {
 
 
     setSecondCheckState(val) {
+        this.state.gameState = 2;
         let data = this.state.diceData;
         for (let item in data) {
             for (let i = 0; i < data[item].count; i++) {
@@ -334,6 +361,7 @@ class Choice {
         this.chkPairs(0, 4, results);
         this.setCheckState();
         this.setFirstDieChoices(results);
+        this.state.gameState = 1;
         return this.state;
 
     }

@@ -37,7 +37,9 @@ function originIsAllowed(origin) {
 
 wsServer.on('request', function (request) {
 
-    function roll(dice){
+    function roll(dice,buttonText){
+        if(buttonText == "Confirm")
+            return choice.confirm();
        return  choice.roll(dice);
     }
     if (!originIsAllowed(request.origin)) {
@@ -171,7 +173,7 @@ wsServer.on('request', function (request) {
             switch (msg.type) {
                 case "choiceRoll":
                     packet =prepareChoicePacket("choosePair","click on the gray boxes to make your fiirst choice",
-                                                roll(msg.dice));
+                                                roll(msg.dice,msg.buttonText));
                     connection.send(JSON.stringify(packet));
                     break;
                 case "choosePairs":
