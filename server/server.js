@@ -171,16 +171,10 @@ wsServer.on('request', function (request) {
             let str;
             resetTimer();
             switch (msg.type) {
-                case "choiceRoll":
-                    packet =prepareChoicePacket("choosePair","click on the gray boxes to make your fiirst choice",
-                                                roll(msg.dice,msg.buttonText));
-                    connection.send(JSON.stringify(packet));
+                case "restartTake6":
+                   restartGame();
                     break;
-                case "choosePairs":
-                    packet =prepareChoicePacket("choosePair","click on the gray boxes to make your Second choice",
-                        choice.setSecondDieChoices(msg.rank,msg.pos,msg.gaitor));
-                    connection.send(JSON.stringify(packet));
-                    break;
+
                 case "placeCard":
                     takeSix.setState(msg.name, 6);
                     takeSix.stopPlaying(msg.name);
