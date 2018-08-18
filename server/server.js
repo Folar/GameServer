@@ -169,7 +169,7 @@ wsServer.on('request', function (request) {
             let pkt = null;
             let ulst;
             let str;
-            resetTimer();
+           // resetTimer();
             switch (msg.type) {
                 case "restartTake6":
                    restartGame();
