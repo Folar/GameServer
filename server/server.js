@@ -138,6 +138,9 @@ wsServer.on('request', function (request) {
         gameStarted = false;
         takeSix.broadCastAll(packet);
         takeSix.removeAllConnections();
+        if (myTimer != null){
+            clearTimeout(myTimer);
+        }
         myTimer = null;
         canReset = true;
         console.log("end of restartgame") ;
@@ -169,7 +172,7 @@ wsServer.on('request', function (request) {
             let pkt = null;
             let ulst;
             let str;
-            //resetTimer();
+            resetTimer();
             switch (msg.type) {
                 case "restartTake6":
                    restartGame();
