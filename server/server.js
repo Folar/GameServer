@@ -179,7 +179,7 @@ wsServer.on('request', function (request) {
                     break;
 
                 case "placeCard":
-                    //console.log("ZZZZZZZ "+takeSix.getState(msg.name ));
+                    console.log("ZZZZZZZ "+takeSix.getState(msg.name ));
                     if (takeSix.getState(msg.name )!= 5){
                         console.log("XXXXXXXXXXXXX AAAAAAAA");
                         return;
