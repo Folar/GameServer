@@ -185,7 +185,7 @@ wsServer.on('request', function (request) {
                         return;
                     }
                     takeSix.setState(msg.name, 6);
-                    //console.log("YYYYYYY "+takeSix.getState(msg.name ));
+                    console.log("YYYYYYY "+takeSix.getState(msg.name ));
                     takeSix.stopPlaying(msg.name);
                     str = msg.name + " placed their card for this round. ";
                     let rows = takeSix.getCardRows();
