@@ -252,6 +252,10 @@ class TakeSix {
         u.state = state;
     }
 
+    getState(id) {
+        let u = this.users.filter((user) => user.id === id)[0];
+        return u.state;
+    }
     removeCard(id, rank) {
         let u = this.users.filter((user) => user.id === id)[0];
         let idx = 0;

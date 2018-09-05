@@ -97,7 +97,7 @@ wsServer.on('request', function (request) {
 
     function prepareForPlacement(packet, rank) {
 
-        console.log("prepareForPlacement rank =" + rank);
+       // console.log("prepareForPlacement rank =" + rank);
         let pkt = JSON.parse(JSON.stringify(packet));  //deepCopy
         let rows = [pkt.row1, pkt.row2, pkt.row3, pkt.row4];
         let min = 200;
@@ -179,7 +179,13 @@ wsServer.on('request', function (request) {
                     break;
 
                 case "placeCard":
+                    //console.log("ZZZZZZZ "+takeSix.getState(msg.name ));
+                    if (takeSix.getState(msg.name )!= 5){
+                        console.log("XXXXXXXXXXXXX AAAAAAAA");
+                        return;
+                    }
                     takeSix.setState(msg.name, 6);
+                    //console.log("YYYYYYY "+takeSix.getState(msg.name ));
                     takeSix.stopPlaying(msg.name);
                     str = msg.name + " placed their card for this round. ";
                     let rows = takeSix.getCardRows();
