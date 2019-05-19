@@ -1,12 +1,14 @@
 var WebSocketServer = require('websocket').server;
 var http = require('http');
 const {TakeSix} = require('./../utils/TakeSix.js');
-const {Choice} = require('./../utils/Choice.js');
+const {BocaDice} = require('./../utils/BocaDice.js');
+
 let takeSix = new TakeSix();
-let choice= new Choice();
+let bocaDice= new BocaDice();
 var deck = new Array();
 myTimer = null;
-let gameStarted = false;
+let bocaDiceStarted = false;
+let takeSixStarted = false;
 const port = process.env.PORT || 9081;
 
 
@@ -37,11 +39,7 @@ function originIsAllowed(origin) {
 
 wsServer.on('request', function (request) {
 
-    function roll(dice,buttonText){
-        if(buttonText == "Confirm")
-            return choice.confirm();
-       return  choice.roll(dice);
-    }
+
     if (!originIsAllowed(request.origin)) {
         // Make sure we only accept requests from an allowed origin
         request.reject();
@@ -58,16 +56,10 @@ wsServer.on('request', function (request) {
         // a must be equal to b
         return 0;
     }
-    function prepareChoicePacket(type, message,data) {
-        return {
-            messageType: type,
-            message: message,
-            data:data,
-            users: []
-        }
-    }
 
-    function preparePacket(type, message) {
+
+
+    function prepareTakeSixPacket(type, message) {
         return {
             messageType: type,
             cards: {},
@@ -133,11 +125,16 @@ wsServer.on('request', function (request) {
     function restartGame() {
         canReset =false;
         console.log("start of restartgame") ;
-        let packet = preparePacket("message", "There has been no game activity for "+TakeSix.NUMBER_TlME_WARN
+        let packet = prepareTakeSixPacket("message", "There has been no game activity for "+TakeSix.NUMBER_TlME_WARN
             +" minutes.The Game Server has been restarted. Reload FolarGames in your browser");
-        gameStarted = false;
+        takeSixStarted = false;
         takeSix.broadCastAll(packet);
         takeSix.removeAllConnections();
+        packet=bocaDice.setBocaDicePacket("message", "There has been no game activity for "+TakeSix.NUMBER_TlME_WARN
+            +" minutes.The Game Server has been restarted. Reload FolarGames in your browser");
+        bocaDiceStarted = false;
+        bocaDice.broadCastAll(packet);
+        bocaDice.removeAllConnections();
         if (myTimer != null){
             clearTimeout(myTimer);
         }
@@ -211,7 +208,7 @@ wsServer.on('request', function (request) {
                         takeSix.setAllState(3);
                         if (takeSix.users[0].cards.length != 0) {
                             str += " Start round " + (11 - takeSix.users[0].cards.length ) + ".";
-                            packet = preparePacket(msgType, str);
+                            packet = prepareTakeSixPacket(msgType, str);
                             takeSix.broadCastAll(packet);
                         } else {
                             let tally = takeSix.findMinMax();
@@ -228,8 +225,8 @@ wsServer.on('request', function (request) {
                                     takeSix.formatNameList(minNames)+ wstatus;
                                 str += " With a score of "+ max +" "+
                                     takeSix.formatNameList(maxNames)+ lstatus;
-                                gameStarted = false;
-                                packet = preparePacket(msgType, str);
+                                takeSixStarted = false;
+                                packet = prepareTakeSixPacket(msgType, str);
                                 packet.buttonText = "Again?";
                                 takeSix.broadCastAll(packet);
                                 takeSix.removeAllConnections();
@@ -241,7 +238,7 @@ wsServer.on('request', function (request) {
                                 str += " With a score of "+ max +" "+
                                     takeSix.formatNameList(maxNames)+ rstatus;
                                 str += " The deck will be reshuffle and play will continue."
-                                packet = preparePacket(msgType, str);
+                                packet = prepareTakeSixPacket(msgType, str);
                                 packet.reanimate = true;
                                 takeSix.broadCastAll(packet);
                             }
@@ -253,8 +250,8 @@ wsServer.on('request', function (request) {
 
 
                     } else {
-                        packet = preparePacket(msgType, "");
-                        pkt = preparePacket(msgType, str + ulst[0].id);
+                        packet = prepareTakeSixPacket(msgType, "");
+                        pkt = prepareTakeSixPacket(msgType, str + ulst[0].id);
 
                         takeSix.fillinPacket(ulst[0].id, pkt);
                         pkt = prepareForPlacement(pkt, ulst[0].currentCard.rank)
@@ -277,8 +274,8 @@ wsServer.on('request', function (request) {
                              takeSix.getUserList()[0].name;
                         takeSix.setAllState(5);
 
-                        packet = preparePacket("message", str);
-                        pkt = preparePacket("message", str);
+                        packet = prepareTakeSixPacket("message", str);
+                        pkt = prepareTakeSixPacket("message", str);
 
                         takeSix.fillinPacket(takeSix.getUserList()[0].name, pkt);
                         pkt = prepareForPlacement(pkt, takeSix.users[0].currentCard.rank)
@@ -287,7 +284,7 @@ wsServer.on('request', function (request) {
 
                         takeSix.sendCustomPacket(takeSix.getUserList()[0].name, pkt);
                     } else {
-                        packet = preparePacket("message", msg.name + " selected  a card for this round.");
+                        packet = prepareTakeSixPacket("message", msg.name + " selected  a card for this round.");
                         takeSix.broadCastAll(packet);
                     }
                     break;
@@ -296,7 +293,7 @@ wsServer.on('request', function (request) {
                     ulst = takeSix.getByNotState(2);
                     str = "";
                     if (ulst.length == 0) {
-                        gameStarted = true;
+                        takeSixStarted = true;
                         str = "Let the games begin! Select your first Card";
                         takeSix.setAllState(3);
 
@@ -310,40 +307,74 @@ wsServer.on('request', function (request) {
                         str += takeSix.formatNameList(names) + " to click Start";
 
                     }
-                    packet = preparePacket("message", str);
+                    packet = prepareTakeSixPacket("message", str);
                     takeSix.broadCastAll(packet);
                     break;
                 case "newUser":
 
+                    switch (msg.gameType) {
+                        case 2:
+                            if(takeSix.chkForDuplicateName(msg.name)){
+                                packet = prepareTakeSixPacket("dupUser", msg.name +" has already signed on, please choose another");
+                                connection.send(JSON.stringify(packet));
+                                break;
+                            } else {
+                                let user = null
+                                if(takeSixStarted){
+                                    user = takeSix.addWatchers(connection, msg.name);
+                                    packet = prepareTakeSixPacket("newWatcher", "The game has already started, but you can still watch the game");
+                                    takeSix.sendWatcher(msg.name, packet);
 
-                    if(takeSix.chkForDuplicateName(msg.name)){
-                        packet = preparePacket("dupUser", msg.name +" has already signed on, please choose another");
-                        connection.send(JSON.stringify(packet));
-                        break;
-                    }
-                    else {
-                        let user = null
-                        if(gameStarted){
-                            user = takeSix.addWatchers(connection, msg.name);
-                            packet = preparePacket("newWatcher", "The game has already started, but you can still watch the game");
-                            takeSix.sendWatcher(msg.name, packet);
+                                } else if (takeSix.users.length == TakeSix.NUMBER_PLAYERS ){
+                                    user = takeSix.addWatchers(connection, msg.name);
+                                    packet = prepareTakeSixPacket("newWatcher", "The game has already has "+TakeSix.NUMBER_PLAYERS+
+                                        " players, but you can still watch the game");
+                                    takeSix.sendWatcher(msg.name, packet);
+                                }
+                                else {
+                                    user = takeSix.addUser(connection, msg.name);
+                                    packet = prepareTakeSixPacket("newUser", "Welcome! Press the Start button when all the players have joined");
+                                    takeSix.send(msg.name, packet);
+                                    packet.reanimate = true;
+                                    packet.messageType = "newPlayer";
+                                    packet.message = msg.name + " is now Playing\n\n";
+                                    takeSix.broadCastMessage(msg.name, packet);
+                                }
+                            }
+                            break;
 
-                        } else if (takeSix.users.length == TakeSix.NUMBER_PLAYERS ){
-                            user = takeSix.addWatchers(connection, msg.name);
-                            packet = preparePacket("newWatcher", "The game has already has "+TakeSix.NUMBER_PLAYERS+
-                                " players, but you can still watch the game");
-                            takeSix.sendWatcher(msg.name, packet);
-                        }
-                        else {
-                            user = takeSix.addUser(connection, msg.name);
-                            packet = preparePacket("newUser", "Welcome! Press the Start button when all the players have joined");
-                            takeSix.send(msg.name, packet);
-                            packet.reanimate = true;
-                            packet.messageType = "newPlayer";
-                            packet.message = msg.name + " is now Playing\n\n";
-                            takeSix.broadCastMessage(msg.name, packet);
-                        }
+                        case 4:
+                            if(bocaDice.chkForDuplicateName(msg.name)){
+                                packet = bocaDice.prepareBocaDicePacket("dupUser", msg.name +" has already signed on, please choose another");
+                                connection.send(JSON.stringify(packet));
+                                break;
+                            } else {
+                                let user = null
+                                if(bocaDiceStarted){
+                                    user = bocaDice.addWatchers(connection, msg.name);
+                                    packet = bocaDice.prepareBocaDicePacket("newWatcher", "The game has already started, but you can still watch the game");
+                                    bocaDice.sendWatcher(msg.name, packet);
+
+                                } else if (bocaDice.users.length == BocaDice.NUMBER_PLAYERS ){
+                                    user = bocaDice.addWatchers(connection, msg.name);
+                                    packet =  bocaDice.prepareBocaDicePacket("newWatcher", "The game has already has "+TakeSix.NUMBER_PLAYERS+
+                                        " players, but you can still watch the game");
+                                    bocaDice.sendWatcher(msg.name, packet);
+                                }
+                                else {
+                                    user = bocaDice.addUser(connection, msg.name);
+                                    packet =  bocaDice.setBocaDicePacket("newUser", "Welcome! Press the Start button when all the players have joined");
+                                    bocaDice.send(msg.name, packet);
+                                    packet.messageType = "newPlayer";
+                                    packet.message = msg.name + " is now Playing\n\n";
+                                    bocaDice.broadCastMessage(msg.name, packet);
+                                }
+                            }
+                            break;
+
                     }
+
+
 
                     break;
             }
@@ -356,7 +387,7 @@ wsServer.on('request', function (request) {
     });
 
     connection.on('error', function (evt) {
-        // packet = preparePacket("message", "Someone left the game,please start again");
+        // packet = prepareTakeSixPacket("message", "Someone left the game,please start again");
         //
         // ;
         // takeSix.broadCastAll(packet);
