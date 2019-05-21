@@ -174,12 +174,13 @@ class BocaDice {
         });
     }
 
-    setBocaDicePacket(type, message) {
+    setBocaDicePacket(type, message,buttonText) {
 
         this.bocaData.type = type;
         this.bocaData.message = message;
         this.bocaData.state = 0;
         this.bocaData.players = this.getUserList();
+        this.bocaData.buttonText= buttonText;
         return  this.bocaData;
     }
 
@@ -194,11 +195,12 @@ class BocaDice {
             ofieldPlayers:[[],[],[],[],[],[]],
             fieldColors: ["yellow", "cyan", "pink", "green", "orange", "#b19cd9"],
             fieldPlayers:[[],[],[],[],[],[]],
-            currentPlayer:"L",
+            currentPlayer:"x@xas",
             currentIndex:0,
             startIndex:0,
             round:1,
             buttonText:"Start",
+            buttonShow:true,
             dice:[0,0,0,0,0,0,0,0]
         }
     }
@@ -349,7 +351,16 @@ class BocaDice {
         let u = this.users.filter((user) => user.name === id)[0];
         u.connection.send(JSON.stringify(packet));
     }
-
+    getPlaying(){
+        return this.users.filter((user) => user.playing == true);
+    }
+    getNonPlaying(){
+        return this.users.filter((user) => user.playing !== true);
+    }
+    setPlay(id){
+        let lst = this.users.filter((user) => user.name === id);
+        lst[0].playing = true;
+    }
     send(id, packet) {
         let lst = this.users.filter((user) => user.name === id);
         this.sendPacket(lst, packet);

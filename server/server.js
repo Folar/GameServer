@@ -131,7 +131,7 @@ wsServer.on('request', function (request) {
         takeSix.broadCastAll(packet);
         takeSix.removeAllConnections();
         packet=bocaDice.setBocaDicePacket("message", "There has been no game activity for "+TakeSix.NUMBER_TlME_WARN
-            +" minutes.The Game Server has been restarted. Reload FolarGames in your browser");
+            +" minutes.The Game Server has been restarted. Reload FolarGames in your browser","Reload");
         bocaDiceStarted = false;
         bocaDice.broadCastAll(packet);
         bocaDice.removeAllConnections();
@@ -171,6 +171,40 @@ wsServer.on('request', function (request) {
             let str;
             resetTimer();
             switch (msg.type) {
+                case "startBocaDice":
+                    bocaDice.setPlay(msg.name);
+                    ulst = bocaDice.getNonPlaying();
+
+                    str = "";
+                    if (ulst.length == 0) {
+                        bocaDiceStarted = true;
+                        let players = bocaDice.getPlaying();;
+                        str = "Let the games begin! Select your first Card";
+                        packet =  bocaDice.setBocaDicePacket("playerStart", str,"Roll!!");
+                        packet.currentIndex = Math.floor(Math.random() * players.length);
+                        packet.currentPlayer =players[packet.currentIndex].name;
+
+                        bocaDice.broadCastAll(packet);
+                    } else {
+                        str = "Wating for "
+                        let cnt = 1;
+                        let names = [];
+                        for (let item in ulst) {
+                            names.push(ulst[item].name);
+                        }
+                        str += takeSix.formatNameList(names) + " to click Start";
+                        packet =  bocaDice.setBocaDicePacket("playerStart", str,"Start");
+                        bocaDice.sendPacket(ulst,packet);
+                        ulst = bocaDice.getPlaying();
+                        packet.buttonText ="Roll";
+                        bocaDice.sendPacket(ulst,packet);
+                    }
+
+
+                    break;
+
+
+
                 case "restartTake6":
                    restartGame();
                     break;
@@ -363,7 +397,9 @@ wsServer.on('request', function (request) {
                                 }
                                 else {
                                     user = bocaDice.addUser(connection, msg.name);
-                                    packet =  bocaDice.setBocaDicePacket("newUser", "Welcome! Press the Start button when all the players have joined");
+                                    packet =  bocaDice.setBocaDicePacket("newUser",
+                                        "Welcome! Press the Start button when all the players have joined",
+                                        "Start");
                                     bocaDice.send(msg.name, packet);
                                     packet.messageType = "newPlayer";
                                     packet.message = msg.name + " is now Playing\n\n";
