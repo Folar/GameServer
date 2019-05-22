@@ -171,6 +171,21 @@ wsServer.on('request', function (request) {
             let str;
             resetTimer();
             switch (msg.type) {
+
+                case "rollBocaDice":
+                    packet =  bocaDice.setBocaDicePacket("rollDice",
+                        msg.name +" rolled his/her dice",
+                        "Confirm");
+                    packet.dice = msg.dice;
+                    packet.selectedDice = msg.selectedDice;
+                    if(msg.selectedDice != -1){
+                        packet.fieldColors[msg.dice[msg.selectedDice]-1] ="gray";
+                        packet.fieldPlayers[msg.dice[msg.selectedDice]-1]= msg.fld;
+                    }
+                    bocaDice.broadCastMessage(msg.name, packet);
+                    packet.fieldColors[msg.dice[msg.selectedDice]-1] =   packet.ofieldColors[msg.dice[msg.selectedDice]-1];
+                    break;
+
                 case "startBocaDice":
                     bocaDice.setPlay(msg.name);
                     ulst = bocaDice.getNonPlaying();
@@ -179,9 +194,12 @@ wsServer.on('request', function (request) {
                     if (ulst.length == 0) {
                         bocaDiceStarted = true;
                         let players = bocaDice.getPlaying();;
-                        str = "Let the games begin! Select your first Card";
+                        let num =  Math.floor(Math.random() * players.length);
+                        str = "Let the games begin! " +
+                            players[num].name+" was randomly chosen to start the game";
                         packet =  bocaDice.setBocaDicePacket("playerStart", str,"Roll!!");
-                        packet.currentIndex = Math.floor(Math.random() * players.length);
+                        packet.totalDice = players.length * 8;
+                        packet.startIndex =packet.currentIndex = num;
                         packet.currentPlayer =players[packet.currentIndex].name;
 
                         bocaDice.broadCastAll(packet);

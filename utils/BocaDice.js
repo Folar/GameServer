@@ -201,7 +201,9 @@ class BocaDice {
             round:1,
             buttonText:"Start",
             buttonShow:true,
-            dice:[0,0,0,0,0,0,0,0]
+            dice:[0,0,0,0,0,0,0,0],
+            totalDice:0,
+            selectedDice :0
         }
     }
 
