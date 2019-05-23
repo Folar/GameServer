@@ -176,13 +176,20 @@ wsServer.on('request', function (request) {
                     packet =  bocaDice.setBocaDicePacket("rollDice",
                         msg.name +" rolled his/her dice",
                         "Confirm");
+
                     packet.dice = msg.dice;
                     packet.selectedDice = msg.selectedDice;
+                    packet.players[packet.currentIndex].diceLeft -= msg.qty;
                     if(msg.selectedDice != -1){
+                        packet.message = msg.name +" selected the "  +( msg.dice[msg.selectedDice]-1)+ " die("+msg.qty+")";
+                        packet.buttonText="Pass Dice";
                         packet.fieldColors[msg.dice[msg.selectedDice]-1] ="gray";
                         packet.fieldPlayers[msg.dice[msg.selectedDice]-1]= msg.fld;
+                        bocaDice.broadCastAll( packet);
+                    } else{
+                        bocaDice.broadCastMessage(msg.name,packet)
                     }
-                    bocaDice.broadCastMessage(msg.name, packet);
+
                     packet.fieldColors[msg.dice[msg.selectedDice]-1] =   packet.ofieldColors[msg.dice[msg.selectedDice]-1];
                     break;
 

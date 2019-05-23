@@ -203,7 +203,8 @@ class BocaDice {
             buttonShow:true,
             dice:[0,0,0,0,0,0,0,0],
             totalDice:0,
-            selectedDice :0
+            selectedDice :0,
+            diceNum:8
         }
     }
 
