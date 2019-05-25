@@ -174,6 +174,9 @@ class BocaDice {
         });
     }
 
+    getCurrentPacket(){
+        return this.bocaData;
+    }
     setBocaDicePacket(type, message,buttonText) {
 
         this.bocaData.type = type;
@@ -204,8 +207,54 @@ class BocaDice {
             dice:[0,0,0,0,0,0,0,0],
             totalDice:0,
             selectedDice :0,
-            diceNum:8
+            diceNum:BocaDice.NUMBER_DICE
         }
+    }
+    isUnique(playerIndex,fld){
+         for(let i in fld){
+             if (i == playerIndex)
+                 continue;
+             if(fld[i].value == fld[playerIndex].value)
+                 return false;
+         }
+         return true;
+    }
+    getUniquePlayer(playerIndex,fld){
+        if(playerIndex == fld.length){
+            return -1;
+        }
+        while(!this.isUnique(playerIndex,fld)){
+            playerIndex++;
+            if(playerIndex == fld.length){
+                return -1;
+            }
+        }
+        return playerIndex;
+    }
+    distributeFieldCash(ind){
+        let playerIndex = 0;
+        let fld = this.bocaData.fieldPlayers[ind]
+        let money = this.bocaData.money[ind];
+        while(money.length>0){
+            playerIndex = this.getUniquePlayer(playerIndex,fld);
+            if(playerIndex == -1)
+                return;
+            this.getUser(fld[playerIndex].name).money += money[0].value;
+            this.getUser(fld[playerIndex].name).totalMoney += money[0].value;
+            money.splice(0,1);
+            playerIndex++;
+
+        }
+
+    }
+
+    distributePlayerCash(){
+        for (let i=0;i<6;i++){
+            if(this.bocaData.fieldPlayers[i].length>0)
+                this.distributeFieldCash(i);
+
+        }
+
     }
 
     addUser(connection, name) {
@@ -213,7 +262,8 @@ class BocaDice {
             connection: connection,
             name: name,
             money:0,
-            diceLeft: 8,
+            totalMoney:0,
+            diceLeft: BocaDice.NUMBER_DICE,
             playing: false
         };
         this.users.push(user);
@@ -396,6 +446,7 @@ class BocaDice {
 
         return namesArray;
     }
+
 }
 
 module.exports = {BocaDice};

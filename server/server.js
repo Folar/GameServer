@@ -172,21 +172,56 @@ wsServer.on('request', function (request) {
             resetTimer();
             switch (msg.type) {
 
-                case "rollBocaDice":
-                    packet =  bocaDice.setBocaDicePacket("rollDice",
-                        msg.name +" rolled his/her dice",
-                        "Confirm");
+                case "passBocaDice":
+                    packet = bocaDice.getCurrentPacket();
+                    while(true){
+                        if (packet.totalDice <= 0){
+                            bocaDice.distributePlayerCash();
+                            break;
+                        }
+                        packet.currentIndex++;
+                        if(packet.currentIndex == packet.players.length)
+                            packet.currentIndex =0;
+                        if(packet.players[packet.currentIndex].diceLeft!=0){
+                            packet.currentPlayer = packet.players[packet.currentIndex].name;
+                            packet.diceNum = packet.players[packet.currentIndex].diceLeft;
+                            packet =  bocaDice.setBocaDicePacket("passDice",
+                                packet.currentPlayer +" is starting her/his turn",
+                                "Roll!!");
+                            bocaDice.broadCastAll( packet);
+                            break;
+                        }
+                    }
+                    break;
 
-                    packet.dice = msg.dice;
-                    packet.selectedDice = msg.selectedDice;
-                    packet.players[packet.currentIndex].diceLeft -= msg.qty;
+                case "rollBocaDice":
+
+
+
+
+
                     if(msg.selectedDice != -1){
-                        packet.message = msg.name +" selected the "  +( msg.dice[msg.selectedDice]-1)+ " die("+msg.qty+")";
-                        packet.buttonText="Pass Dice";
+                        packet = bocaDice.getCurrentPacket();
+                        packet.dice = msg.dice;
+                        packet.selectedDice = msg.selectedDice;
+
+                        let u =bocaDice.users[packet.currentIndex];
+                        u.diceLeft -= msg.qty;
+                        packet =  bocaDice.setBocaDicePacket("rollDice",
+                            msg.name +" selected the "  +( msg.dice[msg.selectedDice])+ " die("+msg.qty+")",
+                            "Pass Dice");
+                      //  packet.players[packet.currentIndex].diceLeft -= msg.qty;
+                        packet.totalDice -= msg.qty;
                         packet.fieldColors[msg.dice[msg.selectedDice]-1] ="gray";
                         packet.fieldPlayers[msg.dice[msg.selectedDice]-1]= msg.fld;
+                        packet.ofieldPlayers[msg.dice[msg.selectedDice]-1]= msg.fld;
                         bocaDice.broadCastAll( packet);
                     } else{
+                        packet =  bocaDice.setBocaDicePacket("rollDice",
+                            msg.name +" rolled his/her dice",
+                            "Confirm");
+                        packet.dice = msg.dice;
+                        packet.selectedDice = msg.selectedDice;
                         bocaDice.broadCastMessage(msg.name,packet)
                     }
 
@@ -205,7 +240,7 @@ wsServer.on('request', function (request) {
                         str = "Let the games begin! " +
                             players[num].name+" was randomly chosen to start the game";
                         packet =  bocaDice.setBocaDicePacket("playerStart", str,"Roll!!");
-                        packet.totalDice = players.length * 8;
+                        packet.totalDice = players.length * BocaDice.NUMBER_DICE;
                         packet.startIndex =packet.currentIndex = num;
                         packet.currentPlayer =players[packet.currentIndex].name;
 
