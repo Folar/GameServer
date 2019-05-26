@@ -21,7 +21,7 @@ class BocaDice {
 
     }
     static get NUMBER_ROUNDS() {
-        return 4;
+        return 2;
     }
 
     static get NUMBER_DICE() {
@@ -66,6 +66,14 @@ class BocaDice {
     }
     cmp(a, b) {
         return (a.value - b.value) * -1;
+    }
+    nextRound(){
+        this.distributeCash();
+        this.bocaData.money=this.cash
+        this.bocaData.ofieldPlayers = [[],[],[],[],[],[]];
+        this.bocaData.fieldPlayers = [[],[],[],[],[],[]];
+        this.setMoneyTotalDiceLeft();
+        this.bocaData.diceNum = BocaDice.NUMBER_DICE;
     }
     newDeal() {
         this.deck = this.getDeck();
@@ -131,7 +139,7 @@ class BocaDice {
     chkForDuplicateName(n) {
         let ulst = this.users;
         for (let item in ulst) {
-            if (ulst[item].id === n) {
+            if (ulst[item].name == n) {
                 return true;
             }
         }
@@ -139,7 +147,7 @@ class BocaDice {
     }
 
     findMinMax() {
-        let min = 200;
+        let min = 20000;
         let max = -1;
         let minNames = [];
         let maxNames = [];
@@ -249,6 +257,7 @@ class BocaDice {
     }
 
     distributePlayerCash(){
+        this.setMoneyZero();
         for (let i=0;i<6;i++){
             if(this.bocaData.fieldPlayers[i].length>0)
                 this.distributeFieldCash(i);
@@ -429,7 +438,17 @@ class BocaDice {
         lst = this.watchers;
         this.sendPacket(lst, packet);
     }
+    setMoneyTotalDiceLeft(){
+        for (let i in this.users) {
+            this.users[i].money = this.users[i].totalMoney;
+            this.users[i].diceLeft = BocaDice.NUMBER_DICE;
+        }
 
+    }
+    setMoneyZero(){
+        for (let i in this.users)
+            this.users[i].money = 0;
+    }
     getUser(id) {
         return this.users.filter((user) => user.name === id)[0]
     }

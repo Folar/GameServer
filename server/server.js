@@ -171,12 +171,50 @@ wsServer.on('request', function (request) {
             let str;
             resetTimer();
             switch (msg.type) {
+                case "nextRoundBocaDice":
+                    bocaDice.nextRound();
+                    let players = bocaDice.getPlaying();
+                    packet = bocaDice.getCurrentPacket();
+                    packet.totalDice = players.length * BocaDice.NUMBER_DICE;
+                    packet =  bocaDice.setBocaDicePacket("passDice",
+                        packet.currentPlayer +" is starting her/his turn",
+                        "Roll!!");
+                    bocaDice.broadCastAll(packet)
 
+
+                    break;
                 case "passBocaDice":
                     packet = bocaDice.getCurrentPacket();
                     while(true){
                         if (packet.totalDice <= 0){
+                            packet.startIndex++;
+                            if(packet.startIndex == packet.players.length)
+                                packet.startIndex = 0;
+                            packet.currentIndex =  packet.startIndex;
+                            packet.currentPlayer = packet.players[packet.currentIndex].name;
+                            let prevMoney = JSON.parse(JSON.stringify({ money: packet.money}));
                             bocaDice.distributePlayerCash();
+                            let afterMoney = JSON.parse(JSON.stringify({ money: packet.money}));
+                            packet.round++;
+                            if (packet.round<=BocaDice.NUMBER_ROUNDS) {
+                                packet = bocaDice.setBocaDicePacket("startRound",
+                                    packet.currentPlayer + " will start round " + packet.round +
+                                    "\n\n  *subtotals for round " + (packet.round - 1),
+                                    "Start Rnd " + packet.round);
+                                packet.money = prevMoney.money;
+                                bocaDice.broadCastAll(packet);
+                                packet.money = afterMoney.money;
+                            }else{
+                                bocaDice.setMoneyTotalDiceLeft();
+                                let res= bocaDice.findMinMax();
+                                packet = bocaDice.setBocaDicePacket("Reset",
+                                    bocaDice.formatNameList(res[3]) + " won the game with " + res[2]+ " grand",
+                                    "Reset");
+                                bocaDice.broadCastAll(packet);
+                                bocaDiceStarted = false;
+                                bocaDice.broadCastAll(packet);
+                                bocaDice.removeAllConnections();
+                            }
                             break;
                         }
                         packet.currentIndex++;
@@ -440,6 +478,8 @@ wsServer.on('request', function (request) {
                         case 4:
                             if(bocaDice.chkForDuplicateName(msg.name)){
                                 packet = bocaDice.prepareBocaDicePacket("dupUser", msg.name +" has already signed on, please choose another");
+
+                                packet.messageType = "dupUser";
                                 connection.send(JSON.stringify(packet));
                                 break;
                             } else {
@@ -447,6 +487,7 @@ wsServer.on('request', function (request) {
                                 if(bocaDiceStarted){
                                     user = bocaDice.addWatchers(connection, msg.name);
                                     packet = bocaDice.prepareBocaDicePacket("newWatcher", "The game has already started, but you can still watch the game");
+                                    packet.messageType = "newWatcher";
                                     bocaDice.sendWatcher(msg.name, packet);
 
                                 } else if (bocaDice.users.length == BocaDice.NUMBER_PLAYERS ){
