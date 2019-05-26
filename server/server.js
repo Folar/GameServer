@@ -486,7 +486,7 @@ wsServer.on('request', function (request) {
                                 let user = null
                                 if(bocaDiceStarted){
                                     user = bocaDice.addWatchers(connection, msg.name);
-                                    packet = bocaDice.prepareBocaDicePacket("newWatcher", "The game has already started, but you can still watch the game");
+                                    packet = bocaDice.setBocaDicePacket("newWatcher", "The game has already started, but you can still watch the game","");
                                     packet.messageType = "newWatcher";
                                     bocaDice.sendWatcher(msg.name, packet);
 
