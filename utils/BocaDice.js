@@ -21,7 +21,7 @@ class BocaDice {
 
     }
     static get NUMBER_ROUNDS() {
-        return 2;
+        return 4;
     }
 
     static get NUMBER_DICE() {

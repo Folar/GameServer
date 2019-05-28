@@ -207,10 +207,10 @@ wsServer.on('request', function (request) {
                             }else{
                                 bocaDice.setMoneyTotalDiceLeft();
                                 let res= bocaDice.findMinMax();
-                                packet = bocaDice.setBocaDicePacket("Reset",
+                                packet = bocaDice.setBocaDicePacket("Restart",
                                     bocaDice.formatNameList(res[3]) + " won the game with " + res[2]+ " grand",
-                                    "Reset");
-                                bocaDice.broadCastAll(packet);
+                                    "Restart");
+                                bocaDice.diceNum = 8;
                                 bocaDiceStarted = false;
                                 bocaDice.broadCastAll(packet);
                                 bocaDice.removeAllConnections();
@@ -492,8 +492,8 @@ wsServer.on('request', function (request) {
 
                                 } else if (bocaDice.users.length == BocaDice.NUMBER_PLAYERS ){
                                     user = bocaDice.addWatchers(connection, msg.name);
-                                    packet =  bocaDice.prepareBocaDicePacket("newWatcher", "The game has already has "+TakeSix.NUMBER_PLAYERS+
-                                        " players, but you can still watch the game");
+                                    packet =  bocaDice.setBocaDicePacket("newWatcher", "The game has already has "+BocaDice.NUMBER_PLAYERS+
+                                        " players, but you can still watch the game","");
                                     bocaDice.sendWatcher(msg.name, packet);
                                 }
                                 else {
