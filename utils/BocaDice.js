@@ -32,7 +32,9 @@ class BocaDice {
     static get NUMBER_PLAYERS() {
         return  5;
     }
-
+    static get BOCA_DELAY() {
+        return  4000;
+    }
 
 
     formatNameList(ulst) {
@@ -215,7 +217,8 @@ class BocaDice {
             dice:[0,0,0,0,0,0,0,0],
             totalDice:0,
             selectedDice :0,
-            diceNum:BocaDice.NUMBER_DICE
+            diceNum:BocaDice.NUMBER_DICE,
+            prevMoney:0
         }
     }
     isUnique(playerIndex,fld){

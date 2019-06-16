@@ -4,7 +4,7 @@ const {TakeSix} = require('./../utils/TakeSix.js');
 const {BocaDice} = require('./../utils/BocaDice.js');
 
 let takeSix = new TakeSix();
-let bocaDice= new BocaDice();
+let bocaDice = new BocaDice();
 var deck = new Array();
 myTimer = null;
 let bocaDiceStarted = false;
@@ -18,7 +18,7 @@ var server = http.createServer(function (request, response) {
     response.end();
 });
 server.listen(port, function () {
-    console.log((new Date()) + ' Server is listening on port '+port);
+    console.log((new Date()) + ' Server is listening on port ' + port);
 });
 
 wsServer = new WebSocketServer({
@@ -46,6 +46,7 @@ wsServer.on('request', function (request) {
         console.log((new Date()) + ' Connection from origin ' + request.origin + ' rejected.');
         return;
     }
+
     function compare(a, b) {
         if (a.rank < b.rank) {
             return -1;
@@ -56,7 +57,6 @@ wsServer.on('request', function (request) {
         // a must be equal to b
         return 0;
     }
-
 
 
     function prepareTakeSixPacket(type, message) {
@@ -70,7 +70,7 @@ wsServer.on('request', function (request) {
             message: message,
             state: 0,
             buttonText: "Start",
-            reanimate:false,
+            reanimate: false,
             users: []
         }
     }
@@ -89,7 +89,7 @@ wsServer.on('request', function (request) {
 
     function prepareForPlacement(packet, rank) {
 
-       // console.log("prepareForPlacement rank =" + rank);
+        // console.log("prepareForPlacement rank =" + rank);
         let pkt = JSON.parse(JSON.stringify(packet));  //deepCopy
         let rows = [pkt.row1, pkt.row2, pkt.row3, pkt.row4];
         let min = 200;
@@ -101,7 +101,7 @@ wsServer.on('request', function (request) {
                     (rank - rows[item][rows[item].length - 1].rank) > 0) {
                     min = rank - rows[item][rows[item].length - 1].rank;
                     rmin = idx;
-                  //  console.log("prepareForPlacement row=" + idx + " card=" + rows[item][rows[item].length - 1].rank
+                    //  console.log("prepareForPlacement row=" + idx + " card=" + rows[item][rows[item].length - 1].rank
                     //    + " min=" + min);
                 }
             }
@@ -122,40 +122,101 @@ wsServer.on('request', function (request) {
     }
 
     let canReset = true;
+
     function restartGame() {
-        canReset =false;
-        console.log("start of restartgame") ;
-        let packet = prepareTakeSixPacket("message", "There has been no game activity for "+TakeSix.NUMBER_TlME_WARN
-            +" minutes.The Game Server has been restarted. Reload FolarGames in your browser");
+        canReset = false;
+        console.log("start of restartgame");
+        let packet = prepareTakeSixPacket("message", "There has been no game activity for " + TakeSix.NUMBER_TlME_WARN
+            + " minutes.The Game Server has been restarted. Reload FolarGames in your browser");
         takeSixStarted = false;
         takeSix.broadCastAll(packet);
         takeSix.removeAllConnections();
-        packet=bocaDice.setBocaDicePacket("message", "There has been no game activity for "+TakeSix.NUMBER_TlME_WARN
-            +" minutes.The Game Server has been restarted. Reload FolarGames in your browser","Reload");
+        packet = bocaDice.setBocaDicePacket("message", "There has been no game activity for " + TakeSix.NUMBER_TlME_WARN
+            + " minutes.The Game Server has been restarted. Reload FolarGames in your browser", "Reload");
         bocaDiceStarted = false;
         bocaDice.broadCastAll(packet);
         bocaDice.removeAllConnections();
-        if (myTimer != null){
+        if (myTimer != null) {
             clearTimeout(myTimer);
         }
         myTimer = null;
         canReset = true;
-        console.log("end of restartgame") ;
+        console.log("end of restartgame");
     }
 
-    function resetTimer(){
-        if (!canReset){
+    function resetTimer() {
+        if (!canReset) {
             console.log("no of reset timer")
             return;
         }
 
-        if (myTimer != null){
+        if (myTimer != null) {
             clearTimeout(myTimer);
         }
-        myTimer = setTimeout(restartGame, 60000 * TakeSix.NUMBER_TlME_WARN );
-        
-    }
+        myTimer = setTimeout(restartGame, 60000 * TakeSix.NUMBER_TlME_WARN);
 
+    }
+    function endGame() {
+        bocaDice.setMoneyTotalDiceLeft();
+        let res = bocaDice.findMinMax();
+        packet = bocaDice.setBocaDicePacket("Restart",
+            bocaDice.formatNameList(res[3]) + " won the game with " + res[2] + " grand",
+            "Restart");
+        bocaDice.diceNum = 8;
+        bocaDiceStarted = false;
+        //packet.money = packet.prevMoney;
+        bocaDice.broadCastAll(packet);
+        bocaDice.removeAllConnections();
+    }
+    function passDice() {
+        packet = bocaDice.getCurrentPacket();
+        while (true) {
+            if (packet.totalDice <= 0) {
+                packet.startIndex++;
+                if (packet.startIndex == packet.players.length)
+                    packet.startIndex = 0;
+                packet.currentIndex = packet.startIndex;
+                packet.currentPlayer = packet.players[packet.currentIndex].name;
+                let prevMoney = JSON.parse(JSON.stringify({money: packet.money}));
+                packet.prevMoney = prevMoney;
+                bocaDice.distributePlayerCash();
+                let afterMoney = JSON.parse(JSON.stringify({money: packet.money}));
+                packet.round++;
+
+                let res = bocaDice.findMinMax();
+                if (packet.round <= BocaDice.NUMBER_ROUNDS) {
+                    packet = bocaDice.setBocaDicePacket("startRound",
+                        bocaDice.formatNameList(res[3]) + " won the round with " + res[2] + " grand . " +
+                        packet.currentPlayer + " will start round " + packet.round +
+                        "\n  *subtotals for round " + (packet.round - 1),
+                        "Start Rnd " + packet.round);
+                } else {
+                    packet = bocaDice.setBocaDicePacket("endGame",
+                        bocaDice.formatNameList(res[3]) + " won the round with " + res[2] + " grand . " +
+                        "\n  *subtotals for round " + (packet.round - 1),
+                        "Finish");
+                    setTimeout(endGame, BocaDice.BOCA_DELAY);
+                }
+                packet.money = prevMoney.money;
+                bocaDice.broadCastAll(packet);
+                packet.money = afterMoney.money;
+
+                break;
+            }
+            packet.currentIndex++;
+            if (packet.currentIndex == packet.players.length)
+                packet.currentIndex = 0;
+            if (packet.players[packet.currentIndex].diceLeft != 0) {
+                packet.currentPlayer = packet.players[packet.currentIndex].name;
+                packet.diceNum = packet.players[packet.currentIndex].diceLeft;
+                packet = bocaDice.setBocaDicePacket("passDice",
+                    packet.currentPlayer + " is starting her/his turn",
+                    "Roll!!");
+                bocaDice.broadCastAll(packet);
+                break;
+            }
+        }
+    }
 
     let payload = "";
     var connection = request.accept('echo-protocol', request.origin);
@@ -176,8 +237,8 @@ wsServer.on('request', function (request) {
                     let players = bocaDice.getPlaying();
                     packet = bocaDice.getCurrentPacket();
                     packet.totalDice = players.length * BocaDice.NUMBER_DICE;
-                    packet =  bocaDice.setBocaDicePacket("passDice",
-                        packet.currentPlayer +" is starting her/his turn",
+                    packet = bocaDice.setBocaDicePacket("passDice",
+                        packet.currentPlayer + " is starting her/his turn",
                         "Roll!!");
                     bocaDice.broadCastAll(packet)
 
@@ -185,85 +246,96 @@ wsServer.on('request', function (request) {
                     break;
                 case "passBocaDice":
                     packet = bocaDice.getCurrentPacket();
-                    while(true){
-                        if (packet.totalDice <= 0){
+                    while (true) {
+                        if (packet.totalDice <= 0) {
                             packet.startIndex++;
-                            if(packet.startIndex == packet.players.length)
+                            if (packet.startIndex == packet.players.length)
                                 packet.startIndex = 0;
-                            packet.currentIndex =  packet.startIndex;
+                            packet.currentIndex = packet.startIndex;
                             packet.currentPlayer = packet.players[packet.currentIndex].name;
-                            let prevMoney = JSON.parse(JSON.stringify({ money: packet.money}));
+                            let prevMoney = JSON.parse(JSON.stringify({money: packet.money}));
+                            packet.prevMoney = prevMoney;
                             bocaDice.distributePlayerCash();
-                            let afterMoney = JSON.parse(JSON.stringify({ money: packet.money}));
+                            let afterMoney = JSON.parse(JSON.stringify({money: packet.money}));
                             packet.round++;
-                            if (packet.round<=BocaDice.NUMBER_ROUNDS) {
+
+                            let res = bocaDice.findMinMax();
+                            if (packet.round <= BocaDice.NUMBER_ROUNDS) {
                                 packet = bocaDice.setBocaDicePacket("startRound",
+                                    bocaDice.formatNameList(res[3]) + " won the round with " + res[2] + " grand . " +
                                     packet.currentPlayer + " will start round " + packet.round +
-                                    "\n\n  *subtotals for round " + (packet.round - 1),
+                                    "\n  *subtotals for round " + (packet.round - 1),
                                     "Start Rnd " + packet.round);
-                                packet.money = prevMoney.money;
-                                bocaDice.broadCastAll(packet);
-                                packet.money = afterMoney.money;
-                            }else{
-                                bocaDice.setMoneyTotalDiceLeft();
-                                let res= bocaDice.findMinMax();
-                                packet = bocaDice.setBocaDicePacket("Restart",
-                                    bocaDice.formatNameList(res[3]) + " won the game with " + res[2]+ " grand",
-                                    "Restart");
-                                bocaDice.diceNum = 8;
-                                bocaDiceStarted = false;
-                                bocaDice.broadCastAll(packet);
-                                bocaDice.removeAllConnections();
+                            } else {
+                                packet = bocaDice.setBocaDicePacket("endGame",
+                                    bocaDice.formatNameList(res[3]) + " won the round with " + res[2] + " grand . " +
+                                    "\n  *subtotals for round " + (packet.round - 1),
+                                    "Finish");
                             }
+                            packet.money = prevMoney.money;
+                            bocaDice.broadCastAll(packet);
+                            packet.money = afterMoney.money;
+
                             break;
                         }
                         packet.currentIndex++;
-                        if(packet.currentIndex == packet.players.length)
-                            packet.currentIndex =0;
-                        if(packet.players[packet.currentIndex].diceLeft!=0){
+                        if (packet.currentIndex == packet.players.length)
+                            packet.currentIndex = 0;
+                        if (packet.players[packet.currentIndex].diceLeft != 0) {
                             packet.currentPlayer = packet.players[packet.currentIndex].name;
                             packet.diceNum = packet.players[packet.currentIndex].diceLeft;
-                            packet =  bocaDice.setBocaDicePacket("passDice",
-                                packet.currentPlayer +" is starting her/his turn",
+                            packet = bocaDice.setBocaDicePacket("passDice",
+                                packet.currentPlayer + " is starting her/his turn",
                                 "Roll!!");
-                            bocaDice.broadCastAll( packet);
+                            bocaDice.broadCastAll(packet);
                             break;
                         }
                     }
                     break;
 
+                case "endGame":
+                    bocaDice.setMoneyTotalDiceLeft();
+                    let res = bocaDice.findMinMax();
+                    packet = bocaDice.setBocaDicePacket("Restart",
+                        bocaDice.formatNameList(res[3]) + " won the game with " + res[2] + " grand",
+                        "Restart");
+                    bocaDice.diceNum = 8;
+                    bocaDiceStarted = false;
+                    let packetmoney = packet.prevMoney;
+                    bocaDice.broadCastAll(packet);
+                    bocaDice.removeAllConnections();
+                    break;
+
                 case "rollBocaDice":
 
 
-
-
-
-                    if(msg.selectedDice != -1){
+                    if (msg.selectedDice != -1) {
                         packet = bocaDice.getCurrentPacket();
                         packet.dice = msg.dice;
                         packet.selectedDice = msg.selectedDice;
 
-                        let u =bocaDice.users[packet.currentIndex];
+                        let u = bocaDice.users[packet.currentIndex];
                         u.diceLeft -= msg.qty;
-                        packet =  bocaDice.setBocaDicePacket("rollDice",
-                            msg.name +" selected the "  +( msg.dice[msg.selectedDice])+ " die("+msg.qty+")",
+                        packet = bocaDice.setBocaDicePacket("rollDice",
+                            msg.name + " selected the " + (msg.dice[msg.selectedDice]) + " die(" + msg.qty + ")",
                             "Pass Dice");
-                      //  packet.players[packet.currentIndex].diceLeft -= msg.qty;
+                        //  packet.players[packet.currentIndex].diceLeft -= msg.qty;
                         packet.totalDice -= msg.qty;
-                        packet.fieldColors[msg.dice[msg.selectedDice]-1] ="gray";
-                        packet.fieldPlayers[msg.dice[msg.selectedDice]-1]= msg.fld;
-                        packet.ofieldPlayers[msg.dice[msg.selectedDice]-1]= msg.fld;
-                        bocaDice.broadCastAll( packet);
-                    } else{
-                        packet =  bocaDice.setBocaDicePacket("rollDice",
-                            msg.name +" rolled his/her dice",
+                        packet.fieldColors[msg.dice[msg.selectedDice] - 1] = "gray";
+                        packet.fieldPlayers[msg.dice[msg.selectedDice] - 1] = msg.fld;
+                        packet.ofieldPlayers[msg.dice[msg.selectedDice] - 1] = msg.fld;
+                        bocaDice.broadCastAll(packet);
+                        setTimeout(passDice, BocaDice.BOCA_DELAY);
+                    } else {
+                        packet = bocaDice.setBocaDicePacket("rollDice",
+                            msg.name + " rolled his/her dice",
                             "Confirm");
                         packet.dice = msg.dice;
                         packet.selectedDice = msg.selectedDice;
-                        bocaDice.broadCastMessage(msg.name,packet)
+                        bocaDice.broadCastMessage(msg.name, packet)
                     }
 
-                    packet.fieldColors[msg.dice[msg.selectedDice]-1] =   packet.ofieldColors[msg.dice[msg.selectedDice]-1];
+                    packet.fieldColors[msg.dice[msg.selectedDice] - 1] = packet.ofieldColors[msg.dice[msg.selectedDice] - 1];
                     break;
 
                 case "startBocaDice":
@@ -273,48 +345,48 @@ wsServer.on('request', function (request) {
                     str = "";
                     if (ulst.length == 0) {
                         bocaDiceStarted = true;
-                        let players = bocaDice.getPlaying();;
-                        let num =  Math.floor(Math.random() * players.length);
+                        let players = bocaDice.getPlaying();
+                        ;
+                        let num = Math.floor(Math.random() * players.length);
                         str = "Let the games begin! " +
-                            players[num].name+" was randomly chosen to start the game";
-                        packet =  bocaDice.setBocaDicePacket("playerStart", str,"Roll!!");
+                            players[num].name + " was randomly chosen to start the game";
+                        packet = bocaDice.setBocaDicePacket("playerStart", str, "Roll!!");
                         packet.totalDice = players.length * BocaDice.NUMBER_DICE;
-                        packet.startIndex =packet.currentIndex = num;
-                        packet.currentPlayer =players[packet.currentIndex].name;
+                        packet.startIndex = packet.currentIndex = num;
+                        packet.currentPlayer = players[packet.currentIndex].name;
 
                         bocaDice.broadCastAll(packet);
                     } else {
-                        str = "Wating for "
+                        str = "Waiting for "
                         let cnt = 1;
                         let names = [];
                         for (let item in ulst) {
                             names.push(ulst[item].name);
                         }
                         str += takeSix.formatNameList(names) + " to click Start";
-                        packet =  bocaDice.setBocaDicePacket("playerStart", str,"Start");
-                        bocaDice.sendPacket(ulst,packet);
+                        packet = bocaDice.setBocaDicePacket("playerStart", str, "Start");
+                        bocaDice.sendPacket(ulst, packet);
                         ulst = bocaDice.getPlaying();
-                        packet.buttonText ="Roll";
-                        bocaDice.sendPacket(ulst,packet);
+                        packet.buttonText = "Roll";
+                        bocaDice.sendPacket(ulst, packet);
                     }
 
 
                     break;
 
 
-
                 case "restartTake6":
-                   restartGame();
+                    restartGame();
                     break;
 
                 case "placeCard":
-                    console.log("ZZZZZZZ "+takeSix.getState(msg.name ));
-                    if (takeSix.getState(msg.name )!= 5){
+                    console.log("ZZZZZZZ " + takeSix.getState(msg.name));
+                    if (takeSix.getState(msg.name) != 5) {
                         console.log("XXXXXXXXXXXXX AAAAAAAA");
                         return;
                     }
                     takeSix.setState(msg.name, 6);
-                    console.log("YYYYYYY "+takeSix.getState(msg.name ));
+                    console.log("YYYYYYY " + takeSix.getState(msg.name));
                     takeSix.stopPlaying(msg.name);
                     str = msg.name + " placed their card for this round. ";
                     let rows = takeSix.getCardRows();
@@ -326,11 +398,11 @@ wsServer.on('request', function (request) {
                         rows[msg.row - 1].length < TakeSix.NUMBER_TAKE) {
                         rows[msg.row - 1].push(takeSix.getCurrentCard(msg.name));
                     } else {
-                        score =takeSix.score(msg.name, rows[msg.row - 1]);
-                        str += msg.name + " added "+score+ " bulls to their score. ";
+                        score = takeSix.score(msg.name, rows[msg.row - 1]);
+                        str += msg.name + " added " + score + " bulls to their score. ";
                         let newRow = [];
-                        if(rows[msg.row - 1].length ==  TakeSix.NUMBER_TAKE)
-                            msgType ="mooSound";
+                        if (rows[msg.row - 1].length == TakeSix.NUMBER_TAKE)
+                            msgType = "mooSound";
                         newRow.push(takeSix.getCurrentCard(msg.name));
                         takeSix.setOneRow(msg.row, newRow);
                     }
@@ -339,7 +411,7 @@ wsServer.on('request', function (request) {
                     if (ulst.length == 0) {
                         takeSix.setAllState(3);
                         if (takeSix.users[0].cards.length != 0) {
-                            str += " Start round " + (11 - takeSix.users[0].cards.length ) + ".";
+                            str += " Start round " + (11 - takeSix.users[0].cards.length) + ".";
                             packet = prepareTakeSixPacket(msgType, str);
                             takeSix.broadCastAll(packet);
                         } else {
@@ -348,27 +420,26 @@ wsServer.on('request', function (request) {
                             let minNames = tally[1];
                             let max = tally[2];
                             let maxNames = tally[3];
-                            let wstatus = minNames.length > 1? " are the WINNERS!!" : " is the WINNER!!";
-                            let lstatus = minNames.length > 1? " are the LOOSERS!!" : " is the LOOSER!!";
-                            let astatus = minNames.length > 1? " are the leaders." : " is the leader.";
-                            let rstatus = minNames.length > 1? " are bringing up the rear." : " is bringing up the rear.";
-                            if(max >= TakeSix.NUMBER_GOAL){
-                                str += "With a score of "+ min +" "+
-                                    takeSix.formatNameList(minNames)+ wstatus;
-                                str += " With a score of "+ max +" "+
-                                    takeSix.formatNameList(maxNames)+ lstatus;
+                            let wstatus = minNames.length > 1 ? " are the WINNERS!!" : " is the WINNER!!";
+                            let lstatus = minNames.length > 1 ? " are the LOOSERS!!" : " is the LOOSER!!";
+                            let astatus = minNames.length > 1 ? " are the leaders." : " is the leader.";
+                            let rstatus = minNames.length > 1 ? " are bringing up the rear." : " is bringing up the rear.";
+                            if (max >= TakeSix.NUMBER_GOAL) {
+                                str += "With a score of " + min + " " +
+                                    takeSix.formatNameList(minNames) + wstatus;
+                                str += " With a score of " + max + " " +
+                                    takeSix.formatNameList(maxNames) + lstatus;
                                 takeSixStarted = false;
                                 packet = prepareTakeSixPacket(msgType, str);
                                 packet.buttonText = "Again?";
                                 takeSix.broadCastAll(packet);
                                 takeSix.removeAllConnections();
-                            }
-                            else {
+                            } else {
                                 takeSix.reshuffle();
-                                str += "With a score of "+ min +" "+
-                                    takeSix.formatNameList(minNames)+ astatus;
-                                str += " With a score of "+ max +" "+
-                                    takeSix.formatNameList(maxNames)+ rstatus;
+                                str += "With a score of " + min + " " +
+                                    takeSix.formatNameList(minNames) + astatus;
+                                str += " With a score of " + max + " " +
+                                    takeSix.formatNameList(maxNames) + rstatus;
                                 str += " The deck will be reshuffle and play will continue."
                                 packet = prepareTakeSixPacket(msgType, str);
                                 packet.reanimate = true;
@@ -377,8 +448,6 @@ wsServer.on('request', function (request) {
 
 
                         }
-
-
 
 
                     } else {
@@ -402,8 +471,8 @@ wsServer.on('request', function (request) {
                     ulst = takeSix.getByNotState(4);
                     if (ulst.length == 0) {
                         takeSix.sortUsersByCardRank();
-                        str =msg.name + " selected a card for this round. All cards have now been Selected. " +
-                             takeSix.getUserList()[0].name;
+                        str = msg.name + " selected a card for this round. All cards have now been Selected. " +
+                            takeSix.getUserList()[0].name;
                         takeSix.setAllState(5);
 
                         packet = prepareTakeSixPacket("message", str);
@@ -430,7 +499,7 @@ wsServer.on('request', function (request) {
                         takeSix.setAllState(3);
 
                     } else {
-                        str = "Wating for "
+                        str = "Waiting for "
                         let cnt = 1;
                         let names = [];
                         for (let item in ulst) {
@@ -446,24 +515,23 @@ wsServer.on('request', function (request) {
 
                     switch (msg.gameType) {
                         case 2:
-                            if(takeSix.chkForDuplicateName(msg.name)){
-                                packet = prepareTakeSixPacket("dupUser", msg.name +" has already signed on, please choose another");
+                            if (takeSix.chkForDuplicateName(msg.name)) {
+                                packet = prepareTakeSixPacket("dupUser", msg.name + " has already signed on, please choose another");
                                 connection.send(JSON.stringify(packet));
                                 break;
                             } else {
                                 let user = null
-                                if(takeSixStarted){
+                                if (takeSixStarted) {
                                     user = takeSix.addWatchers(connection, msg.name);
                                     packet = prepareTakeSixPacket("newWatcher", "The game has already started, but you can still watch the game");
                                     takeSix.sendWatcher(msg.name, packet);
 
-                                } else if (takeSix.users.length == TakeSix.NUMBER_PLAYERS ){
+                                } else if (takeSix.users.length == TakeSix.NUMBER_PLAYERS) {
                                     user = takeSix.addWatchers(connection, msg.name);
-                                    packet = prepareTakeSixPacket("newWatcher", "The game has already has "+TakeSix.NUMBER_PLAYERS+
+                                    packet = prepareTakeSixPacket("newWatcher", "The game has already has " + TakeSix.NUMBER_PLAYERS +
                                         " players, but you can still watch the game");
                                     takeSix.sendWatcher(msg.name, packet);
-                                }
-                                else {
+                                } else {
                                     user = takeSix.addUser(connection, msg.name);
                                     packet = prepareTakeSixPacket("newUser", "Welcome! Press the Start button when all the players have joined");
                                     takeSix.send(msg.name, packet);
@@ -476,29 +544,28 @@ wsServer.on('request', function (request) {
                             break;
 
                         case 4:
-                            if(bocaDice.chkForDuplicateName(msg.name)){
-                                packet = bocaDice.prepareBocaDicePacket("dupUser", msg.name +" has already signed on, please choose another");
+                            if (bocaDice.chkForDuplicateName(msg.name)) {
+                                packet = bocaDice.prepareBocaDicePacket("dupUser", msg.name + " has already signed on, please choose another");
 
                                 packet.messageType = "dupUser";
                                 connection.send(JSON.stringify(packet));
                                 break;
                             } else {
                                 let user = null
-                                if(bocaDiceStarted){
+                                if (bocaDiceStarted) {
                                     user = bocaDice.addWatchers(connection, msg.name);
-                                    packet = bocaDice.setBocaDicePacket("newWatcher", "The game has already started, but you can still watch the game","");
+                                    packet = bocaDice.setBocaDicePacket("newWatcher", "The game has already started, but you can still watch the game", "");
                                     packet.messageType = "newWatcher";
                                     bocaDice.sendWatcher(msg.name, packet);
 
-                                } else if (bocaDice.users.length == BocaDice.NUMBER_PLAYERS ){
+                                } else if (bocaDice.users.length == BocaDice.NUMBER_PLAYERS) {
                                     user = bocaDice.addWatchers(connection, msg.name);
-                                    packet =  bocaDice.setBocaDicePacket("newWatcher", "The game has already has "+BocaDice.NUMBER_PLAYERS+
-                                        " players, but you can still watch the game","");
+                                    packet = bocaDice.setBocaDicePacket("newWatcher", "The game has already has " + BocaDice.NUMBER_PLAYERS +
+                                        " players, but you can still watch the game", "");
                                     bocaDice.sendWatcher(msg.name, packet);
-                                }
-                                else {
+                                } else {
                                     user = bocaDice.addUser(connection, msg.name);
-                                    packet =  bocaDice.setBocaDicePacket("newUser",
+                                    packet = bocaDice.setBocaDicePacket("newUser",
                                         "Welcome! Press the Start button when all the players have joined",
                                         "Start");
                                     bocaDice.send(msg.name, packet);
@@ -512,12 +579,10 @@ wsServer.on('request', function (request) {
                     }
 
 
-
                     break;
             }
 
-        }
-        else if (message.type === 'binary') {
+        } else if (message.type === 'binary') {
             console.log('Received Binary Message of ' + message.binaryData.length + ' bytes');
             connection.sendBytes(message.binaryData);
         }
