@@ -164,7 +164,7 @@ wsServer.on('request', function (request) {
             "Restart");
         bocaDice.diceNum = 8;
         bocaDiceStarted = false;
-        //packet.money = packet.prevMoney;
+        packet.money = packet.prevMoney.money;
         bocaDice.broadCastAll(packet);
         bocaDice.removeAllConnections();
     }
@@ -301,7 +301,7 @@ wsServer.on('request', function (request) {
                         "Restart");
                     bocaDice.diceNum = 8;
                     bocaDiceStarted = false;
-                    let packetmoney = packet.prevMoney;
+                    packet.money = packet.prevMoney;
                     bocaDice.broadCastAll(packet);
                     bocaDice.removeAllConnections();
                     break;
