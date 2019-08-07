@@ -2,13 +2,16 @@ var WebSocketServer = require('websocket').server;
 var http = require('http');
 const {TakeSix} = require('./../utils/TakeSix.js');
 const {BocaDice} = require('./../utils/BocaDice.js');
+const {Diver} = require('./../utils/Diver.js');
 
 let takeSix = new TakeSix();
 let bocaDice = new BocaDice();
+let diver = new Diver();
 var deck = new Array();
 myTimer = null;
 let bocaDiceStarted = false;
 let takeSixStarted = false;
+let diverStarted = false;
 const port = process.env.PORT || 9081;
 
 
@@ -136,6 +139,12 @@ wsServer.on('request', function (request) {
         bocaDiceStarted = false;
         bocaDice.broadCastAll(packet);
         bocaDice.removeAllConnections();
+        diverStarted = false;
+        packet =diver.setDiverPacket("message", "There has been no game activity for " + TakeSix.NUMBER_TlME_WARN
+            + " minutes.The Game Server has been restarted. Reload FolarGames in your browser", "Reload","");
+
+        diver.broadCastAll(packet);
+        diver.removeAllConnections();
         if (myTimer != null) {
             clearTimeout(myTimer);
         }
@@ -336,6 +345,43 @@ wsServer.on('request', function (request) {
                     }
 
                     packet.fieldColors[msg.dice[msg.selectedDice] - 1] = packet.ofieldColors[msg.dice[msg.selectedDice] - 1];
+                    break;
+
+
+                case "startDiver":
+                    diver.setPlay(msg.name);
+                    ulst = diver.getNonPlaying();
+
+                    str = "";
+                    if (ulst.length == 0) {
+                        diverStarted = true;
+                        let players = diver.getPlaying();
+                        ;
+                        let num = Math.floor(Math.random() * players.length);
+                        str = "Let the games begin! " +
+                            players[num].name + " was randomly chosen to start the game";
+                        packet = diver.setDiverPacket("playerStart", str, "Roll!!");
+                        packet.startIndex = packet.currentIndex = num;
+                        packet.currentPlayer = players[packet.currentIndex].name;
+                        diver.send(players[num].name, packet);
+                        packet.buttonText = "";
+                        diver.broadCastMessage(players[num].name, packet);
+                    } else {
+                        str = "Waiting for "
+                        let cnt = 1;
+                        let names = [];
+                        for (let item in ulst) {
+                            names.push(ulst[item].name);
+                        }
+                        str += takeSix.formatNameList(names) + " to click Start";
+                        packet = diver.setDiverPacket("playerStart", str, "Start");
+                        diver.sendPacket(ulst, packet);
+                        ulst = diver.getPlaying();
+                        packet.buttonText = "Roll";
+                        diver.sendPacket(ulst, packet);
+                    }
+
+
                     break;
 
                 case "startBocaDice":
@@ -575,7 +621,38 @@ wsServer.on('request', function (request) {
                                 }
                             }
                             break;
+                        case 5:
+                            if (diver.chkForDuplicateName(msg.name)) {
+                                packet = diver.prepareDiverPacket("dupUser", msg.name + " has already signed on, please choose another","");
 
+                                packet.messageType = "dupUser";
+                                connection.send(JSON.stringify(packet));
+                                break;
+                            } else {
+                                let user = null
+                                if (diverStarted) {
+                                    user = diver.addWatchers(connection, msg.name);
+                                    packet = diver.setDiverPacket("newWatcher", "The game has already started, but you can still watch the game", "","");
+                                    packet.messageType = "newWatcher";
+                                    diver.sendWatcher(msg.name, packet);
+
+                                } else if (diver.users.length == diver.NUMBER_PLAYERS) {
+                                    user = diver.addWatchers(connection, msg.name);
+                                    packet = diver.setdiverPacket("newWatcher", "The game has already has " + diver.NUMBER_PLAYERS +
+                                        " players, but you can still watch the game", "","");
+                                    diver.sendWatcher(msg.name, packet);
+                                } else {
+                                    user = diver.addUser(connection, msg.name);
+                                    packet = diver.setDiverPacket("newUser",
+                                        "Welcome! Press the Start button when all the players have joined",
+                                        "Start","");
+                                    diver.send(msg.name, packet);
+                                    packet.messageType = "newPlayer";
+                                    packet.message = msg.name + " is now Playing\n\n";
+                                    diver.broadCastMessage(msg.name, packet);
+                                }
+                            }
+                            break;
                     }
 
 
