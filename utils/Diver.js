@@ -1,15 +1,20 @@
 class Diver {
 
-
     constructor() {
         this.users = [];
         this.watchers = [];
         this.diverData = this.prepareDiverPacket();
         this.newDeal();
+        this.diverStarted = false;
 
 
     }
-
+    setDiverStarted (f){
+        this.diverStarted = f;
+    }
+    hasDiverStarted (){
+        return this.diverStarted;
+    }
     removeAllConnections() {
         let lst = this.users;
         this.closeSockets(lst);
@@ -218,18 +223,30 @@ class Diver {
             buttonText2: "",
             oxygen: 25,
             message: "the start msg",
+            di1:0,
+            di2:0,
             players: [],
             chips: [
                 {
                     name: "",
                     type: 'C',
                     color: "#2dcded",
+                    textColor:"red",
                     value: 3,
                     size: .5
                 },
                 {
                     name: "",
                     type: 'C',
+                    textColor:"red",
+                    color: "#2dcded",
+                    value: 3,
+                    size: .5
+                },
+                {
+                    name: "",
+                    type: 'C',
+                    textColor:"red",
                     color: "#2dcded",
                     value: 3,
                     size: .5
@@ -238,12 +255,14 @@ class Diver {
                     name: "",
                     type: 'C',
                     color: "#2dcded",
+                    textColor:"red",
                     value: 3,
                     size: .5
                 },
                 {
                     name: "",
                     type: 'C',
+                    textColor:"red",
                     color: "#2dcded",
                     value: 3,
                     size: .5
@@ -251,6 +270,7 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
+                    textColor:"red",
                     color: "#2dcded",
                     value: 3,
                     size: .5
@@ -258,6 +278,7 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
+                    textColor:"red",
                     color: "#2dcded",
                     value: 3,
                     size: .5
@@ -265,13 +286,7 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
-                    color: "#2dcded",
-                    value: 3,
-                    size: .5
-                },
-                {
-                    name: "",
-                    type: 'C',
+                    textColor:"red",
                     color: "#2dcded",
                     value: 3,
                     size: .5
@@ -280,6 +295,7 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
+                    textColor:"red",
                     color: "#40aed6",
                     value: 3,
                     size: .6
@@ -287,6 +303,7 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
+                    textColor:"red",
                     color: "#40aed6",
                     value: 3,
                     size: .6
@@ -294,6 +311,7 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
+                    textColor:"red",
                     color: "#40a3d6",
                     value: 3,
                     size: .6
@@ -301,6 +319,7 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
+                    textColor:"red",
                     color: "#40aed6",
                     value: 3,
                     size: .6
@@ -308,6 +327,7 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
+                    textColor:"red",
                     color: "#40aed6",
                     value: 3,
                     size: .6
@@ -315,6 +335,7 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
+                    textColor:"red",
                     color: "#40aed6",
                     value: 3,
                     size: .6
@@ -322,6 +343,7 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
+                    textColor:"red",
                     color: "#40aed6",
                     value: 3,
                     size: .6
@@ -329,6 +351,7 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
+                    textColor:"red",
                     color: "#40aed6",
                     value: 3,
                     size: .6
@@ -337,6 +360,7 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
+                    textColor:"red",
                     color: "#3c7da3",
                     value: 3,
                     size: .7
@@ -344,6 +368,7 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
+                    textColor:"red",
                     color: "#3c7da3",
                     value: 3,
                     size: .7
@@ -351,6 +376,7 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
+                    textColor:"red",
                     color: "#3c7da3",
                     value: 3,
                     size: .7
@@ -358,6 +384,7 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
+                    textColor:"red",
                     color: "#3c7da3",
                     value: 3,
                     size: .7
@@ -365,6 +392,7 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
+                    textColor:"red",
                     color: "#3c7da3",
                     value: 3,
                     size: .7
@@ -372,6 +400,7 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
+                    textColor:"red",
                     color: "#3c7da3",
                     value: 3,
                     size: .7
@@ -379,6 +408,7 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
+                    textColor:"red",
                     color: "#3c7da3",
                     value: 3,
                     size: .7
@@ -386,6 +416,7 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
+                    textColor:"red",
                     color: "#3c7da3",
                     value: 3,
                     size: .7
@@ -394,6 +425,7 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
+                    textColor:"red",
                     color: "#406280",
                     value: 3,
                     size: .8
@@ -401,6 +433,7 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
+                    textColor:"red",
                     color: "#406280",
                     value: 3,
                     size: .8
@@ -408,6 +441,7 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
+                    textColor:"red",
                     color: "#406280",
                     value: 3,
                     size: .8
@@ -415,6 +449,7 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
+                    textColor:"red",
                     color: "#406280",
                     value: 3,
                     size: .8
@@ -422,6 +457,7 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
+                    textColor:"red",
                     color: "#406280",
                     value: 3,
                     size: .8
@@ -429,6 +465,7 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
+                    textColor:"red",
                     color: "#406280",
                     value: 3,
                     size: .8
@@ -436,6 +473,7 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
+                    textColor:"red",
                     color: "#406280",
                     value: 3,
                     size: .8
@@ -443,6 +481,7 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
+                    textColor:"red",
                     color: "#406280",
                     value: 3,
                     size: .8
@@ -506,6 +545,7 @@ class Diver {
         var user = {
             connection: connection,
             name: name,
+            position:-1,
             score: 0,
             treasure: [],
             direction: "Down",
@@ -649,7 +689,12 @@ class Diver {
         let lst = this.watchers.filter((user) => user.name === id);
         this.sendPacket(lst, packet);
     }
-
+    sendToAll(id, packet){
+        this.send(id, packet);
+        packet.buttonText = "";
+        packet.buttonText2 = "";
+        this.broadCastMessage(id, packet);
+    }
     broadCastMessage(id, packet) {
         let lst = this.users.filter((user) => user.name !== id);
         this.sendPacket(lst, packet);
@@ -670,6 +715,7 @@ class Diver {
         var namesArray = this.users.map((user) => {
             return {
                 name: user.name,
+                position:user.position,
                 score: user.score,
                 treasure: user.treasure,
                 direction: user.direction,

@@ -3,10 +3,12 @@ var http = require('http');
 const {TakeSix} = require('./../utils/TakeSix.js');
 const {BocaDice} = require('./../utils/BocaDice.js');
 const {Diver} = require('./../utils/Diver.js');
+const {DiverActions} = require('./DiverActions.js');
 
 let takeSix = new TakeSix();
 let bocaDice = new BocaDice();
 let diver = new Diver();
+let diverActions = new DiverActions();
 var deck = new Array();
 myTimer = null;
 let bocaDiceStarted = false;
@@ -139,7 +141,7 @@ wsServer.on('request', function (request) {
         bocaDiceStarted = false;
         bocaDice.broadCastAll(packet);
         bocaDice.removeAllConnections();
-        diverStarted = false;
+        diver.setDiverStarted(false);
         packet =diver.setDiverPacket("message", "There has been no game activity for " + TakeSix.NUMBER_TlME_WARN
             + " minutes.The Game Server has been restarted. Reload FolarGames in your browser", "Reload","");
 
@@ -241,6 +243,9 @@ wsServer.on('request', function (request) {
             let str;
             resetTimer();
             switch (msg.type) {
+                case "DIVER":
+                    diverActions.diverCmd(diver,msg);
+                    break;
                 case "nextRoundBocaDice":
                     bocaDice.nextRound();
                     let players = bocaDice.getPlaying();
@@ -348,41 +353,7 @@ wsServer.on('request', function (request) {
                     break;
 
 
-                case "startDiver":
-                    diver.setPlay(msg.name);
-                    ulst = diver.getNonPlaying();
 
-                    str = "";
-                    if (ulst.length == 0) {
-                        diverStarted = true;
-                        let players = diver.getPlaying();
-                        ;
-                        let num = Math.floor(Math.random() * players.length);
-                        str = "Let the games begin! " +
-                            players[num].name + " was randomly chosen to start the game";
-                        packet = diver.setDiverPacket("playerStart", str, "Roll!!");
-                        packet.startIndex = packet.currentIndex = num;
-                        packet.currentPlayer = players[packet.currentIndex].name;
-                        diver.send(players[num].name, packet);
-                        packet.buttonText = "";
-                        diver.broadCastMessage(players[num].name, packet);
-                    } else {
-                        str = "Waiting for "
-                        let cnt = 1;
-                        let names = [];
-                        for (let item in ulst) {
-                            names.push(ulst[item].name);
-                        }
-                        str += takeSix.formatNameList(names) + " to click Start";
-                        packet = diver.setDiverPacket("playerStart", str, "Start");
-                        diver.sendPacket(ulst, packet);
-                        ulst = diver.getPlaying();
-                        packet.buttonText = "Roll";
-                        diver.sendPacket(ulst, packet);
-                    }
-
-
-                    break;
 
                 case "startBocaDice":
                     bocaDice.setPlay(msg.name);
@@ -630,7 +601,7 @@ wsServer.on('request', function (request) {
                                 break;
                             } else {
                                 let user = null
-                                if (diverStarted) {
+                                if (diver.hasDiverStarted()) {
                                     user = diver.addWatchers(connection, msg.name);
                                     packet = diver.setDiverPacket("newWatcher", "The game has already started, but you can still watch the game", "","");
                                     packet.messageType = "newWatcher";
