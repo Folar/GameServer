@@ -41,8 +41,8 @@ class Diver {
         return 6;
     }
 
-    static get BOCA_DELAY() {
-        return 4000;
+    static get DIVER_DELAY() {
+        return 2000;
     }
 
 
