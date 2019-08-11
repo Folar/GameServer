@@ -14,8 +14,25 @@ class DiverActions {
     finishRound(){
 
     }
+    chkAllOnPlatform(){
+        let players =  this.diver.getPlaying();
+        for (let i in players){
+            if(players[i].direction == "Down" || players[i].position> -1)
+                return false;
+        }
+        return true;
+    }
     playerFinishRound(name){
-
+        if(this.chkAllOnPlatform()){
+            this.finishRound();
+            return;
+        }
+        this.bt = "";
+        this.bt2 = "";
+        this.mes = name +  " reached the diving platform. ";
+        this.packet = this.diver.setDiverPacket("notify", this.mes, this.bt,this.bt2);
+        this.diver.sendToAll(msg.name, this.packet);
+        setTimeout(this.pass.bind(this), Diver.DIVER_DELAY);
     }
 
     diverCmd(diver, msg) {
@@ -108,6 +125,8 @@ class DiverActions {
 
                     }
                     if(pos <= -1) {
+                        diver.diverData.chips[user.position].name="";
+                        user.position = -1;
                        this.playerFinishRound(user.name);
                        break;
                     }
@@ -204,10 +223,15 @@ class DiverActions {
     }
 
     pass(){
-        this.packet.currentIndex++;
-        if (this.packet.currentIndex == this.packet.players.length)
-            this.packet.currentIndex = 0;
         let players = this.diver.getPlaying();
+        while(true){
+            this.packet.currentIndex++;
+            if (this.packet.currentIndex == this.packet.players.length)
+                this.packet.currentIndex = 0;
+            if(players[this.packet.currentIndex].direction == "Down" || players[this.packet.currentIndex].position> -1)
+                break;
+        }
+
         let user = players[this.packet.currentIndex];
 
         let bt = "Roll!!";

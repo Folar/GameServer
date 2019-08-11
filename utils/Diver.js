@@ -217,7 +217,7 @@ class Diver {
         return {
 
             round: 1,
-            currentIndex: 0,
+            currentIndex: -1,
             startIndex: 0,
             buttonText: "Start",
             buttonText2: "",
