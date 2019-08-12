@@ -710,6 +710,11 @@ class Diver {
     getUser(id) {
         return this.users.filter((user) => user.name === id)[0]
     }
+    getAmount(treasure,sz){
+        let cnt = 0;
+        let ar = treasure.filter((chp) => chp.size == sz);
+        return ar.length;
+    }
 
     getUserList() {
         var namesArray = this.users.map((user) => {
@@ -719,6 +724,10 @@ class Diver {
                 score: user.score,
                 treasure: user.treasure,
                 direction: user.direction,
+                s:this.getAmount(user.treasure,.5),
+                m:this.getAmount(user.treasure,.6),
+                l:this.getAmount(user.treasure,.7),
+                xl:this.getAmount(user.treasure,.8),
                 playing: user.playing
             };
         });
