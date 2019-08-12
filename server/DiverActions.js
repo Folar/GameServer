@@ -11,7 +11,17 @@ class DiverActions {
         this.diver = null;
 
     }
-    finishRound(){
+    finishRound(name){
+        let msg = name;
+        if(this.chkAllOnPlatform()){
+            msg += " was the last player to reach the platform and ended the round.\n";
+        } else{
+            msg +=" caused the oxygen to run out and ended the round\n"
+        }
+        //msg = this.
+        this.packet = this.diver.setDiverPacket("notify", msg, "","");
+        this.diver.sendToAll(msg.name, this.packet);
+        setTimeout(this.pass.bind(this), Diver.DIVER_DELAY);
 
     }
     chkAllOnPlatform(){
@@ -24,7 +34,7 @@ class DiverActions {
     }
     playerFinishRound(name){
         if(this.chkAllOnPlatform()){
-            this.finishRound();
+            this.finishRound(name);
             return;
         }
         this.bt = "";
@@ -78,7 +88,7 @@ class DiverActions {
                 if(total <0) total = 0;
                 diver.diverData.oxygen -= user.treasure.length;
                 if ( diver.diverData.oxygen <1){
-                    this.finishRound();
+                    this.finishRound(msg.name);
                     break;
                 }
                 if(user.direction == "Down" && total > 0) {
@@ -106,7 +116,7 @@ class DiverActions {
                             diver.diverData.chips[user.position].type = 'F';
                     }
                     user.position =pos;
-                    chip.name = user.name.toUpperCase();
+                    chip.name = user.name.toUpperCase() ;
 
 
                 }  else if(total > 0) { //UP
