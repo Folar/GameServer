@@ -13,17 +13,36 @@ class DiverActions {
     }
     finishRound(name){
         let msg = name;
+        let players =  this.diver.getPlaying();
         if(this.chkAllOnPlatform()){
-            msg += " was the last player to reach the platform and ended the round.\n";
+            msg += " was the last player to reach the platform and ended round " +this.diver.diverData.round+".\n";
         } else{
-            msg +=" caused the oxygen to run out and ended the round\n"
+            msg +=" caused the oxygen to run out and ended round " +this.diver.diverData.round+".\n";
+            let lst = players.filter((p) => p.position > -1);
+            let names = [];
+            for (let item in lst) {
+                names.push(lst[item].name);
+            }
+            msg += this.diver.formatNameList(names) + " didn't return to the platform and will have to dump their treasure.\n";
         }
-        //msg = this.
-        this.packet = this.diver.setDiverPacket("notify", msg, "","");
-        this.diver.sendToAll(msg.name, this.packet);
-        setTimeout(this.pass.bind(this), Diver.DIVER_DELAY);
-
+        this.diver.calcScore();
+        let res = this.diver.findMinMax();
+        if(this.diver.diverData.round == Diver.NUMBER_ROUNDS){
+            msg += this.diver.formatNameList(res[3])+ " won the game with the score of " + res[2] ;
+        } else{
+            msg += this.diver.formatNameList(res[3])+ " leads the game with the score of " + res[2] ;
+        }
+        if(this.diver.diverData.round == Diver.NUMBER_ROUNDS){
+            this.packet = this.diver.setDiverPacket("notify", msg, "Restart","");
+            this.diver.broadCastAll( this.packet);
+        } else {
+            this.packet = this.diver.setDiverPacket("notify", msg, "","");
+            this.diver.sendToAll(msg.name, this.packet);
+            setTimeout(this.nextRound.bind(this), Diver.DIVER_DELAY);
+        }
     }
+
+
     chkAllOnPlatform(){
         let players =  this.diver.getPlaying();
         for (let i in players){
@@ -88,6 +107,7 @@ class DiverActions {
                 if(total <0) total = 0;
                 diver.diverData.oxygen -= user.treasure.length;
                 if ( diver.diverData.oxygen <1){
+                    diver.diverData.oxygen = 0;
                     this.finishRound(msg.name);
                     break;
                 }
@@ -201,6 +221,7 @@ class DiverActions {
                 let cs =user.treasure.filter((chip) => chip.size == min);
                 let idx = Math.floor(Math.random() * cs.length);
                 diver.diverData.chips[user.position] = JSON.parse(JSON.stringify(cs[idx]));
+
                 if(user.direction == "Up")
                     diver.diverData.chips[user.position].name =   user.name.toLowerCase();
                 user.treasure= user.treasure.filter((ch) => Number(ch.index )!= idx);
@@ -230,6 +251,24 @@ class DiverActions {
                 break;
 
         }
+    }
+    nextRound(){
+        this.reorgChips();
+        this.packet = this.diver.setDiverPacket("notify", msg, "","");
+        this.diver.sendToAll(msg.name, this.packet);
+    }
+    reorgChips() {
+        let players = this.diver.getPlaying();
+        let last = this.diver.diverData.chips.length -1;
+        for (let i = last;i>-1;i--){
+            let chip = this.diver.diverData.chips[i];
+            if(this.diver.diverData.chips[i].color == "red" ){
+                this.diver.diverData.chips.splice(i,1);
+            }
+
+        }
+        this.packet = this.diver.setDiverPacket("notify", "Start Round", "","");
+        this.diver.sendToAll(msg.name, this.packet);
     }
 
     pass(){

@@ -44,7 +44,13 @@ class Diver {
     static get DIVER_DELAY() {
         return 2000;
     }
+    static get DIVER_OXYGEN() {
+        return 5;
+    }
 
+    static get DIVER_COMBINE_CHIPS() {
+        return 3;
+    }
 
     formatNameList(ulst) {
         let cnt = 1;
@@ -170,18 +176,18 @@ class Diver {
         let maxNames = [];
         let ulst = this.users;
         for (let item in ulst) {
-            if (ulst[item].money < min) {
-                min = ulst[item].money;
+            if (ulst[item].score < min) {
+                min = ulst[item].score;
                 minNames = [];
                 minNames.push(ulst[item].name);
-            } else if (ulst[item].money == min) {
+            } else if (ulst[item].score == min) {
                 minNames.push(ulst[item].name)
             }
-            if (ulst[item].money > max) {
-                max = ulst[item].money;
+            if (ulst[item].score > max) {
+                max = ulst[item].score;
                 maxNames = [];
                 maxNames.push(ulst[item].name);
-            } else if (ulst[item].money == max) {
+            } else if (ulst[item].score == max) {
                 maxNames.push(ulst[item].name)
             }
         }
@@ -221,7 +227,7 @@ class Diver {
             startIndex: 0,
             buttonText: "Start",
             buttonText2: "",
-            oxygen: 25,
+            oxygen: Diver.DIVER_OXYGEN,
             message: "the start msg",
             di1:0,
             di2:0,
@@ -729,6 +735,24 @@ class Diver {
     sendCustomPacket(id, packet) {
         let u = this.users.filter((user) => user.name === id)[0];
         u.connection.send(JSON.stringify(packet));
+    }
+    calcScore(){
+        let players =this.getPlaying();
+        for(let i in players ){
+            if(players[i].position != -1) continue;
+            players[i].score = 0;
+            for(let j in players[i].treasure ){
+                let c = players[i].treasure[j];
+                if(c.subChips.length == 0)
+                    players[i].score += c.value;
+                else{
+                    let cnt = 0;
+                    for(let k in c.subChips ){
+                        players[i].score = c.subChips[k].value;
+                    }
+                }
+            }
+        }
     }
 
     getPlaying() {
