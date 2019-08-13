@@ -33,12 +33,12 @@ class DiverActions {
             msg += this.diver.formatNameList(res[3])+ " leads the game with the score of " + res[2] ;
         }
         if(this.diver.diverData.round == Diver.NUMBER_ROUNDS){
-            this.packet = this.diver.setDiverPacket("notify", msg, "Restart","");
+            this.packet = this.diver.setDiverPacket("Restart", msg, "Restart","");
             this.diver.broadCastAll( this.packet);
             this.diver.setDiverStarted(false);
             this.diver.removeAllConnections();
         } else {
-            this.packet = this.diver.setDiverPacket("notify", msg, "","");
+            this.packet = this.diver.setDiverPacket("Pass", msg, "","");
             this.diver.sendToAll(msg.name, this.packet);
             setTimeout(this.nextRound.bind(this), Diver.DIVER_DELAY);
         }
@@ -271,7 +271,7 @@ class DiverActions {
         packet.round++;
         let name = players[packet.currentIndex].name;
         let msg =name + " will start round " + packet.round;
-        this.packet = this.diver.setDiverPacket("newRound",msg, "Roll!!","");
+        this.packet = this.diver.setDiverPacket("passDice",msg, "Roll!!","");
 
         this.diver.sendToAll(name,this.packet);
     }
@@ -382,7 +382,7 @@ class DiverActions {
         if(user.direction == "Down" && user.treasure.length>0)
             bt2 = "Change Direction";
         let str = "It is now "+user.name + " turn";
-        let packet = this.diver.setDiverPacket("playerRoll", str, bt,bt2);
+        let packet = this.diver.setDiverPacket("passDice", str, bt,bt2);
         this.diver.sendToAll(players[packet.currentIndex].name, packet);
 
     }

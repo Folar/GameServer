@@ -9,6 +9,30 @@ class Diver {
 
 
     }
+
+    static get NUMBER_ROUNDS() {
+        return 3;
+    }
+
+    static get NUMBER_DICE() {
+        return 2;
+    }
+
+
+    static get NUMBER_PLAYERS() {
+        return 6;
+    }
+
+    static get DIVER_DELAY() {
+        return 2000;
+    }
+    static get DIVER_OXYGEN() {
+        return 25;
+    }
+
+    static get DIVER_COMBINE_CHIPS() {
+        return 3;
+    }
     setDiverStarted (f){
         this.diverStarted = f;
     }
@@ -38,29 +62,7 @@ class Diver {
     }
 
 
-    static get NUMBER_ROUNDS() {
-        return 3;
-    }
 
-    static get NUMBER_DICE() {
-        return 8;
-    }
-
-
-    static get NUMBER_PLAYERS() {
-        return 6;
-    }
-
-    static get DIVER_DELAY() {
-        return 2000;
-    }
-    static get DIVER_OXYGEN() {
-        return 25;
-    }
-
-    static get DIVER_COMBINE_CHIPS() {
-        return 3;
-    }
 
     formatNameList(ulst) {
         let cnt = 1;
@@ -98,14 +100,7 @@ class Diver {
         return (a.value - b.value) * -1;
     }
 
-    nextRound() {
-        this.distributeCash();
-        this.diverData.money = this.cash
-        this.diverData.ofieldPlayers = [[], [], [], [], [], []];
-        this.diverData.fieldPlayers = [[], [], [], [], [], []];
-        this.setMoneyTotalDiceLeft();
-        this.diverData.diceNum = BocaDice.NUMBER_DICE;
-    }
+
 
     newDeal() {
         this.subDeal(0, 0);
