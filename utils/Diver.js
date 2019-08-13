@@ -27,6 +27,16 @@ class Diver {
 
 
     }
+    restart() {
+
+        this.watchers = [];
+        this.users = [];
+        this.diverData = this.prepareDiverPacket();
+        this.newDeal();
+
+
+    }
+
 
     static get NUMBER_ROUNDS() {
         return 3;
@@ -45,7 +55,7 @@ class Diver {
         return 2000;
     }
     static get DIVER_OXYGEN() {
-        return 5;
+        return 11;
     }
 
     static get DIVER_COMBINE_CHIPS() {
@@ -736,6 +746,8 @@ class Diver {
         let u = this.users.filter((user) => user.name === id)[0];
         u.connection.send(JSON.stringify(packet));
     }
+
+
     calcScore(){
         let players =this.getPlaying();
         for(let i in players ){
@@ -800,10 +812,45 @@ class Diver {
     }
     getAmount(treasure,sz){
         let cnt = 0;
+        let subCnt = 0;
         let ar = treasure.filter((chp) => chp.size == sz);
-        return ar.length;
+        if (sz == .8){
+            for(let i in ar){
+                if(ar[i].subContents.length >  0){
+                    subCnt++ ;
+                }
+            }
+
+        }
+        return ar.length - subCnt;
+    }
+    getAmountCombo(user){
+        let cnt = 0;
+        let ar = user.treasure.filter((chp) => chp.color == "green");
+        let chip ;
+        for(let i in ar){
+            chip=ar[i];
+            user.s += this.getAmount(chip.subChips,.5);
+            user.m += this.getAmount(chip.subChips,.6);
+            user.l += this.getAmount(chip.subChips,.7);
+            user.xl += this.getAmount(chip.subChips,.8);
+        }
     }
 
+    resetForRound(){
+        let players =this.getPlaying();
+        for(let i in players ){
+            let p = players[i];
+            p.treasure = [];
+            p.position = -1;
+            p.direction = "Down";
+            p.s =0;
+            p.m =0;
+            p.l =0;
+            p.xl = 0;
+
+        }
+    }
     getUserList() {
         var namesArray = this.users.map((user) => {
             return {
@@ -819,7 +866,8 @@ class Diver {
                 playing: user.playing
             };
         });
-
+        for (let i in namesArray)
+            this.getAmountCombo(namesArray[i]);
         return namesArray;
     }
 

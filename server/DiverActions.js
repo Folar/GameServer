@@ -35,6 +35,8 @@ class DiverActions {
         if(this.diver.diverData.round == Diver.NUMBER_ROUNDS){
             this.packet = this.diver.setDiverPacket("notify", msg, "Restart","");
             this.diver.broadCastAll( this.packet);
+            this.diver.setDiverStarted(false);
+            this.diver.removeAllConnections();
         } else {
             this.packet = this.diver.setDiverPacket("notify", msg, "","");
             this.diver.sendToAll(msg.name, this.packet);
@@ -108,6 +110,9 @@ class DiverActions {
                 diver.diverData.oxygen -= user.treasure.length;
                 if ( diver.diverData.oxygen <1){
                     diver.diverData.oxygen = 0;
+                    chip.name = "";
+                    if(chip.color=="red")
+                        chip.type = "F";
                     this.finishRound(msg.name);
                     break;
                 }
@@ -254,8 +259,21 @@ class DiverActions {
     }
     nextRound(){
         this.reorgChips();
-        this.packet = this.diver.setDiverPacket("notify", msg, "","");
-        this.diver.sendToAll(msg.name, this.packet);
+        this.redistributeChips();
+        this.diver.resetForRound();
+        let packet = this.diver.diverData;
+        let players = this.diver.getPlaying();
+        packet.startIndex++;
+        if (packet.startIndex == players.length)
+            packet.startIndex = 0;
+        packet.currentIndex = packet.startIndex;
+        packet.oxygen = Diver.DIVER_OXYGEN;
+        packet.round++;
+        let name = players[packet.currentIndex].name;
+        let msg =name + " will start round " + packet.round;
+        this.packet = this.diver.setDiverPacket("newRound",msg, "Roll!!","");
+
+        this.diver.sendToAll(name,this.packet);
     }
     reorgChips() {
         let players = this.diver.getPlaying();
@@ -267,8 +285,84 @@ class DiverActions {
             }
 
         }
-        this.packet = this.diver.setDiverPacket("notify", "Start Round", "","");
-        this.diver.sendToAll(msg.name, this.packet);
+    }
+    cmpPosition(a, b) {
+        return (a.position - b.position) ;
+    }
+    redistributeChips(){
+        let newChips=[];
+        let pChips = [];
+        let players = this.diver.getPlaying().filter((p) => p.position > -1);
+
+       // players.sort(this.cmpPosition);
+        for(let i in players ){
+            for(let j in players[i].treasure ){
+
+                let c = players[i].treasure[j];
+                if(c.subChips.length == 0)
+                    pChips.push(c);
+                else{
+                    for(let k in c.subChips ){
+                        pChips.push(c.subChips[k]);
+                    }
+                }
+
+            }
+            this.shuffle(pChips);
+            for (let n in pChips)
+                newChips.push(pChips[n]);
+        }
+
+        for (let i = 0; i<newChips.length; i= i + 3){
+            let v = 0;
+            let cnt = 0;
+            let str = "\n";
+            let combo = [];
+
+            while(cnt < 3 && (i+cnt)<newChips.length){
+                let chip = newChips[i+cnt];
+                combo.push(chip);
+                if (cnt > 0)
+                    str +=  ",";
+                switch (chip.size) {
+                    case .5:
+                        str+="S";
+                        break;
+                    case .6:
+                        str+= "M";
+                        break;
+                    case .7:
+                        str+="L";
+                        break;
+                    case .8:
+                        str+="XL";
+                        break;
+
+                }
+                cnt++;
+            }
+            this.diver.diverData.chips.push({ name: "",
+                type: 'C',
+                color: "green",
+                textColor:"red",
+                value: 3,
+                size: .8,
+                subChips:combo,
+                subContents:str});
+        }
+
+    }
+    shuffle(deck) {
+        // for 1000 turns
+        // switch the values of two random cards
+        for (let i = 0; i < 1000; i++) {
+            let location1 = Math.floor((Math.random() * deck.length));
+            let location2 = Math.floor((Math.random() *  deck.length));
+            let tmp = deck[location1];
+
+            deck[location1] = deck[location2];
+            deck[location2] = tmp;
+        }
     }
 
     pass(){
