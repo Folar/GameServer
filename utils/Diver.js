@@ -55,7 +55,7 @@ class Diver {
         return 2000;
     }
     static get DIVER_OXYGEN() {
-        return 11;
+        return 25;
     }
 
     static get DIVER_COMBINE_CHIPS() {
