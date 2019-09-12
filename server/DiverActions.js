@@ -3,12 +3,12 @@ const {Diver} = require('./../utils/Diver.js');
 
 class DiverActions {
 
-    constructor() {
+    constructor(diver) {
         this.bt = "";
         this.bt2 = "";
         this.mes = "";
         this.packet = null;
-        this.diver = null;
+        this.diver = diver;
 
     }
     finishRound(name){
@@ -32,6 +32,7 @@ class DiverActions {
         } else{
             msg += this.diver.formatNameList(res[3])+ " leads the game with the score of " + res[2] ;
         }
+
         if(this.diver.diverData.round == Diver.NUMBER_ROUNDS){
             this.packet = this.diver.setDiverPacket("Restart", msg, "Restart","");
             this.diver.broadCastAll( this.packet);
@@ -66,17 +67,17 @@ class DiverActions {
         setTimeout(this.pass.bind(this), Diver.DIVER_DELAY);
     }
 
-    diverCmd(diver, msg) {
-        let user = diver.getUser(msg.name);
-        this.diver = diver;
+    diverCmd( msg) {
+        let user = this.diver.getUser(msg.name);
+        let diver =this.diver ;
         switch (msg.action) {
             case "startDiver":
-                diver.setPlay(msg.name);
-                let ulst = diver.getNonPlaying();
+                this.diver.setPlay(msg.name);
+                let ulst = this.diver.getNonPlaying();
 
                 let str = "";
                 if (ulst.length == 0) {
-                    diver.setDiverStarted(true);
+                    this.diver.setDiverStarted(true);
                     let players = diver.getPlaying();
                     let num = Math.floor(Math.random() * players.length);
                     str = "Let the games begin! " +

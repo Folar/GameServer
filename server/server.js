@@ -8,7 +8,7 @@ const {DiverActions} = require('./DiverActions.js');
 let takeSix = new TakeSix();
 let bocaDice = new BocaDice();
 let diver = new Diver();
-let diverActions = new DiverActions();
+let diverActions = new DiverActions(diver);
 var deck = new Array();
 myTimer = null;
 let bocaDiceStarted = false;
@@ -244,7 +244,7 @@ wsServer.on('request', function (request) {
             resetTimer();
             switch (msg.type) {
                 case "DIVER":
-                    diverActions.diverCmd(diver,msg);
+                    diverActions.diverCmd(msg);
                     break;
                 case "nextRoundBocaDice":
                     bocaDice.nextRound();

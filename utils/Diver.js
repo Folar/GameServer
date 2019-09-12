@@ -845,6 +845,13 @@ class Diver {
             p.xl = 0;
 
         }
+        for(let c in this.diverData.chips)
+            this.diverData.chips[c].name = "";
+    }
+
+    resetPosition(){
+        for (let u in this.users)
+            this.users[u].position = -1;
     }
     getUserList() {
         var namesArray = this.users.map((user) => {
@@ -853,7 +860,7 @@ class Diver {
                 position:user.position,
                 score: user.score,
                 treasure: user.treasure,
-                direction: user.direction,
+                direction: user.direction == "Up" && user.position == -1? "-" : user.direction,
                 s:this.getAmount(user.treasure,.5),
                 m:this.getAmount(user.treasure,.6),
                 l:this.getAmount(user.treasure,.7),
