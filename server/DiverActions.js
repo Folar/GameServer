@@ -218,19 +218,19 @@ class DiverActions {
                 break;
 
             case "drop":
-                let min =.8;
+                let min =100;
                 for (let i in user.treasure){
                     user.treasure[i].index =Number(i);
-                     if(user.treasure[i].size<min)
-                         min = user.treasure[i].size;
+                     if(user.treasure[i].expectedValue<min)
+                         min = user.treasure[i].expectedValue;
                 }
-                let cs =user.treasure.filter((chip) => chip.size == min);
+                let cs =user.treasure.filter((chip) => chip.expectedValue == min);
                 let idx = Math.floor(Math.random() * cs.length);
                 diver.diverData.chips[user.position] = JSON.parse(JSON.stringify(cs[idx]));
 
                 if(user.direction == "Up")
                     diver.diverData.chips[user.position].name =   user.name.toLowerCase();
-                user.treasure= user.treasure.filter((ch) => Number(ch.index )!= idx);
+                user.treasure= user.treasure.filter((ch) => Number(ch.index )!= cs[idx].index);
                 this.bt = "";
                 this.bt2 = "";
                 this.mes = user.name +  " drop one of the treasure(s). ";
@@ -293,13 +293,22 @@ class DiverActions {
     redistributeChips(){
         let newChips=[];
         let pChips = [];
+
         let players = this.diver.getPlaying().filter((p) => p.position > -1);
+        let arr=[];
+        for(let i in players){
+            let p = players[i];
+            arr.push({
+                idx:i,
+                position:p.position
+            });
+        }
 
-       // players.sort(this.cmpPosition);
-        for(let i in players ){
-            for(let j in players[i].treasure ){
+       arr.sort(this.cmpPosition);
+        for(let i in arr ){
+            for(let j in players[arr[i].idx].treasure ){
 
-                let c = players[i].treasure[j];
+                let c = players[arr[i].idx].treasure[j];
                 if(c.subChips.length == 0)
                     pChips.push(c);
                 else{
@@ -314,15 +323,16 @@ class DiverActions {
                 newChips.push(pChips[n]);
         }
 
-        for (let i = 0; i<newChips.length; i= i + 3){
+        for (let i = 0; i<newChips.length; i= i + Diver.DIVER_COMBINE_CHIPS){
             let v = 0;
             let cnt = 0;
             let str = "\n";
             let combo = [];
-
-            while(cnt < 3 && (i+cnt)<newChips.length){
+            let ev = 0;
+            while(cnt < Diver.DIVER_COMBINE_CHIPS && (i+cnt)<newChips.length){
                 let chip = newChips[i+cnt];
                 combo.push(chip);
+                ev += chip.expectedValue;
                 if (cnt > 0)
                     str +=  ",";
                 switch (chip.size) {
@@ -349,7 +359,8 @@ class DiverActions {
                 value: 3,
                 size: .8,
                 subChips:combo,
-                subContents:str});
+                subContents:str,
+                expectedValue:ev});
         }
 
     }

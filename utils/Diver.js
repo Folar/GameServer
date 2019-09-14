@@ -246,7 +246,7 @@ class Diver {
                     value: 3,
                     size: .5,
                     subChips:[],
-                    subContents:"\n"
+                    subContents:"\n",
                 },
                 {
                     name: "",
@@ -256,7 +256,7 @@ class Diver {
                     value: 3,
                     size: .5,
                     subChips:[],
-                    subContents:"\n"
+                    subContents:"\n",expectedValue:1.5
                 },
                 {
                     name: "",
@@ -266,7 +266,7 @@ class Diver {
                     value: 3,
                     size: .5,
                     subChips:[],
-                    subContents:"\n"
+                    subContents:"\n",expectedValue:1.5
                 },
                 {
                     name: "",
@@ -276,7 +276,7 @@ class Diver {
                     value: 3,
                     size: .5,
                     subChips:[],
-                    subContents:"\n"
+                    subContents:"\n",expectedValue:1.5
                 },
                 {
                     name: "",
@@ -286,7 +286,7 @@ class Diver {
                     value: 3,
                     size: .5,
                     subChips:[],
-                    subContents:"\n"
+                    subContents:"\n",expectedValue:1.5
                 },
                 {
                     name: "",
@@ -296,7 +296,7 @@ class Diver {
                     value: 3,
                     size: .5,
                     subChips:[],
-                    subContents:"\n"
+                    subContents:"\n",expectedValue:1.5
                 },
                 {
                     name: "",
@@ -306,7 +306,7 @@ class Diver {
                     value: 3,
                     size: .5,
                     subChips:[],
-                    subContents:"\n"
+                    subContents:"\n",expectedValue:1.5
                 },
                 {
                     name: "",
@@ -316,7 +316,7 @@ class Diver {
                     value: 3,
                     size: .5,
                     subChips:[],
-                    subContents:"\n"
+                    subContents:"\n",expectedValue:1.5
                 },
 
                 {
@@ -327,7 +327,7 @@ class Diver {
                     value: 3,
                     size: .6,
                     subChips:[],
-                    subContents:"\n"
+                    subContents:"\n",expectedValue:5.5
                 },
                 {
                     name: "",
@@ -337,7 +337,7 @@ class Diver {
                     value: 3,
                     size: .6,
                     subChips:[],
-                    subContents:"\n"
+                    subContents:"\n",expectedValue:5.5
                 },
                 {
                     name: "",
@@ -347,7 +347,7 @@ class Diver {
                     value: 3,
                     size: .6,
                     subChips:[],
-                    subContents:"\n"
+                    subContents:"\n",expectedValue:5.5
                 },
                 {
                     name: "",
@@ -357,7 +357,7 @@ class Diver {
                     value: 3,
                     size: .6,
                     subChips:[],
-                    subContents:"\n"
+                    subContents:"\n",expectedValue:5.5
                 },
                 {
                     name: "",
@@ -367,7 +367,7 @@ class Diver {
                     value: 3,
                     size: .6,
                     subChips:[],
-                    subContents:"\n"
+                    subContents:"\n",expectedValue:5.5
                 },
                 {
                     name: "",
@@ -377,7 +377,7 @@ class Diver {
                     value: 3,
                     size: .6,
                     subChips:[],
-                    subContents:"\n"
+                    subContents:"\n",expectedValue:5.5
                 },
                 {
                     name: "",
@@ -387,7 +387,7 @@ class Diver {
                     value: 3,
                     size: .6,
                     subChips:[],
-                    subContents:"\n"
+                    subContents:"\n",expectedValue:5.5
                 },
                 {
                     name: "",
@@ -397,7 +397,7 @@ class Diver {
                     value: 3,
                     size: .6,
                     subChips:[],
-                    subContents:"\n"
+                    subContents:"\n",expectedValue:5.5
                 },
 
                 {
@@ -408,7 +408,7 @@ class Diver {
                     value: 3,
                     size: .7,
                     subChips:[],
-                    subContents:"\n"
+                    subContents:"\n",expectedValue:9.5
                 },
                 {
                     name: "",
@@ -418,7 +418,7 @@ class Diver {
                     value: 3,
                     size: .7,
                     subChips:[],
-                    subContents:"\n"
+                    subContents:"\n",expectedValue:9.5
                 },
                 {
                     name: "",
@@ -428,7 +428,7 @@ class Diver {
                     value: 3,
                     size: .7,
                     subChips:[],
-                    subContents:"\n"
+                    subContents:"\n",expectedValue:9.5
                 },
                 {
                     name: "",
@@ -438,7 +438,7 @@ class Diver {
                     value: 3,
                     size: .7,
                     subChips:[],
-                    subContents:"\n"
+                    subContents:"\n",expectedValue:9.5
                 },
                 {
                     name: "",
@@ -448,7 +448,7 @@ class Diver {
                     value: 3,
                     size: .7,
                     subChips:[],
-                    subContents:"\n"
+                    subContents:"\n",expectedValue:9.5
                 },
                 {
                     name: "",
@@ -458,7 +458,7 @@ class Diver {
                     value: 3,
                     size: .7,
                     subChips:[],
-                    subContents:"\n"
+                    subContents:"\n",expectedValue:9.5
                 },
                 {
                     name: "",
@@ -468,7 +468,7 @@ class Diver {
                     value: 3,
                     size: .7,
                     subChips:[],
-                    subContents:"\n"
+                    subContents:"\n",expectedValue:9.5
                 },
                 {
                     name: "",
@@ -478,7 +478,7 @@ class Diver {
                     value: 3,
                     size: .7,
                     subChips:[],
-                    subContents:"\n"
+                    subContents:"\n",expectedValue:9.5
                 },
 
                 {
@@ -489,7 +489,7 @@ class Diver {
                     value: 3,
                     size: .8,
                     subChips:[],
-                    subContents:"\n"
+                    subContents:"\n",expectedValue:13.5
                 },
                 {
                     name: "",
@@ -499,7 +499,7 @@ class Diver {
                     value: 3,
                     size: .8,
                     subChips:[],
-                    subContents:"\n"
+                    subContents:"\n",expectedValue:13.5
                 },
                 {
                     name: "",
@@ -509,7 +509,7 @@ class Diver {
                     value: 3,
                     size: .8,
                     subChips:[],
-                    subContents:"\n"
+                    subContents:"\n",expectedValue:13.5
                 },
                 {
                     name: "",
@@ -519,7 +519,7 @@ class Diver {
                     value: 3,
                     size: .8,
                     subChips:[],
-                    subContents:"\n"
+                    subContents:"\n",expectedValue:13.5
                 },
                 {
                     name: "",
@@ -529,7 +529,7 @@ class Diver {
                     value: 3,
                     size: .8,
                     subChips:[],
-                    subContents:"\n"
+                    subContents:"\n",expectedValue:13.5
                 },
                 {
                     name: "",
@@ -539,7 +539,7 @@ class Diver {
                     value: 3,
                     size: .8,
                     subChips:[],
-                    subContents:"\n"
+                    subContents:"\n",expectedValue:13.5
                 },
                 {
                     name: "",
@@ -549,7 +549,8 @@ class Diver {
                     value: 3,
                     size: .8,
                     subChips:[],
-                    subContents:"\n"
+                    subContents:"\n",
+                    expectedValue:13.5
                 },
                 {
                     name: "",
@@ -559,7 +560,8 @@ class Diver {
                     value: 3,
                     size: .8,
                     subChips:[],
-                    subContents:"\n"
+                    subContents:"\n",
+                    expectedValue:13.5
                 }
             ]
 
@@ -717,17 +719,7 @@ class Diver {
         });
     }
 
-    fillinPacket(id, packet) {
-        let u = this.users.filter((user) => user.name === id)[0];
-        packet.state = u.state;
-        packet.cards = u.cards.sort(this.compare);
-        packet.row1 = this.row1;
-        packet.row2 = this.row2;
-        packet.row3 = this.row3;
-        packet.row4 = this.row4;
-        packet.users = this.getUserList();
 
-    }
 
 
     broadCastAll(packet) {
@@ -808,16 +800,8 @@ class Diver {
     getAmount(treasure,sz){
         let cnt = 0;
         let subCnt = 0;
-        let ar = treasure.filter((chp) => chp.size == sz);
-        if (sz == .8){
-            for(let i in ar){
-                if(ar[i].subContents.length >  0){
-                    subCnt++ ;
-                }
-            }
-
-        }
-        return ar.length - subCnt;
+        let ar = treasure.filter((chp) => chp.size == sz && chp.subChips.length == 0);
+        return ar.length;
     }
     getAmountCombo(user){
         let cnt = 0;
