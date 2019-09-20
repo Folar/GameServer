@@ -281,7 +281,7 @@ class DiverActions {
         let last = this.diver.diverData.chips.length -1;
         for (let i = last;i>-1;i--){
             let chip = this.diver.diverData.chips[i];
-            if(this.diver.diverData.chips[i].color == "red" ){
+            if(this.diver.diverData.chips[i].color == "red"  ){
                 this.diver.diverData.chips.splice(i,1);
             }
 
@@ -323,7 +323,37 @@ class DiverActions {
                 newChips.push(pChips[n]);
         }
 
-        for (let i = 0; i<newChips.length; i= i + Diver.DIVER_COMBINE_CHIPS){
+        let lastIdx = this.diver.diverData.chips.length - 1;
+        let lastChip = this.diver.diverData.chips[lastIdx];
+        let lastChipCnt = 0;
+        if (lastChip.color == 'green' && lastChip.subChips.length <Diver.DIVER_COMBINE_CHIPS){
+            while (lastChip.subChips.length <Diver.DIVER_COMBINE_CHIPS){
+                let chip = newChips[lastChipCnt];
+                lastChip.subChips.push(chip);
+                lastChip.expectedValue += chip.expectedValue;
+                lastChip.subContents +=  ",";
+                switch (chip.size) {
+                    case .5:
+                        lastChip.subContents +="S";
+                        break;
+                    case .6:
+                        lastChip.subContents += "M";
+                        break;
+                    case .7:
+                        lastChip.subContents +="L";
+                        break;
+                    case .8:
+                        lastChip.subContents +="XL";
+                        break;
+
+                }
+                lastChipCnt++;
+
+            }
+
+        }
+
+        for (let i = lastChipCnt ; i<newChips.length; i= i + Diver.DIVER_COMBINE_CHIPS){
             let v = 0;
             let cnt = 0;
             let str = "\n";

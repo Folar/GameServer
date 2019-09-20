@@ -747,7 +747,7 @@ class Diver {
                 else{
                     let cnt = 0;
                     for(let k in c.subChips ){
-                        players[i].score = c.subChips[k].value;
+                        players[i].score += c.subChips[k].value;
                     }
                 }
             }
