@@ -6,8 +6,30 @@ class BocaDice {
         this.watchers = [];
         this.newDeal();
         this.bocaData = this.prepareBocaDicePacket();
+        this.bocaStarted = false;
 
 
+    }
+    setBocaStarted (f){
+        this.bocaStarted = f;
+    }
+    hasBocaStarted (){
+        return this.bocaStarted;
+    }
+    formatNameList(ulst) {
+        let cnt = 1;
+        let str = "";
+        for (let item in ulst) {
+            str = str + ulst[item]
+            if (cnt != ulst.length) {
+                str = str + ", ";
+            } else {
+                str = str;
+            }
+            cnt++;
+
+        }
+        return str;
     }
     removeAllConnections(){
         let lst = this.users;
