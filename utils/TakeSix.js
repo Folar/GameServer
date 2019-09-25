@@ -4,7 +4,7 @@ class TakeSix {
     constructor() {
         this.users = [];
         this.watchers = [];
-
+        this.takeSixStarted = false
         this.newDeal();
     }
     static get NUMBER_TAKE() {
@@ -24,6 +24,12 @@ class TakeSix {
 
     static get NUMBER_GOAL() {
         return 66;
+    }
+    setTakeSixStarted (f){
+        this.takeSixStarted = f;
+    }
+    hasTakeSixStarted (){
+        return this.takeSixStarted;
     }
 
     formatNameList(ulst) {
