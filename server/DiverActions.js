@@ -67,6 +67,8 @@ class DiverActions {
         setTimeout(this.pass.bind(this), Diver.DIVER_DELAY);
     }
 
+
+
     diverCmd( msg) {
         let user = this.diver.getUser(msg.name);
         let diver =this.diver ;
@@ -104,10 +106,35 @@ class DiverActions {
                 break;
             case "roll":
                 let sum = msg.di1 + msg.di2;
+                let oSum = sum;
+                let extraMove = "";
+                let shark = "";
+                switch(msg.bonus){
+                    case 1:
+                        diver.diverData.oxygen +=2;
+                        break;
+                    case 2:
+                        diver.diverData.oxygen -=1;
+                        break;
+                    case 3:
+                        extraMove = " plus an extra move "
+                        sum+=1;
+                        break;
+                    case 4:
+                        extraMove = " plus 2 extra moves "
+                        sum+=2;
+                        break;
+                    case 5:
+                        if (this.sharkAttack(user))
+                            shark = "A shark has attack so 1 treasure is lost ";
+                        break;
+                }
                 let steps = 0;
                 let chip = diver.diverData.chips[user.position];;
                 let total = sum - user.treasure.length;
+
                 if(total <0) total = 0;
+
                 diver.diverData.oxygen -= user.treasure.length;
                 if ( diver.diverData.oxygen <1){
                     diver.diverData.oxygen = 0;
@@ -179,7 +206,7 @@ class DiverActions {
                 }
                 let players = diver.getPlaying();
 
-                this.mes = user.name +  " rolled " + sum+". ";
+                this.mes = user.name +  " rolled " + oSum+ extraMove+". "+ shark;
                 this.mes += user.name +  " has " + user.treasure.length +" treasure. he/she may move " + total+ " steps. ";
                 if((chip.type == 'F' || chip.color =="red") && user.treasure.length >0){
                     this.bt = "Pass";
@@ -290,6 +317,127 @@ class DiverActions {
     cmpPosition(a, b) {
         return (a.position - b.position) ;
     }
+
+    sharkAttack(user){
+        if (user.treasure.length == 0) return false;
+        let min =100;
+        for (let i in user.treasure){
+            user.treasure[i].index =Number(i);
+            if(user.treasure[i].expectedValue<min)
+                min = user.treasure[i].expectedValue;
+        }
+        let cs =user.treasure.filter((chip) => chip.expectedValue == min);
+        let idx = Math.floor(Math.random() * cs.length);
+
+        user.treasure= user.treasure.filter((ch) => Number(ch.index )!= cs[idx].index);
+        let str = "";
+        let lastIdx = this.diver.diverData.chips.length - 1;
+        let lastChip = this.diver.diverData.chips[lastIdx];
+        let lastChipCnt = 0;
+        let chip = JSON.parse(JSON.stringify(cs[idx]));
+        if (lastChip.color == 'green' && lastChip.subChips.length <Diver.DIVER_COMBINE_CHIPS){
+            let chip2 = null;
+            if (chip.color == "green" && chip.subChips.length == Diver.DIVER_COMBINE_CHIPS){
+                chip = chip.subChips[0];
+                chip2 = chip.subChips[1];
+            }
+            lastChip.subChips.push(chip);
+            lastChip.expectedValue += chip.expectedValue;
+            lastChip.subContents +=  ",";
+            switch (chip.size) {
+                case .5:
+                    lastChip.subContents +="S";
+                    break;
+                case .6:
+                    lastChip.subContents += "M";
+                    break;
+                case .7:
+                    lastChip.subContents +="L";
+                    break;
+                case .8:
+                    lastChip.subContents +="XL";
+                    break;
+
+            }
+
+            if(chip2!= null){
+                let combo = [];
+                let ev = chip2.expectedValue;
+
+                combo.push(chip2);
+
+                switch (chip2.size) {
+                    case .5:
+                        str = "\nS";
+                        break;
+                    case .6:
+                        str = "\nM";
+                        break;
+                    case .7:
+                        str = "\nL";
+                        break;
+                    case .8:
+                        str = "\nXL";
+                        break;
+
+                }
+
+                this.diver.diverData.chips.push({
+                    name: "",
+                    type: 'C',
+                    color: "green",
+                    textColor: "red",
+                    value: 3,
+                    size: .8,
+                    subChips: combo,
+                    subContents: str,
+                    expectedValue: ev
+                });
+            }
+
+
+        } else {
+            if(chip.color == "green"){
+                this.diver.diverData.chips.push(chip);
+            }else {
+                let combo = [];
+                let ev = chip.expectedValue;
+
+                combo.push(chip);
+
+                switch (chip.size) {
+                    case .5:
+                        str = "\nS";
+                        break;
+                    case .6:
+                        str = "\nM";
+                        break;
+                    case .7:
+                        str = "\nL";
+                        break;
+                    case .8:
+                        str = "\nXL";
+                        break;
+
+                }
+
+                this.diver.diverData.chips.push({
+                    name: "",
+                    type: 'C',
+                    color: "green",
+                    textColor: "red",
+                    value: 3,
+                    size: .8,
+                    subChips: combo,
+                    subContents: str,
+                    expectedValue: ev
+                });
+            }
+        }
+        return true;
+    }
+
+
     redistributeChips(){
         let newChips=[];
         let pChips = [];
@@ -330,6 +478,9 @@ class DiverActions {
             while (lastChip.subChips.length <Diver.DIVER_COMBINE_CHIPS){
                 let chip = newChips[lastChipCnt];
                 lastChip.subChips.push(chip);
+                if(chip.expectedValue == undefined) {
+                    chip.expectedValue = 1.5;
+                }
                 lastChip.expectedValue += chip.expectedValue;
                 lastChip.subContents +=  ",";
                 switch (chip.size) {

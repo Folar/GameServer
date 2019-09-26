@@ -31,7 +31,7 @@ class Diver {
     }
 
     static get DIVER_COMBINE_CHIPS() {
-        return 3;
+        return 2;
     }
     setDiverStarted (f){
         this.diverStarted = f;
