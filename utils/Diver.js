@@ -751,7 +751,9 @@ class Diver {
                     }
                 }
             }
+            players[i].treasure = [];
         }
+
     }
 
     getPlaying() {

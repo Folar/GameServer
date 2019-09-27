@@ -454,6 +454,7 @@ class DiverActions {
 
        arr.sort(this.cmpPosition);
         for(let i in arr ){
+            pChips = [];
             for(let j in players[arr[i].idx].treasure ){
 
                 let c = players[arr[i].idx].treasure[j];
