@@ -451,7 +451,7 @@ class DiverActions {
                 position:p.position
             });
         }
-
+        if(arr.length== 0) return;
        arr.sort(this.cmpPosition);
         for(let i in arr ){
             pChips = [];

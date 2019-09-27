@@ -739,7 +739,6 @@ class Diver {
         let players =this.getPlaying();
         for(let i in players ){
             if(players[i].position != -1) continue;
-            players[i].score = 0;
             for(let j in players[i].treasure ){
                 let c = players[i].treasure[j];
                 if(c.subChips.length == 0)
