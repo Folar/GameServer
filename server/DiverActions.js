@@ -9,6 +9,8 @@ class DiverActions {
         this.mes = "";
         this.packet = null;
         this.diver = diver;
+        this.lastCmd = "";
+        this.lastName = "";
 
     }
     finishRound(name){
@@ -72,6 +74,12 @@ class DiverActions {
     diverCmd( msg) {
         let user = this.diver.getUser(msg.name);
         let diver =this.diver ;
+        if(this.lastCmd == msg.action && this.lastName == msg.name){
+            //console.log("dooubletap")
+            return;
+        }
+        this.lastCmd = msg.action;
+        this.lastName = msg.name;
         switch (msg.action) {
             case "startDiver":
                 this.diver.setPlay(msg.name);
@@ -165,6 +173,8 @@ class DiverActions {
                     }
                     if(pos!= user.position && user.position != -1){
                         diver.diverData.chips[user.position].name="";
+                        //diver.diverData.chips[user.position].subContents="\n";
+
                         if(diver.diverData.chips[user.position].color == "red")
                             diver.diverData.chips[user.position].type = 'F';
                     }
@@ -228,6 +238,7 @@ class DiverActions {
                 this.packet = diver.setDiverPacket("rollDice", this.mes, "","");
                 this.packet.di1 = msg.di1;
                 this.packet.di2 = msg.di2;
+                this.packet.bonus = msg.bonus;
                 diver.sendToAll(players[this.packet.currentIndex].name, this.packet);
                 setTimeout(this.continueToAction.bind(this), Diver.DIVER_DELAY);
                 break;
@@ -239,6 +250,7 @@ class DiverActions {
                 user.treasure.push(clone);
                 c.color = "red";
                 c.textColor = "blue";
+                c.subContents = "\n";
                 this.packet = diver.setDiverPacket("pickup", msg.name +" picks up a treasure", "","");
                 diver.sendToAll(msg.name, this.packet);
                 setTimeout(this.pass.bind(this), Diver.DIVER_DELAY);
@@ -300,7 +312,8 @@ class DiverActions {
         let name = players[packet.currentIndex].name;
         let msg =name + " will start round " + packet.round;
         this.packet = this.diver.setDiverPacket("passDice",msg, "Roll!!","");
-
+        this.lastCmd = "";
+        this.lastName = "";
         this.diver.sendToAll(name,this.packet);
     }
     reorgChips() {

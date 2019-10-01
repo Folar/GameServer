@@ -830,8 +830,11 @@ class Diver {
             p.xl = 0;
 
         }
-        for(let c in this.diverData.chips)
+        for(let c in this.diverData.chips) {
             this.diverData.chips[c].name = "";
+            //this.diverData.chips[c].subContents = "\n";
+        }
+
     }
 
     resetPosition(){
