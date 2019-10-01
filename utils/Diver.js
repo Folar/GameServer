@@ -11,7 +11,7 @@ class Diver {
     }
 
     static get S_COLOR() {
-        return "#dcdcdc";
+        return "#e0e0e0";
     }
 
     static get M_COLOR() {
@@ -20,11 +20,11 @@ class Diver {
 
 
     static get L_COLOR() {
-        return "#bcbcbc";
+        return "#acacac";
     }
 
     static get XL_COLOR() {
-        return "gray";
+        return "#808080";
     }
     static get DIVER_COLOR() {
         return "red"; // change in client
