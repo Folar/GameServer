@@ -147,7 +147,7 @@ class DiverActions {
                 if ( diver.diverData.oxygen <1){
                     diver.diverData.oxygen = 0;
                     chip.name = "";
-                    if(chip.color=="red")
+                    if(chip.color==Diver.DIVER_COLOR)
                         chip.type = "F";
                     this.finishRound(msg.name);
                     break;
@@ -175,7 +175,7 @@ class DiverActions {
                         diver.diverData.chips[user.position].name="";
                         //diver.diverData.chips[user.position].subContents="\n";
 
-                        if(diver.diverData.chips[user.position].color == "red")
+                        if(diver.diverData.chips[user.position].color == Diver.DIVER_COLOR)
                             diver.diverData.chips[user.position].type = 'F';
                     }
                     user.position =pos;
@@ -205,7 +205,7 @@ class DiverActions {
                     }
                     if(pos!= user.position && user.position != -1){
                         diver.diverData.chips[user.position].name="";
-                        if(diver.diverData.chips[user.position].color == "red")
+                        if(diver.diverData.chips[user.position].color == Diver.DIVER_COLOR)
                             diver.diverData.chips[user.position].type = 'F';
                     }
 
@@ -218,13 +218,13 @@ class DiverActions {
 
                 this.mes = user.name +  " rolled " + oSum+ extraMove+". "+ shark;
                 this.mes += user.name +  " has " + user.treasure.length +" treasure. he/she may move " + total+ " steps. ";
-                if((chip.type == 'F' || chip.color =="red") && user.treasure.length >0){
+                if((chip.type == 'F' || chip.color ==Diver.DIVER_COLOR) && user.treasure.length >0){
                     this.bt = "Pass";
                     chip.type ='C';
                     this.bt2 = "Drop a tresaure";
                     this.mes += user.name+" can either drop a treasure(a small treasure is randomly chosen) or pass the dice ";
                     this.mes += "to the next player."
-                } else if ((chip.type == 'F' || chip.color =="red") ){
+                } else if ((chip.type == 'F' || chip.color ==Diver.DIVER_COLOR) ){
                     chip.type ='C';
                     this.bt = "Pass";
                     this.bt2 = "";
@@ -248,8 +248,8 @@ class DiverActions {
                 let clone = JSON.parse(JSON.stringify(c));
 
                 user.treasure.push(clone);
-                c.color = "red";
-                c.textColor = "blue";
+                c.color = Diver.DIVER_COLOR;
+                c.textColor = Diver.TEXT_COLOR;
                 c.subContents = "\n";
                 this.packet = diver.setDiverPacket("pickup", msg.name +" picks up a treasure", "","");
                 diver.sendToAll(msg.name, this.packet);
@@ -321,7 +321,7 @@ class DiverActions {
         let last = this.diver.diverData.chips.length -1;
         for (let i = last;i>-1;i--){
             let chip = this.diver.diverData.chips[i];
-            if(this.diver.diverData.chips[i].color == "red"  ){
+            if(this.diver.diverData.chips[i].color == Diver.DIVER_COLOR  ){
                 this.diver.diverData.chips.splice(i,1);
             }
 
@@ -348,9 +348,9 @@ class DiverActions {
         let lastChip = this.diver.diverData.chips[lastIdx];
         let lastChipCnt = 0;
         let chip = JSON.parse(JSON.stringify(cs[idx]));
-        if (lastChip.color == 'green' && lastChip.subChips.length <Diver.DIVER_COMBINE_CHIPS){
+        if (lastChip.color == Diver.MULTI_COLOR && lastChip.subChips.length <Diver.DIVER_COMBINE_CHIPS){
             let chip2 = null;
-            if (chip.color == "green" && chip.subChips.length == Diver.DIVER_COMBINE_CHIPS){
+            if (chip.color == Diver.MULTI_COLOR && chip.subChips.length == Diver.DIVER_COMBINE_CHIPS){
                 chip = chip.subChips[0];
                 chip2 = chip.subChips[1];
             }
@@ -398,8 +398,8 @@ class DiverActions {
                 this.diver.diverData.chips.push({
                     name: "",
                     type: 'C',
-                    color: "green",
-                    textColor: "red",
+                    color: Diver.MULTI_COLOR,
+                    textColor: Diver.TEXT_COLOR,
                     value: 3,
                     size: .8,
                     subChips: combo,
@@ -410,7 +410,7 @@ class DiverActions {
 
 
         } else {
-            if(chip.color == "green"){
+            if(chip.color == Diver.MULTI_COLOR){
                 this.diver.diverData.chips.push(chip);
             }else {
                 let combo = [];
@@ -437,8 +437,8 @@ class DiverActions {
                 this.diver.diverData.chips.push({
                     name: "",
                     type: 'C',
-                    color: "green",
-                    textColor: "red",
+                    color: Diver.MULTI_COLOR,
+                    textColor: Diver.TEXT_COLOR,
                     value: 3,
                     size: .8,
                     subChips: combo,
@@ -488,7 +488,7 @@ class DiverActions {
         let lastIdx = this.diver.diverData.chips.length - 1;
         let lastChip = this.diver.diverData.chips[lastIdx];
         let lastChipCnt = 0;
-        if (lastChip.color == 'green' && lastChip.subChips.length <Diver.DIVER_COMBINE_CHIPS){
+        if (lastChip.color == Diver.MULTI_COLOR && lastChip.subChips.length <Diver.DIVER_COMBINE_CHIPS){
             while (lastChip.subChips.length <Diver.DIVER_COMBINE_CHIPS){
                 let chip = newChips[lastChipCnt];
                 lastChip.subChips.push(chip);
@@ -549,8 +549,8 @@ class DiverActions {
             }
             this.diver.diverData.chips.push({ name: "",
                 type: 'C',
-                color: "green",
-                textColor:"red",
+                color: Diver.MULTI_COLOR,
+                textColor:Diver.TEXT_COLOR,
                 value: 3,
                 size: .8,
                 subChips:combo,

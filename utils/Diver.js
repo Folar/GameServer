@@ -10,6 +10,31 @@ class Diver {
 
     }
 
+    static get S_COLOR() {
+        return "#dcdcdc";
+    }
+
+    static get M_COLOR() {
+        return "#cccccc";
+    }
+
+
+    static get L_COLOR() {
+        return "#bcbcbc";
+    }
+
+    static get XL_COLOR() {
+        return "gray";
+    }
+    static get DIVER_COLOR() {
+        return "red"; // change in client
+    }
+    static get TEXT_COLOR() {
+        return "black";
+    }
+    static get MULTI_COLOR() {
+        return "#FFE4B5";
+    }
     static get NUMBER_ROUNDS() {
         return 3;
     }
@@ -241,8 +266,8 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
-                    color: "#2dcded",
-                    textColor:"red",
+                    color: Diver.S_COLOR,
+                    textColor:Diver.TEXT_COLOR,
                     value: 3,
                     size: .5,
                     subChips:[],
@@ -251,8 +276,8 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
-                    textColor:"red",
-                    color: "#2dcded",
+                    textColor:Diver.TEXT_COLOR,
+                    color: Diver.S_COLOR,
                     value: 3,
                     size: .5,
                     subChips:[],
@@ -261,8 +286,8 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
-                    textColor:"red",
-                    color: "#2dcded",
+                    textColor:Diver.TEXT_COLOR,
+                    color: Diver.S_COLOR,
                     value: 3,
                     size: .5,
                     subChips:[],
@@ -271,8 +296,8 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
-                    color: "#2dcded",
-                    textColor:"red",
+                    color: Diver.S_COLOR,
+                    textColor:Diver.TEXT_COLOR,
                     value: 3,
                     size: .5,
                     subChips:[],
@@ -281,8 +306,8 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
-                    textColor:"red",
-                    color: "#2dcded",
+                    textColor:Diver.TEXT_COLOR,
+                    color: Diver.S_COLOR,
                     value: 3,
                     size: .5,
                     subChips:[],
@@ -291,8 +316,8 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
-                    textColor:"red",
-                    color: "#2dcded",
+                    textColor:Diver.TEXT_COLOR,
+                    color: Diver.S_COLOR,
                     value: 3,
                     size: .5,
                     subChips:[],
@@ -301,8 +326,8 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
-                    textColor:"red",
-                    color: "#2dcded",
+                    textColor:Diver.TEXT_COLOR,
+                    color: Diver.S_COLOR,
                     value: 3,
                     size: .5,
                     subChips:[],
@@ -311,8 +336,8 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
-                    textColor:"red",
-                    color: "#2dcded",
+                    textColor:Diver.TEXT_COLOR,
+                    color: Diver.S_COLOR,
                     value: 3,
                     size: .5,
                     subChips:[],
@@ -322,8 +347,8 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
-                    textColor:"red",
-                    color: "#40aed6",
+                    textColor:Diver.TEXT_COLOR,
+                    color: Diver.M_COLOR,
                     value: 3,
                     size: .6,
                     subChips:[],
@@ -332,8 +357,8 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
-                    textColor:"red",
-                    color: "#40aed6",
+                    textColor:Diver.TEXT_COLOR,
+                    color: Diver.M_COLOR,
                     value: 3,
                     size: .6,
                     subChips:[],
@@ -342,8 +367,8 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
-                    textColor:"red",
-                    color: "#40a3d6",
+                    textColor:Diver.TEXT_COLOR,
+                    color: Diver.M_COLOR,
                     value: 3,
                     size: .6,
                     subChips:[],
@@ -352,8 +377,8 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
-                    textColor:"red",
-                    color: "#40aed6",
+                    textColor:Diver.TEXT_COLOR,
+                    color: Diver.M_COLOR,
                     value: 3,
                     size: .6,
                     subChips:[],
@@ -362,8 +387,8 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
-                    textColor:"red",
-                    color: "#40aed6",
+                    textColor:Diver.TEXT_COLOR,
+                    color: Diver.M_COLOR,
                     value: 3,
                     size: .6,
                     subChips:[],
@@ -372,8 +397,8 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
-                    textColor:"red",
-                    color: "#40aed6",
+                    textColor:Diver.TEXT_COLOR,
+                    color: Diver.M_COLOR,
                     value: 3,
                     size: .6,
                     subChips:[],
@@ -382,8 +407,8 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
-                    textColor:"red",
-                    color: "#40aed6",
+                    textColor:Diver.TEXT_COLOR,
+                    color: Diver.M_COLOR,
                     value: 3,
                     size: .6,
                     subChips:[],
@@ -392,8 +417,8 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
-                    textColor:"red",
-                    color: "#40aed6",
+                    textColor:Diver.TEXT_COLOR,
+                    color: Diver.M_COLOR,
                     value: 3,
                     size: .6,
                     subChips:[],
@@ -403,8 +428,8 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
-                    textColor:"red",
-                    color: "#3c7da3",
+                    textColor:Diver.TEXT_COLOR,
+                    color: Diver.L_COLOR,
                     value: 3,
                     size: .7,
                     subChips:[],
@@ -413,8 +438,8 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
-                    textColor:"red",
-                    color: "#3c7da3",
+                    textColor:Diver.TEXT_COLOR,
+                    color: Diver.L_COLOR,
                     value: 3,
                     size: .7,
                     subChips:[],
@@ -423,8 +448,8 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
-                    textColor:"red",
-                    color: "#3c7da3",
+                    textColor:Diver.TEXT_COLOR,
+                    color: Diver.L_COLOR,
                     value: 3,
                     size: .7,
                     subChips:[],
@@ -433,8 +458,8 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
-                    textColor:"red",
-                    color: "#3c7da3",
+                    textColor:Diver.TEXT_COLOR,
+                    color: Diver.L_COLOR,
                     value: 3,
                     size: .7,
                     subChips:[],
@@ -443,8 +468,8 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
-                    textColor:"red",
-                    color: "#3c7da3",
+                    textColor:Diver.TEXT_COLOR,
+                    color: Diver.L_COLOR,
                     value: 3,
                     size: .7,
                     subChips:[],
@@ -453,8 +478,8 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
-                    textColor:"red",
-                    color: "#3c7da3",
+                    textColor:Diver.TEXT_COLOR,
+                    color: Diver.L_COLOR,
                     value: 3,
                     size: .7,
                     subChips:[],
@@ -463,8 +488,8 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
-                    textColor:"red",
-                    color: "#3c7da3",
+                    textColor:Diver.TEXT_COLOR,
+                    color: Diver.L_COLOR,
                     value: 3,
                     size: .7,
                     subChips:[],
@@ -473,8 +498,8 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
-                    textColor:"red",
-                    color: "#3c7da3",
+                    textColor:Diver.TEXT_COLOR,
+                    color: Diver.L_COLOR,
                     value: 3,
                     size: .7,
                     subChips:[],
@@ -484,8 +509,8 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
-                    textColor:"red",
-                    color: "#406280",
+                    textColor:Diver.TEXT_COLOR,
+                    color: Diver.XL_COLOR,
                     value: 3,
                     size: .8,
                     subChips:[],
@@ -494,8 +519,8 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
-                    textColor:"red",
-                    color: "#406280",
+                    textColor:Diver.TEXT_COLOR,
+                    color: Diver.XL_COLOR,
                     value: 3,
                     size: .8,
                     subChips:[],
@@ -504,8 +529,8 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
-                    textColor:"red",
-                    color: "#406280",
+                    textColor:Diver.TEXT_COLOR,
+                    color: Diver.XL_COLOR,
                     value: 3,
                     size: .8,
                     subChips:[],
@@ -514,8 +539,8 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
-                    textColor:"red",
-                    color: "#406280",
+                    textColor:Diver.TEXT_COLOR,
+                    color: Diver.XL_COLOR,
                     value: 3,
                     size: .8,
                     subChips:[],
@@ -524,8 +549,8 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
-                    textColor:"red",
-                    color: "#406280",
+                    textColor:Diver.TEXT_COLOR,
+                    color: Diver.XL_COLOR,
                     value: 3,
                     size: .8,
                     subChips:[],
@@ -534,8 +559,8 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
-                    textColor:"red",
-                    color: "#406280",
+                    textColor:Diver.TEXT_COLOR,
+                    color: Diver.XL_COLOR,
                     value: 3,
                     size: .8,
                     subChips:[],
@@ -544,8 +569,8 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
-                    textColor:"red",
-                    color: "#406280",
+                    textColor:Diver.TEXT_COLOR,
+                    color: Diver.XL_COLOR,
                     value: 3,
                     size: .8,
                     subChips:[],
@@ -555,8 +580,8 @@ class Diver {
                 {
                     name: "",
                     type: 'C',
-                    textColor:"red",
-                    color: "#406280",
+                    textColor:Diver.TEXT_COLOR,
+                    color: Diver.XL_COLOR,
                     value: 3,
                     size: .8,
                     subChips:[],
@@ -806,7 +831,7 @@ class Diver {
     }
     getAmountCombo(user){
         let cnt = 0;
-        let ar = user.treasure.filter((chp) => chp.color == "green");
+        let ar = user.treasure.filter((chp) => chp.color == Diver.MULTI_COLOR);
         let chip ;
         for(let i in ar){
             chip=ar[i];
