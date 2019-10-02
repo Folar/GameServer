@@ -43,7 +43,7 @@ class DiverActions {
         } else {
             this.packet = this.diver.setDiverPacket("Pass", msg, "","");
             this.diver.sendToAll(msg.name, this.packet);
-            setTimeout(this.nextRound.bind(this), Diver.DIVER_DELAY);
+            setTimeout(this.nextRound.bind(this), Diver.DIVER_DELAY * 2);
         }
     }
 
