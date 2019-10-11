@@ -6,6 +6,8 @@ const {Diver} = require('./../utils/Diver.js');
 const {DiverActions} = require('./DiverActions.js');
 const {BocaActions} = require('./BocaActions.js');
 const {TakeSixActions} = require('./TakeSixActions.js');
+const {Choice} = require('./../utils/Choice.js');
+const {ChoiceActions} = require('./ChoiceActions.js');
 
 let takeSix = new TakeSix();
 let takeSixActions = new TakeSixActions(takeSix);
@@ -15,6 +17,9 @@ let bocaActions = new BocaActions(bocaDice);
 
 let diver = new Diver();
 let diverActions = new DiverActions(diver);
+
+let choice = new Choice();
+let choiceActions = new ChoiceActions(choice);
 
 var deck = new Array();
 myTimer = null;
@@ -68,11 +73,19 @@ wsServer.on('request', function (request) {
         takeSix.setTakeSixStarted(false) ;
         takeSix.broadCastAll(packet);
         takeSix.removeAllConnections();
+
+        packet = choice.setChoicePacket("message", "There has been no game activity for " + TakeSix.NUMBER_TlME_WARN
+            + " minutes.The Game Server has been restarted. Reload FolarGames in your browser", "Reload");
+        choice.setChoiceStarted(false);
+        choice.broadCastAll(packet);
+        choice.removeAllConnections();
+        
         packet = bocaDice.setBocaDicePacket("message", "There has been no game activity for " + TakeSix.NUMBER_TlME_WARN
             + " minutes.The Game Server has been restarted. Reload FolarGames in your browser", "Reload");
         bocaDice.setBocaStarted(false);
         bocaDice.broadCastAll(packet);
         bocaDice.removeAllConnections();
+        
         diver.setDiverStarted(false);
         packet =diver.setDiverPacket("message", "There has been no game activity for " + TakeSix.NUMBER_TlME_WARN
             + " minutes.The Game Server has been restarted. Reload FolarGames in your browser", "Reload","");
@@ -123,6 +136,9 @@ wsServer.on('request', function (request) {
                 case "TAKE6":
                     takeSixActions.take6Cmd(msg);
                     break;
+                case "CHOICE":
+                    choiceActions.choiceCmd(msg);
+                    break
 
                 case "restartTake6":
                     restartGame();
@@ -161,6 +177,36 @@ wsServer.on('request', function (request) {
                                 }
                             }
                             break;
+
+                        case 3:
+                            if (choice.chkForDuplicateName(msg.name)) {
+                                packet = choice.setChoicePacket("dupUser",
+                                    msg.name + " has already signed on, please choose another","");
+                                packet.messageType = "dupUser";
+                                connection.send(JSON.stringify(packet));
+                                break;
+                            } else {
+                                let user = null
+                                if (choice.hasChoiceStarted()) {
+                                    user = choice.addWatchers(connection, msg.name);
+                                    packet = choice.setChoicePacket("newWatcher",
+                                        "The game has already started, but you can still watch the game","");
+                                    choice.sendWatcher(msg.name, packet);
+
+                                } else {
+                                    user = choice.addUser(connection, msg.name);
+
+                                    packet = choice.setChoicePacket("newUser",
+                                        "Welcome! Press the Start button when all the players have joined","Start");
+                                    packet.messageType = "newPlayer";
+                                    choice.send(msg.name, packet);
+                                    packet.messageType = "newPlayer";
+                                    packet.message = msg.name + " is now Playing\n\n";
+                                    choice.broadCastMessage(msg.name, packet);
+                                }
+                            }
+                            break;
+
 
                         case 4:
                             if (bocaDice.chkForDuplicateName(msg.name)) {
