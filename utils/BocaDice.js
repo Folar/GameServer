@@ -82,6 +82,7 @@ class BocaDice {
     }
     distributeCash(){
         for (let i = 0;i <6;i++){
+            this.cash[i]=[];
             while(this.sumCash(this.cash[i])<50){
                 this.cash[i].push(this.getOneCard())
             }
