@@ -19,7 +19,8 @@ class BocaActions {
         packet = bocaDice.setBocaDicePacket("Restart",
             bocaDice.formatNameList(res[3]) + " won the game with " + res[2] + " grand",
             "Restart");
-        bocaDice.diceNum = 8;
+        bocaDice.diceNum = BocaDice.NUMBER_DICE;
+        bocaDice.diceXNum = BocaDice.NUMBER_DICEX;
         bocaDice.setBocaStarted(false);
         packet.money = packet.prevMoney.money;
         bocaDice.broadCastAll(packet);
@@ -64,9 +65,10 @@ class BocaActions {
             packet.currentIndex++;
             if (packet.currentIndex == packet.players.length)
                 packet.currentIndex = 0;
-            if (packet.players[packet.currentIndex].diceLeft != 0) {
+            if (packet.players[packet.currentIndex].diceLeft != 0 || packet.players[packet.currentIndex].diceXLeft != 0 ) {
                 packet.currentPlayer = packet.players[packet.currentIndex].name;
                 packet.diceNum = packet.players[packet.currentIndex].diceLeft;
+                packet.diceXNum = packet.players[packet.currentIndex].diceXLeft;
                 packet = bocaDice.setBocaDicePacket("passDice",
                     packet.currentPlayer + " is starting her/his turn",
                     "Roll!!");
@@ -89,7 +91,7 @@ class BocaActions {
                 bocaDice.nextRound();
                 let players = bocaDice.getPlaying();
                 packet = bocaDice.getCurrentPacket();
-                packet.totalDice = players.length * BocaDice.NUMBER_DICE;
+                packet.totalDice = players.length * (BocaDice.NUMBER_DICE + BocaDice.NUMBER_DICEX) ;
                 packet = bocaDice.setBocaDicePacket("passDice",
                     packet.currentPlayer + " is starting her/his turn",
                     "Roll!!");
@@ -134,9 +136,10 @@ class BocaActions {
                     packet.currentIndex++;
                     if (packet.currentIndex == packet.players.length)
                         packet.currentIndex = 0;
-                    if (packet.players[packet.currentIndex].diceLeft != 0) {
+                    if (packet.players[packet.currentIndex].diceLeft != 0 || packet.players[packet.currentIndex].diceXLeft != 0) {
                         packet.currentPlayer = packet.players[packet.currentIndex].name;
                         packet.diceNum = packet.players[packet.currentIndex].diceLeft;
+                        packet.diceXNum = packet.players[packet.currentIndex].diceXLeft;
                         packet = bocaDice.setBocaDicePacket("passDice",
                             packet.currentPlayer + " is starting her/his turn",
                             "Roll!!");
@@ -152,7 +155,8 @@ class BocaActions {
                 packet = bocaDice.setBocaDicePacket("Restart",
                     bocaDice.formatNameList(res[3]) + " won the game with " + res[2] + " grand",
                     "Restart");
-                bocaDice.diceNum = 8;
+                bocaDice.diceNum = BocaDice.NUMBER_DICE;
+                bocaDice.diceXNum = BocaDice.NUMBER_DICEX;
                 bocaDice.setBocaStarted (false);
                 packet.money = packet.prevMoney;
                 bocaDice.broadCastAll(packet);
@@ -162,33 +166,37 @@ class BocaActions {
             case "rollBocaDice":
 
 
-                if (msg.selectedDice != -1) {
+                if (msg.selectedDice != -1 ||msg.selectedDiceX != -1 ) {
                     packet = bocaDice.getCurrentPacket();
                     packet.dice = msg.dice;
-                    packet.selectedDice = msg.selectedDice;
+                    let idx  = msg.selectedDice != -1 ? msg.dice[msg.selectedDice] - 1:msg.diceX[msg.selectedDiceX] - 1;
 
                     let u = bocaDice.users[packet.currentIndex];
                     u.diceLeft -= msg.qty;
+                    u.diceXLeft -= msg.qtyX;
                     packet = bocaDice.setBocaDicePacket("rollDice",
-                        msg.name + " selected the " + (msg.dice[msg.selectedDice]) + " die(" + msg.qty + ")",
+                        msg.name + " selected the " + (idx) + " die(" + msg.qty + ")",
                         "Pass Dice");
                     //  packet.players[packet.currentIndex].diceLeft -= msg.qty;
-                    packet.totalDice -= msg.qty;
-                    packet.fieldColors[msg.dice[msg.selectedDice] - 1] = "gray";
-                    packet.fieldPlayers[msg.dice[msg.selectedDice] - 1] = msg.fld;
-                    packet.ofieldPlayers[msg.dice[msg.selectedDice] - 1] = msg.fld;
+                    packet.totalDice -= (msg.qty + msg.qtyX);
+                    packet.fieldColors[idx] = "gray";
+                    packet.fieldPlayers[idx] = msg.fld;
+                    packet.ofieldPlayers[idx] = msg.fld;
                     bocaDice.broadCastAll(packet);
                     setTimeout(this.passDice.bind(this), BocaDice.BOCA_DELAY);
+
+                    packet.fieldColors[idx] = packet.ofieldColors[idx];
                 } else {
                     packet = bocaDice.setBocaDicePacket("rollDice",
                         msg.name + " rolled his/her dice",
                         "Confirm");
                     packet.dice = msg.dice;
                     packet.selectedDice = msg.selectedDice;
+                    packet.diceX = msg.diceX;
+                    packet.selectedDiceX = msg.selectedDiceX;
                     bocaDice.broadCastMessage(msg.name, packet)
                 }
 
-                packet.fieldColors[msg.dice[msg.selectedDice] - 1] = packet.ofieldColors[msg.dice[msg.selectedDice] - 1];
                 break;
 
 
@@ -207,7 +215,7 @@ class BocaActions {
                     str = "Let the games begin! " +
                         players[num].name + " was randomly chosen to start the game";
                     packet = bocaDice.setBocaDicePacket("playerStart", str, "Roll!!");
-                    packet.totalDice = players.length * BocaDice.NUMBER_DICE;
+                    packet.totalDice = players.length * (BocaDice.NUMBER_DICE + BocaDice.NUMBER_DICEX) ;
                     packet.startIndex = packet.currentIndex = num;
                     packet.currentPlayer = players[packet.currentIndex].name;
 

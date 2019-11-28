@@ -50,9 +50,12 @@ class BocaDice {
         return 8;
     }
 
+    static get NUMBER_DICEX() {
+        return 2;
+    }
 
     static get NUMBER_PLAYERS() {
-        return  5;
+        return  4;
     }
     static get BOCA_DELAY() {
         return  4000;
@@ -99,6 +102,7 @@ class BocaDice {
         this.bocaData.fieldPlayers = [[],[],[],[],[],[]];
         this.setMoneyTotalDiceLeft();
         this.bocaData.diceNum = BocaDice.NUMBER_DICE;
+        this.bocaData.diceXNum = BocaDice.NUMBER_DICEX;
     }
     newDeal() {
         this.deck = this.getDeck();
@@ -241,6 +245,7 @@ class BocaDice {
             totalDice:0,
             selectedDice :0,
             diceNum:BocaDice.NUMBER_DICE,
+            diceXNum:BocaDice.NUMBER_DICEX,
             prevMoney:0
         }
     }
@@ -273,8 +278,10 @@ class BocaDice {
             playerIndex = this.getUniquePlayer(playerIndex,fld);
             if(playerIndex == -1)
                 return;
-            this.getUser(fld[playerIndex].name).money += money[0].value;
-            this.getUser(fld[playerIndex].name).totalMoney += money[0].value;
+            if(fld[playerIndex].name != "@House") {
+                this.getUser(fld[playerIndex].name).money += money[0].value;
+                this.getUser(fld[playerIndex].name).totalMoney += money[0].value;
+            }
             money.splice(0,1);
             playerIndex++;
 
@@ -299,6 +306,7 @@ class BocaDice {
             money:0,
             totalMoney:0,
             diceLeft: BocaDice.NUMBER_DICE,
+            diceXLeft: BocaDice.NUMBER_DICEX,
             playing: false
         };
         this.users.push(user);
@@ -468,6 +476,7 @@ class BocaDice {
         for (let i in this.users) {
             this.users[i].money = this.users[i].totalMoney;
             this.users[i].diceLeft = BocaDice.NUMBER_DICE;
+            this.users[i].diceXLeft = BocaDice.NUMBER_DICEX;
         }
 
     }
@@ -485,6 +494,7 @@ class BocaDice {
                 name: user.name,
                 money: user.money,
                 diceLeft:user.diceLeft,
+                diceXLeft:user.diceXLeft,
                 playing: user.playing
             };
         });
