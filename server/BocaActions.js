@@ -174,8 +174,10 @@ class BocaActions {
                     let u = bocaDice.users[packet.currentIndex];
                     u.diceLeft -= msg.qty;
                     u.diceXLeft -= msg.qtyX;
+                    let X = "";
+                    if (msg.qtyX > 0) X ="," +msg.qtyX;
                     packet = bocaDice.setBocaDicePacket("rollDice",
-                        msg.name + " selected the " + (idx) + " die(" + msg.qty + ")",
+                        msg.name + " selected the " + (idx + 1) + " die(" + msg.qty + X+ ")",
                         "Pass Dice");
                     //  packet.players[packet.currentIndex].diceLeft -= msg.qty;
                     packet.totalDice -= (msg.qty + msg.qtyX);
