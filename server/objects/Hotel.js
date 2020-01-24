@@ -69,12 +69,12 @@ class Hotel {
 
     calcBonus()
     {
-        this.first = price() * 10;
-        this.second = price() * 5;
+        this.first = this.price() * 10;
+        this.second = this.price() * 5;
     }
     secondBonus()
     {
-        return m_second ;
+        return this.m_second ;
     }
     firstBonus ()
     {

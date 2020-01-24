@@ -1,5 +1,6 @@
 const {GameBoard} = require('./GameBoard.js');
 const {Hotel} = require('./Hotel.js');
+const {AboutNeighbors} = require('./AboutNeighbors.js');
 
 class Player {
 
