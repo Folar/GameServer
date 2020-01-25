@@ -9,6 +9,7 @@ class GameBoard {
     set stockTrade(value) {
         this._stockTrade = value;
     }
+
     constructor() {
         this.tile = [];
         this.tileBag = [];
@@ -125,12 +126,15 @@ class GameBoard {
             this.tile.push(k)
         }
     }
+
     getSwap() {
-       return this.stockTransaction;
+        return this.stockTransaction;
     }
+
     setSwap(st) {
         this.stockTransaction = st;
     }
+
     placeTile(row, col, msg) {
 
 
@@ -265,21 +269,20 @@ class GameBoard {
         return true;
     }
 
-    mergeChain()
-    {
+    mergeChain() {
 
         let mergeNum = 0;
         let j;
         let i;
-        let order=[0,0,0,0] ;
-        for (i = 0 ;i< this.cExamine; i++) {
+        let order = [0, 0, 0, 0];
+        for (i = 0; i < this.cExamine; i++) {
             if (this.tilesExamine[i].getState() != Tile.ONBOARD) {
                 if (mergeNum == 0) {
                     order[0] = this.tilesExamine[i];
                     mergeNum++;
                 } else {
-                    for (j = 0; j <mergeNum; j++) {
-                        if (order[j].getState() == this.tilesExamine[i].getState()){
+                    for (j = 0; j < mergeNum; j++) {
+                        if (order[j].getState() == this.tilesExamine[i].getState()) {
                             break;
                         }
                     }
@@ -294,10 +297,10 @@ class GameBoard {
         let x;
         let y;
         let temp;
-        for (i = 0; i <mergeNum - 1;i++) {
-            for ( j = i+1; j< mergeNum ;j++) {
-                if ( this.hot[order[i].getState()].count() <
-                    this.hot[order[j].getState()].count() ) {
+        for (i = 0; i < mergeNum - 1; i++) {
+            for (j = i + 1; j < mergeNum; j++) {
+                if (this.hot[order[i].getState()].count() <
+                    this.hot[order[j].getState()].count()) {
                     temp = order[i];
                     order[i] = order[j];
                     order[j] = temp;
@@ -306,13 +309,13 @@ class GameBoard {
             }
         }
 
-        let nParts= 0;
-        let part =[0,0,0,0];
+        let nParts = 0;
+        let part = [0, 0, 0, 0];
         let cnt = this.hot[order[0].getState()].count();
-        let mergeList =[0,0,0,0];
-        for ( i = 0;i<mergeNum; i++) {
+        let mergeList = [0, 0, 0, 0];
+        for (i = 0; i < mergeNum; i++) {
             mergeList[i] = order[i].getState();
-            if ( this.hot[order[i].getState()].count() == cnt){
+            if (this.hot[order[i].getState()].count() == cnt) {
                 part[nParts]++;
             } else {
                 cnt = this.hot[order[i].getState()].count();
@@ -324,62 +327,67 @@ class GameBoard {
         if (nParts < mergeNum) {
             let split = [];
             let pos = 0;
-            for ( i = 0;i<nParts  ; i++) {
+            for (i = 0; i < nParts; i++) {
                 split.push([]);
-                for (j =0;j<part[i];j++)
-                {
-                    split[i].push(  order[j + pos].getState());
-                   /// xxx = split[i][j];
+                for (j = 0; j < part[i]; j++) {
+                    split[i].push(order[j + pos].getState());
+                    /// xxx = split[i][j];
                 }
                 pos += part[i];
             }
 
             // DHTMLMergeList = split;
-                //DHTMLMergeNum = mergeNum;
+            //DHTMLMergeNum = mergeNum;
             this.players[this.currentPlayer].setState(GameBoard.CHOOSE_ORDER);
 
         } else {
-            if( this.players[this.currentPlayer].isDHTMLClient()){
-                this.players[this.currentPlayer].setMerge(mergeNum,mergeList);
-            }else{
-                this.setMerge(mergeNum,mergeList);
+            if (this.players[this.currentPlayer].isDHTMLClient()) {
+                this.players[this.currentPlayer].setMerge(mergeNum, mergeList);
+            } else {
+                this.setMerge(mergeNum, mergeList);
             }
         }
         return true;
     }
 
+    round(x) {
+        if ((x % 100) == 0) {
+            return x;
+        }
+        let q = x / 100;
+        x = q * 100 + 100;
+        return x;
+    }
 
-    bonusPayout(defunct,mergeIndex, aqc)
-    {
+    bonusPayout(defunct, mergeIndex, aqc) {
         let cnt = 0;
         let bonusAmt;
         let bonusWinners;
         let partners = [];
         let i;
         // figure partners
-        for ( i = 0; i <this.playerNum; i++) {
+        for (i = 0; i < this.playerNum; i++) {
             if (this.players[i].this.hotels[defunct] != 0) {
-                partners.push( this.players[i]);
+                partners.push(this.players[i]);
                 cnt++;
             }
         }
-        
-        if ( cnt == 1) {
+
+        if (cnt == 1) {
             // only one owner
             let amt = partners[0].getMoney();
             bonusAmt = this.hot[defunct].firstBonus() +
                 this.hot[defunct].secondBonus();
-            amt = amt  + this.hot[defunct].firstBonus() +
+            amt = amt + this.hot[defunct].firstBonus() +
                 this.hot[defunct].secondBonus();
             partners[0].setMoney(amt);
 
 
-            if (mergeIndex != -1)
-            {
+            if (mergeIndex != -1) {
                 //setAllMoney(partners[0],amt);
             }
             bonusWinners = partners[0].getName() +
-                " Wins both first and second bonus for "+ bonusAmt;
+                " Wins both first and second bonus for " + bonusAmt;
 
 
         } else {
@@ -388,10 +396,10 @@ class GameBoard {
 
             //sort
             let j;
-            for (i = 0; i <cnt - 1;i++) {
-                for ( j = i+1; j< cnt ;j++) {
-                    if ( partners[i].this.hotels[defunct] <
-                        partners[j].this.hotels[defunct]	) {
+            for (i = 0; i < cnt - 1; i++) {
+                for (j = i + 1; j < cnt; j++) {
+                    if (partners[i].this.hotels[defunct] <
+                        partners[j].this.hotels[defunct]) {
                         temp = partners[i];
                         partners[i] = partners[j];
                         partners[j] = temp;
@@ -400,14 +408,14 @@ class GameBoard {
             }
 
             // partition
-            let nParts= 0;
-            let part=[0,0,0,0,0,0];
-            let shareCnt = partners[0].this.hotels[defunct] ;
-            for ( i = 0;i<cnt; i++) {
-                if ( partners[i].this.hotels[defunct] == shareCnt){
+            let nParts = 0;
+            let part = [0, 0, 0, 0, 0, 0];
+            let shareCnt = partners[0].this.hotels[defunct];
+            for (i = 0; i < cnt; i++) {
+                if (partners[i].this.hotels[defunct] == shareCnt) {
                     part[nParts]++;
                 } else {
-                    shareCnt = partners[i].this.hotels[defunct] ;
+                    shareCnt = partners[i].this.hotels[defunct];
                     nParts++;
                     part[nParts]++;
                 }
@@ -415,23 +423,23 @@ class GameBoard {
             if (part[0] == 1) {
                 bonusAmt = this.hot[defunct].firstBonus();
                 bonusWinners = partners[0].getName() +
-                    " Wins first bonus for "+ bonusAmt;
+                    " Wins first bonus for " + bonusAmt;
 
                 let amt = partners[0].getMoney();
-                amt = amt  + this.hot[defunct].firstBonus();
+                amt = amt + this.hot[defunct].firstBonus();
                 partners[0].setMoney(amt);
-                if (mergeIndex != -1){
+                if (mergeIndex != -1) {
                     // setAllMoney(partners[0],amt);
                 }
-                if  (part[1] == 1) {
+                if (part[1] == 1) {
 
                     bonusAmt = this.hot[defunct].secondBonus();
                     bonusWinners = bonusWinners + ". " +
                         partners[1].getName() +
-                        " Wins second bonus for "+bonusAmt;
+                        " Wins second bonus for " + bonusAmt;
 
                     amt = partners[1].getMoney();
-                    amt = amt  + this.hot[defunct].secondBonus();
+                    amt = amt + this.hot[defunct].secondBonus();
                     partners[1].setMoney(amt);
                     if (mergeIndex != -1) {
                         //setAllMoney(partners[1],amt);
@@ -442,24 +450,22 @@ class GameBoard {
 
                     let evenShare = this.hot[defunct].secondBonus();
                     evenShare /= part[1];
-                    evenShare = Math.ceil(evenShare);
-                    for ( j = 0; j<part[1];j++)
-                    {
+                    evenShare = thiis.round(evenShare);
+                    for (j = 0; j < part[1]; j++) {
                         bonusWinners = bonusWinners +
-                            partners[j+1].getName() + " ";
+                            partners[j + 1].getName() + " ";
 
                         amt = partners[j + 1].getMoney() + evenShare;
-                        partners[j+1].setMoney(amt );
+                        partners[j + 1].setMoney(amt);
                         if (mergeIndex != -1) {
                             //setAllMoney(partners[j+1],amt);
                         }
-                        if (j+1 < part[1]) {
+                        if (j + 1 < part[1]) {
                             bonusWinners = bonusWinners + "and ";
                         }
                     }
                     bonusWinners = bonusWinners +
-                        " split second bonus of "+bonusAmt;
-
+                        " split second bonus of " + bonusAmt;
 
 
                 }
@@ -472,19 +478,18 @@ class GameBoard {
                 evenShare /= part[0];
                 evenShare = round(evenShare);
                 bonusWinners = "";
-                for ( j = 0; j<part[0];j++)
-                {
+                for (j = 0; j < part[0]; j++) {
                     bonusWinners = bonusWinners +
                         partners[j].getName() + " ";
-                    if (j+1 < part[0]) {
+                    if (j + 1 < part[0]) {
                         bonusWinners = bonusWinners + "& ";
                     }
                     let amt = partners[j].getMoney() + evenShare;
-                    partners[j].setMoney(amt );
+                    partners[j].setMoney(amt);
 
                 }
                 bonusWinners = bonusWinners +
-                    " split first and second bonus of "+bonusAmt;
+                    " split first and second bonus of " + bonusAmt;
 
             }
 
@@ -495,27 +500,27 @@ class GameBoard {
             this.bonusWinners[mergeIndex - 1] = bonusWinners;
 
     }
-    mergeHotels( arg)
-    {
+
+    mergeHotels(arg) {
 
         let mergeNum = arg.getHotelCount();
-        let mergeList =arg.getMergeList();
+        let mergeList = arg.getMergeList();
         this.tile[this.row][this.column].this.mergeTile = true;
         this.tile[this.row][this.column].setState(this.hot[mergeList[0]].getHotel());
         let p = this.hot[mergeList[1]].count();
-        for ( let i=0;i<this.cExamine;i++) {
+        for (let i = 0; i < this.cExamine; i++) {
             walkChain(this.tilesExamine[i], this.hot[mergeList[0]].getHotel());
         }
 
         let dstr = this.hot[mergeList[1]].getName();
-        for ( let i=2 ;i<mergeNum;i++) {
+        for (let i = 2; i < mergeNum; i++) {
             dstr = dstr + " and " + this.hot[mergeList[i]].getName();
         }
 
-        arg.setMessage(this.players[this.currentPlayer].getName()  + " merges " + dstr +
-            " into " + this.hot[mergeList[0]].getName()+".");
+        arg.setMessage(this.players[this.currentPlayer].getName() + " merges " + dstr +
+            " into " + this.hot[mergeList[0]].getName() + ".");
 
-        for ( let i=1;i<mergeNum;i++) {
+        for (let i = 1; i < mergeNum; i++) {
             this.hot[mergeList[i]].calcBonus();
             this.takeOver(this.hot[mergeList[0]].getHotel(),
                 this.hot[mergeList[i]].getHotel());
@@ -523,84 +528,81 @@ class GameBoard {
 
         this.cExamine = 0;
 
-        for ( let i=1;i<mergeNum; i++) {
-            this.bonusPayout(this.hot[mergeList[i]].getHotel(),i,arg);
+        for (let i = 1; i < mergeNum; i++) {
+            this.bonusPayout(this.hot[mergeList[i]].getHotel(), i, arg);
         }
 
-        msgs[0]=arg;
+        msgs[0] = arg;
         this.tradeIndex = 0;
         this.tradeCnt = 0;
 
-            for ( let i=1;i<mergeNum; i++) {
-                this.setSwapQueue(mergeList[0], this.mergeList[i],i);
-            }
-            msgs[1] = ths.firstSwap();
+        for (let i = 1; i < mergeNum; i++) {
+            this.setSwapQueue(mergeList[0], this.mergeList[i], i);
+        }
+        msgs[1] = ths.firstSwap();
         return msgs;
     }
 
-    firstSwap()
-    {
+    firstSwap() {
         this.players[this.currentPlayer].setState(GameBoard.OTHER);
         this.players[this._stockTrade[0].getPlayer()].setState(GameBoard.SWAP);
         let sst = swapStockTransaction(this._stockTrade[0]);
-        sst.setMessage( this.players[this._stockTrade[0].getPlayer()].getName() +
+        sst.setMessage(this.players[this._stockTrade[0].getPlayer()].getName() +
             " is deciding what to do with his/her shares of " +
-            this.hot[this._stockTrade[0].getDefunct()].getName()+".");
+            this.hot[this._stockTrade[0].getDefunct()].getName() + ".");
         this.setSwap(sst.getStockTransaction());
         return sst;
     }
-    trade(ass){
-    
-        let str=
-            this.players[ass.getCurrentPlayerID() ].getName() + " swaps " + ass.getSwap() + " shares of "
+
+    trade(ass) {
+
+        let str =
+            this.players[ass.getCurrentPlayerID()].getName() + " swaps " + ass.getSwap() + " shares of "
             + this.hot[ass.getDefunct()].getName() + " for " +
             this.hot[ass.getSurvivor()].getName() + ".\n" +
-            this.players[ass.getCurrentPlayerID() ].getName() + " sells " + ass.getSell() + " shares of "
+            this.players[ass.getCurrentPlayerID()].getName() + " sells " + ass.getSell() + " shares of "
             + this.hot[ass.getDefunct()].getName() + ".";
         ass.setMessage(str);
-    
-    
+
+
         this.players[ass.getCurrentPlayerID()].setState(OTHER);
-        
+
         this.players[ass.getCurrentPlayerID()].swapStock(
             this.hot[ass.getSurvivor()],
             this.hot[ass.getDefunct()],
             ass.getSwap(),
             ass.getSell());
-        
 
-    
-       let msg=[ass];
+
+        let msg = [ass];
         return msg;
     }
 
-    nextTrans()
-    {
+    nextTrans() {
         this.tradeIndex++;
         //AQC msg[]= new AQC[1];
         if (this.tradeIndex < this.tradeCnt) {
-            let sst = swapStockTransaction(this.stockTrade[this.tradeIndex]);
-            sst.setMessage( this.players[this.stockTrade[this.tradeIndex].getPlayer()].getName() +
+            let sst = swapStockTransaction(this.stockTrade[this.tradeIndex]);//todo
+            sst.setMessage(this.players[this.stockTrade[this.tradeIndex].getPlayer()].getName() +
                 " is deciding what to do with his/her shares of " +
-                this.hot[this.stockTrade[this.tradeIndex].getDefunct()].getName()+".");
+                this.hot[this.stockTrade[this.tradeIndex].getDefunct()].getName() + ".");
             this.players[this.stockTrade[this.tradeIndex].getPlayer()].setState(GameBoard.SWAP);
             this.setSwap(sst.getStockTransaction());
-            msg[0]= sst;
+            msg[0] = sst;
         } else {
             this.players[this.currentPlayer].setState(GameBoard.BUYSTOCK);
-            msg[0]= new AQCBuyState(this.currentPlayer,this.players[this.currentPlayer].getName());
-            msg[0].setMessage(this.players[this.currentPlayer].getName()  + " you can buy stock now.");
-           // msg[0].setTurnMergeTileOff(true);
+            msg[0] = new AQCBuyState(this.currentPlayer, this.players[this.currentPlayer].getName());
+            msg[0].setMessage(this.players[this.currentPlayer].getName() + " you can buy stock now.");
+            // msg[0].setTurnMergeTileOff(true);
         }
         return msg;
     }
 
-    setSwapQueue(  survivor, defunct, mergeIndex)
-    {
+    setSwapQueue(survivor, defunct, mergeIndex) {
         let playIndex = this.currentPlayer;
         let str = this.hot[survivor].getName() + " takeover of " +
-        this.hot[defunct].getName();
-        for ( let i = 0; i<this.playerNum; i++) {
+            this.hot[defunct].getName();
+        for (let i = 0; i < this.playerNum; i++) {
 
             if (this.players[playIndex].this.hotels[defunct] != 0) {
                 this._stockTrade[this.tradeCnt].setIndex(this.tradeCnt);
@@ -610,7 +612,7 @@ class GameBoard {
                 this._stockTrade[this.tradeCnt].setTitle(str);
                 this._stockTrade[this.tradeCnt++].setBonusStr(this.bonusWinners[mergeIndex - 1]);
             }
-            if (playIndex == (this.playerNum -1)) {
+            if (playIndex == (this.playerNum - 1)) {
                 playIndex = 0;
             } else {
                 playIndex++;
@@ -618,7 +620,7 @@ class GameBoard {
         }
     }
 
-growChain(state, msg) {
+    growChain(state, msg) {
         this.tile[this.row][this.column].setState(state);
         for (let i = 0; i < this.cExamine; i++) {
             walkChain(this.tilesExamine[i], state);
