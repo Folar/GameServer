@@ -11,10 +11,12 @@ class Player {
         this.name = name;
         this.tileStr = "";
         this.gameBoard = gb;
-        this.state = GameBoard.OTHER;
-        this.tiles = [Tile.dummy, Tile.dummy, Tile.dummy, Tile.dummy, Tile.dummy, Tile.dummy];
+        this.state = gb.OTHER;
+        this.tiles = [0, 0, 0,0,0,0];
         this.mergeNum = 0;
+        this.startingTile = null;
         this.mergeList = [];
+        this.playing = false;
     }
 
     setState(s) {
@@ -51,6 +53,7 @@ class Player {
         for (let i = 0; i < 6; i++) {
             this.tiles[i] = this.gameBoard.pickATile();
         }
+        this.startingTile = this.gameBoard.pickATile();
     }
 
     worth() {

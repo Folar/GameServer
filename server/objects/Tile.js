@@ -15,7 +15,7 @@ class Tile{
 
     }
 
-    static dummy = new Tile();
+    static get dummy() { return new Tile();}
 
     static get EMPTY() {
         return 8;

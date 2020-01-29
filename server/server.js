@@ -8,6 +8,11 @@ const {BocaActions} = require('./BocaActions.js');
 const {TakeSixActions} = require('./TakeSixActions.js');
 const {Choice} = require('./../utils/Choice.js');
 const {ChoiceActions} = require('./ChoiceActions.js');
+const {GameBoard} = require('./objects/GameBoard.js');
+const {Acquire} = require('./../utils/Acquire.js');
+
+let acquire = new Acquire();
+let gameBoard = new GameBoard(acquire);
 
 let takeSix = new TakeSix();
 let takeSixActions = new TakeSixActions(takeSix);
@@ -68,11 +73,19 @@ wsServer.on('request', function (request) {
     function restartGame() {
         canReset = false;
         console.log("start of restartgame");
+
+
         let packet = takeSixActions.prepareTakeSixPacket("message", "There has been no game activity for " + TakeSix.NUMBER_TlME_WARN
             + " minutes.The Game Server has been restarted. Reload FolarGames in your browser");
         takeSix.setTakeSixStarted(false) ;
         takeSix.broadCastAll(packet);
         takeSix.removeAllConnections();
+
+        packet = acquire.setAcquirePacket("message", "There has been no game activity for " + TakeSix.NUMBER_TlME_WARN
+            + " minutes.The Game Server has been restarted. Reload FolarGames in your browser", "Reload");
+        acquire.setAcquireStarted(false);
+        acquire.broadCastAll(packet);
+        acquire.removeAllConnections();
 
         packet = choice.setChoicePacket("message", "There has been no game activity for " + TakeSix.NUMBER_TlME_WARN
             + " minutes.The Game Server has been restarted. Reload FolarGames in your browser", "Reload");
@@ -127,6 +140,8 @@ wsServer.on('request', function (request) {
             let str;
             resetTimer();
             switch (msg.type) {
+                case "ACQ":
+                    gameBoard.processMsg(msg);
                 case "BOCA":
                     bocaActions.bocaCmd(msg);
                     break;
@@ -269,6 +284,40 @@ wsServer.on('request', function (request) {
                                     packet.messageType = "newPlayer";
                                     packet.message = msg.name + " is now Playing\n\n";
                                     diver.broadCastMessage(msg.name, packet);
+                                }
+                            }
+                            break;
+
+                        case 6:
+                            if (acquire.chkForDuplicateName(msg.name)) {
+                                packet = acquire.prepareAcquirePacket("dupUser", msg.name + " has already signed on, please choose another","");
+
+                                packet.messageType = "dupUser";
+                                connection.send(JSON.stringify(packet));
+                                break;
+                            } else {
+                                let user = null
+                                if (acquire.hasAcquireStarted()) {
+                                    user = acquire.addWatchers(connection, msg.name);
+                                    packet = acquire.setAcquirePacket("newWatcher", "The game has already started, but you can still watch the game", "","");
+                                    packet.messageType = "newWatcher";
+                                    acquire.sendWatcher(msg.name, packet);
+
+                                } else if (acquire.users.length == acquire.NUMBER_PLAYERS) {
+                                    user = acquire.addWatchers(connection, msg.name);
+                                    packet = acquire.setAcquirePacket("newWatcher", "","The game has already has " + acquire.NUMBER_PLAYERS +
+                                        " players, but you can still watch the game", "");
+                                    acquire.sendWatcher(msg.name, packet);
+                                } else {
+                                    user = acquire.addUser(connection, msg.name);
+                                    packet = acquire.setAcquirePacket("newUser","",
+                                        "xxx",
+                                        "Start");
+                                    acquire.send(msg.name, packet);
+                                    packet.messageType = "newPlayer";
+                                    packet.instructions ="xxx";
+                                    packet.message = msg.name + " is now Playing\n\n";
+                                    acquire.broadCastMessage(msg.name, packet);
                                 }
                             }
                             break;
