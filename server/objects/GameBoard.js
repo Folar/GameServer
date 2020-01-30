@@ -28,6 +28,7 @@ class GameBoard {
         this.sharesBrought = 0;
         this.hits = false;
         this.currentPlayer = 0;
+        this.currentSwapPlayer = 0
         this.okToBuy = true;
         this.playing = false;
         this.gameStarted = false;
@@ -36,12 +37,11 @@ class GameBoard {
         this.winner = 0;
         this.starterTile = [];
         this.startTile = null;
-        this.startPlayer = 0;
         this.startNum = 0;
         this.gameInfo = "";
         this.tileStr = [];
         this.playingTile = false;
-       
+        this.acquireStarted = false;     
         this.stockTransaction;
         this.initTiles();
         this.initHotels();
@@ -156,13 +156,13 @@ class GameBoard {
                 k.push(new Tile(i, j));
                 this.tileBag.push(new Tile(i, j))
             }
-            this.tile.push(k)
+            this.tile.push(k);
         }
     }
     processMsg( cmd )
     {
 
-        switch(cmd.getCode()){
+        switch(cmd.action){
             case GameBoard.GAMEBOARD_START:
                 return this.startPlayer(cmd);
             case GameBoard.GAMEBOARD_PLAY_TILE:
@@ -185,6 +185,58 @@ class GameBoard {
                 return this.chooseWinner(cmd);
         }
     return null;
+    }
+
+  
+
+    setAcquireStarted (f){
+        this.acquireStarted = f;
+    }
+    hasAcquireStarted (){
+        return this.acquireStarted;
+    }
+    setPlay(id){
+        let lst = this.players.filter((player) => player.name === id);
+        let p = lst[0];
+        let t = p.startingTile;
+        this.tile[t.row][t.column].state = 9;
+        p.playing = true;
+    }
+    getNonPlaying(){
+        return this.players.filter((player) => player.playing !== true);
+    }
+    getPlaying(){
+        return this.players.filter((player) => player.playing === true);
+    }
+    startPlayer(msg){
+        this.setPlay(msg.name);
+        let ulst = this.getNonPlaying();
+
+        let str = "";
+        if (ulst.length == 0) {
+            this.setAcquireStarted(true);
+            let players = this.getPlaying();
+            let num = Math.floor(Math.random() * players.length);
+            str = "Let the games begin! " +
+                players[num].name + " was randomly chosen to roll first";
+            let packet = this.acquire.setAcquirePacket("playerStart", str, "Pick a tile from the rack or click on an eligible tile on the board");
+            this.currentPlayer = num;
+            this.acquire.broadCastAll( packet);
+
+        } else {
+            str = "Waiting for "
+            let cnt = 1;
+            let names = [];
+            for (let item in ulst) {
+                names.push(ulst[item].name);
+            }
+            str += acquire.formatNameList(names) + " to click Start";
+            let packet = acquire.setAcquirePacket("playerStart", str, "");
+            acquire.sendPacket(ulst, packet);
+            ulst = this.getPlaying();
+            packet.buttonText = "";
+            acquire.sendPacket(ulst, packet);
+        }
     }
     pickATile(){
         if (this.tileIndex == 107) return null;
@@ -649,6 +701,7 @@ class GameBoard {
         this.players.push(p);
         this.playerNum++;
         p.pickFirstTiles();
+        return p;
     }
 
     nextTrans() {

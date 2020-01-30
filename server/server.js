@@ -142,6 +142,7 @@ wsServer.on('request', function (request) {
             switch (msg.type) {
                 case "ACQ":
                     gameBoard.processMsg(msg);
+                    break;
                 case "BOCA":
                     bocaActions.bocaCmd(msg);
                     break;
@@ -297,7 +298,7 @@ wsServer.on('request', function (request) {
                                 break;
                             } else {
                                 let user = null
-                                if (acquire.hasAcquireStarted()) {
+                                if (gameBoard.hasAcquireStarted()) {
                                     user = acquire.addWatchers(connection, msg.name);
                                     packet = acquire.setAcquirePacket("newWatcher", "The game has already started, but you can still watch the game", "","");
                                     packet.messageType = "newWatcher";

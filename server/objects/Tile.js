@@ -1,12 +1,13 @@
 class Tile{
-    constructor(row=-1,col=-1,name = null) {
-        this.state = Tile.EMPTY;
+    constructor(row=-1,col=-1,state=8,name = null) {
+        this.state = state;
         this.row = row;
         this.column = col;
         this.dirty = false;
         this.inRack= false;
         this.dirty = false;
         this.mergeTile = false;
+        this.ordinal = row * 12 + col ;
         if(name !=null){
             let arr =  name.split("-");
             this.row = arr[0]
