@@ -63,7 +63,7 @@ class Hotel {
         let cnt = 0;
         for (let i = 0; i < 9; i++)
             for (let j = 0; j < 12; j++)
-                if (this.gameBoard.getTile()[i][j].m_state == this.hotel) cnt++;
+                if (this.gameBoard.tile[i][j].state == this.hotel) cnt++;
         return cnt;
     }
 

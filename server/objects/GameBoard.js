@@ -1,6 +1,7 @@
 const {Tile} = require('./Tile.js');
 const {Hotel} = require('./Hotel.js');
 const {Player} = require('./Player.js');
+const {AboutNeighbors} = require('./AboutNeighbors.js');
 
 class GameBoard {
 
@@ -11,7 +12,7 @@ class GameBoard {
         this.tileBag = [];
         this.tileIndex = 0;
         this.hot = [];
-        this.players= [];
+        this.players = [];
         this.cSafe = 0;
         this.availTiles = 108;
         this.cExamine = 0;
@@ -41,7 +42,7 @@ class GameBoard {
         this.gameInfo = "";
         this.tileStr = [];
         this.playingTile = false;
-        this.acquireStarted = false;     
+        this.acquireStarted = false;
         this.stockTransaction;
         this.initTiles();
         this.initHotels();
@@ -88,33 +89,42 @@ class GameBoard {
         return 9
     };
 
-    static get GAMEBOARD_START(){
+    static get GAMEBOARD_START() {
         return 100;
     }
-    static get GAMEBOARD_PLAY_TILE(){
+
+    static get GAMEBOARD_PLAY_TILE() {
         return 101;
     }
-    static get GAMEBOARD_BUY_HOTEL(){
+
+    static get GAMEBOARD_BUY_HOTEL() {
         return 102;
     }
-    static get GAMEBOARD_START_HOTEL(){
+
+    static get GAMEBOARD_START_HOTEL() {
         return 103;
     }
-    static get GAMEBOARD_NEXT_TRANSACTION(){
+
+    static get GAMEBOARD_NEXT_TRANSACTION() {
         return 104;
     }
-    static get GAMEBOARD_MERGE_HOTEL(){
+
+    static get GAMEBOARD_MERGE_HOTEL() {
         return 105;
     }
-    static get GAMEBOARD_SWAP_HOTELS(){
+
+    static get GAMEBOARD_SWAP_HOTELS() {
         return 106;
     }
-    static get GAMEBOARD_SWAP_STOCK(){
+
+    static get GAMEBOARD_SWAP_STOCK() {
         return 107;
     }
-    static get GAMEBOARD_END_GAME(){
+
+    static get GAMEBOARD_END_GAME() {
         return 108;
     }
+
     getGameState() {
         return this.gameState;
     }
@@ -122,6 +132,7 @@ class GameBoard {
     setGameState(s) {
         this.gameState = s;
     }
+
     getStockTrade() {
         return this.stockTrade;
     }
@@ -129,6 +140,7 @@ class GameBoard {
     setStockTrade(value) {
         this.stockTrade = value;
     }
+
     setTileState(row, col, state) {
         this.row = row;
         this.column = col;
@@ -159,10 +171,10 @@ class GameBoard {
             this.tile.push(k);
         }
     }
-    processMsg( cmd )
-    {
 
-        switch(cmd.action){
+    processMsg(cmd) {
+
+        switch (cmd.action) {
             case GameBoard.GAMEBOARD_START:
                 return this.startPlayer(cmd);
             case GameBoard.GAMEBOARD_PLAY_TILE:
@@ -184,31 +196,34 @@ class GameBoard {
             case GameBoard.GAMEBOARD_END_GAME:
                 return this.chooseWinner(cmd);
         }
-    return null;
+        return null;
     }
 
-  
 
-    setAcquireStarted (f){
+    setAcquireStarted(f) {
         this.acquireStarted = f;
     }
-    hasAcquireStarted (){
+
+    hasAcquireStarted() {
         return this.acquireStarted;
     }
-    setPlay(id){
+
+    setPlay(id) {
         let lst = this.players.filter((player) => player.name === id);
         let p = lst[0];
         let t = p.startingTile;
-        this.tile[t.row][t.column].state = 9;
         p.playing = true;
     }
-    getNonPlaying(){
+
+    getNonPlaying() {
         return this.players.filter((player) => player.playing !== true);
     }
-    getPlaying(){
+
+    getPlaying() {
         return this.players.filter((player) => player.playing === true);
     }
-    startPlayer(msg){
+
+    startPlayer(msg) {
         this.setPlay(msg.name);
         let ulst = this.getNonPlaying();
 
@@ -221,7 +236,7 @@ class GameBoard {
                 players[num].name + " was randomly chosen to roll first";
             let packet = this.acquire.setAcquirePacket("playerStart", str, "Pick a tile from the rack or click on an eligible tile on the board");
             this.currentPlayer = num;
-            this.acquire.broadCastAll( packet);
+            this.acquire.broadCastAll(packet);
 
         } else {
             str = "Waiting for "
@@ -230,22 +245,20 @@ class GameBoard {
             for (let item in ulst) {
                 names.push(ulst[item].name);
             }
-            str += acquire.formatNameList(names) + " to click Start";
-            let packet = acquire.setAcquirePacket("playerStart", str, "");
-            acquire.sendPacket(ulst, packet);
-            ulst = this.getPlaying();
-            packet.buttonText = "";
-            acquire.sendPacket(ulst, packet);
+            str += this.acquire.formatNameList(names) + " to click Start";
+            let packet = this.acquire.setAcquirePacket("playerStart", str, "");
+            this.acquire.broadCastAll(packet);
         }
     }
-    pickATile(){
+
+    pickATile() {
         if (this.tileIndex == 107) return null;
         return this.tileBag[this.tileIndex++]
     }
 
-    swapHotels( trade)
-    {
+    swapHotels(trade) {
     }
+
     getSwap() {
         return this.stockTransaction;
     }
@@ -253,7 +266,29 @@ class GameBoard {
     setSwap(st) {
         this.stockTransaction = st;
     }
+    isHotelsToBuy()
+    {
+        let i;
+        for (i = 0; i < 7; i++) {
+            if (this.hot[i].count() == 0)
+                break;
+        }
+        if (i != 7) return true;
+        return false;
 
+    }
+
+
+    takeOver(survivor, defunct)
+    {
+        for (let i = 0; i < 9; i++) {
+            for (let j = 0; j < 12; j++) {
+                if (this.tile[i][j].getState() == defunct) {
+                    this.tile[i][j].setState(survivor);
+                }
+            }
+        }
+    }
     placeTile(row, col, msg) {
 
 
@@ -280,7 +315,6 @@ class GameBoard {
             }
         }
 
-        ;
 
         if (col != 0) {
             if (this.tile[row][col - 1].getState() != Tile.EMPTY) {
@@ -288,7 +322,6 @@ class GameBoard {
             }
         }
 
-        ;
 
         if (col != 11) {
             if (this.tile[row][col + 1].getState() != Tile.EMPTY) {
@@ -332,27 +365,7 @@ class GameBoard {
             }
         }
 
-        isHotelsToBuy()
-        {
-            let i;
-            for (i = 0; i < 7; i++) {
-                if (this.hot[i].count() == 0)
-                    break;
-            }
-            if (i != 7) return true;
-            return false;
 
-        }
-        takeOver(survivor, defunct)
-        {
-            for (let i = 0; i < 9; i++) {
-                for (let j = 0; j < 12; j++) {
-                    if (this.tile[i][j].getState() == defunct) {
-                        this.tile[i][j].setState(survivor);
-                    }
-                }
-            }
-        }
 
         if (chain == Tile.EMPTY) {
             if (this.isHotelsToBuy() == false) return false;
@@ -696,8 +709,9 @@ class GameBoard {
         let msg = [ass];
         return msg;
     }
-    addPlayer( name){
-        let p = new Player(name,this);
+
+    addPlayer(name) {
+        let p = new Player(name, this);
         this.players.push(p);
         this.playerNum++;
         p.pickFirstTiles();
@@ -709,7 +723,7 @@ class GameBoard {
         //AQC msg[]= new AQC[1];
         if (this.tradeIndex < this.tradeCnt) {
             let sst = swapStockTransaction(this.stockTrade[this.tradeIndex]);//todo
-             sst.setMessage(this.players[this.stockTrade[this.tradeIndex].getPlayer()].getName() +
+            sst.setMessage(this.players[this.stockTrade[this.tradeIndex].getPlayer()].getName() +
                 " is deciding what to do with his/her shares of " +
                 this.hot[this.stockTrade[this.tradeIndex].getDefunct()].getName() + ".");
             this.players[this.stockTrade[this.tradeIndex].getPlayer()].setState(GameBoard.SWAP);
@@ -779,6 +793,61 @@ class GameBoard {
         return msgs;
     }
 
+    isNonPlayable(row, col) {
+
+        //pp("is non playable "	+ r.toString() + "-" + c.toString());
+
+        if (this.isDead(row, col) == true) return true;
+
+
+        if (this.tile[row][col].getState() != Tile.EMPTY) return true;
+
+        if (this.isHotelsToBuy() == true) return false;
+
+        this.cSafe = 0;
+        let dup = [0, 0, 0, 0];
+        let dupCnt = 0;
+        let j;
+        let bStart = false;
+        if (row != 0) {
+            if (this.tile[row - 1][col].getState() != Tile.EMPTY &&
+                this.tile[row - 1][col].getState() != Tile.ONBOARD) {
+                return false;
+            } else if (this.tile[row - 1][col].getState() == Tile.ONBOARD) {
+                bStart = true;
+            }
+        }
+        if (row != 8) {
+            if (this.tile[row + 1][col].getState() != Tile.EMPTY &&
+                this.tile[row + 1][col].getState() != Tile.ONBOARD) {
+                return false;
+            } else if (this.tile[row + 1][col].getState() == Tile.ONBOARD) {
+                bStart = true;
+            }
+        }
+        if (col != 0) {
+            if (this.tile[row][col - 1].getState() != Tile.EMPTY &&
+                this.tile[row][col - 1].getState() != Tile.ONBOARD) {
+                return false;
+            } else if (this.tile[row][col - 1].getState() == Tile.ONBOARD) {
+                bStart = true;
+            }
+        }
+        if (col != 11) {
+            if (this.tile[row][col + 1].getState() != Tile.EMPTY &&
+                this.tile[row][col + 1].getState() != Tile.ONBOARD) {
+                return false;
+            } else if (this.tile[row][col + 1].getState() == Tile.ONBOARD) {
+                bStart = true;
+            }
+        }
+        if (bStart == true) {
+
+            return true;
+        }
+
+        return false;
+    }
 
     isDead(row, col) {
         if (this.tile[row][col].getState() != Tile.EMPTY) return false;
@@ -1061,11 +1130,11 @@ class GameBoard {
         let x;
         let row = ti.getRow();
         let col = ti.getColumn();
-        if (ti.getState() != Tile.EMPTY) {
+        if (ti.getState() != 8) {
             return null;
         }
         let an = new AboutNeighbors();
-        if (isNonPlayable(row, col)) {
+        if (this.isNonPlayable(row, col)) {
             an.setType(Tile.NONPLAYBLE);
             return an;
         }

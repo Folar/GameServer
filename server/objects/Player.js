@@ -1,7 +1,7 @@
 const {GameBoard} = require('./GameBoard.js');
 const {Hotel} = require('./Hotel.js');
 const {AboutNeighbors} = require('./AboutNeighbors.js');
-
+const {Tile} = require('./Tile.js');
 class Player {
 
     constructor(name = null, gb = null, money = 6000) {
@@ -56,6 +56,7 @@ class Player {
         this.startingTile = this.gameBoard.pickATile();
     }
 
+
     worth() {
         let amt = 0;
         for (let i = 0; i < 7; i++) {
@@ -98,56 +99,73 @@ class Player {
         hotels[h.hotel]++;
         return true;
     }
-
+    getTileColor(c)
+    {
+        switch(c)
+        {
+            case 'R':
+                return "lightgray";
+            case 'w':
+                return "white";
+            case 's':
+                return "green";
+            case 'd':
+                return "black";
+            case 'n':
+                return "darkgray";
+            case 'm':
+                return "orange";
+        }
+        return Hotel.HOTEL_COLORS[c];
+    }
     colorTiles() {
-        let c = "RRRRRR";
+        let c =['R','R','R','R','R','R'];
         let str = "";
         let j = 0;
         for (let i = 0; i < 6; i++) {
-            if (this.tiles[i] == Tile.m_dummyTile) {
+            if (this.tiles[i].row == -1) {
                 continue;
             }
 
-            let an = this.gameBoard.surroundingTiles(m_tiles[i]);
+            let an = this.gameBoard.surroundingTiles(this.tiles[i]);
             switch (an.getType()) {
                 case Tile.GROW:
-                    let s = "" + an.getGrower();
-                    c.setCharAt(c, j, s.charAt(0));
+                    c[i]= an.getGrower();
                     break;
                 case Tile.START:
-                    c.setCharAt(c, j, 's');
+                    c[j]='s';
                     break;
                 case Tile.DEAD:
-                    c.setCharAt(c, j, 'd');
+                    c[j]='d';
                     break;
                 case Tile.NONPLAYBLE:
-                    c.setCharAt(c, j, 'n');
+                    c[j]='n';
                     break;
                 case Tile.MERGE:
-                    c.setCharAt(c, j, 'm');
+                    c[j]='m';
                     break;
 
             }
             j++;
         }
         for (let i = 0; i < j - 1; i++) {
-            if (c.charAt(i) != 'R') {
+            if (c[i] != 'R') {
                 continue;
             }
             for (let k = i + 1; k < j; k++) {
-                if (c.charAt(k) != 'R') {
+                if (c[k]!= 'R') {
                     continue;
                 }
                 if (this.formChain(i, k)) {
-                    c.setCharAt(i, 'w');
-                    c.setCharAt(k, 'w');
+                    c[i]='w';
+                    c[k]='w';
                 }
             }
         }
         return c;
     }
 
-    formChain(i, j) {
+     formChain(i, j) {
         let t1 = this.tiles[i];
         let t2 = this.tiles[j];
         if (t1.getRow() == t2.getRow()) {
@@ -170,14 +188,15 @@ class Player {
     }
     getRack()
     {
+        let result =[];
         let str=this.colorTiles();
         for (let i = 0; i<6; i++) {
-            if(this.tiles[i] != Tile.m_dummyTile){
-                str = str + " "+m_tiles[i].getLabel();
+            if(this.tiles[i].row != -1){
+                result.push({label:this.tiles[i].getLabel(),ordinal:this.tiles[i].ordinal, bg:this.getTileColor(str[i]),fg: str[i] !='R'?"black":"white" });;
             }
 
         }
-        return str;
+        return result;
 
     }
 

@@ -63,7 +63,7 @@ class Tile{
         this.dirty = c;
     }
     getLabel() {
-        return this.row +"-"+["A","B","C","D","E","F","G","H","I"][this.column]
+        return (1+this.column) +"-"+["A","B","C","D","E","F","G","H","I"][this.row]
     }
 
     isEmpty (){
