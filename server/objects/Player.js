@@ -11,7 +11,7 @@ class Player {
         this.name = name;
         this.tileStr = "";
         this.gameBoard = gb;
-        this.state = gb.OTHER;
+        this.state = 6;
         this.tiles = [0, 0, 0,0,0,0];
         this.mergeNum = 0;
         this.startingTile = null;
@@ -118,6 +118,7 @@ class Player {
         }
         return Hotel.HOTEL_COLORS[c];
     }
+
     colorTiles() {
         let c =['R','R','R','R','R','R'];
         let str = "";
@@ -186,12 +187,13 @@ class Player {
         }
         return false;
     }
-    getRack()
+    getRack(pkt)
     {
         let result =[];
         let str=this.colorTiles();
         for (let i = 0; i<6; i++) {
             if(this.tiles[i].row != -1){
+                pkt.tiles[this.tiles[i].row ][this.tiles[i].column].inRack = true;
                 result.push({label:this.tiles[i].getLabel(),ordinal:this.tiles[i].ordinal, bg:this.getTileColor(str[i]),fg: str[i] !='R'?"black":"white" });;
             }else
                 result.push({label:this.tiles[i].getLabel(),ordinal:this.tiles[i].ordinal, bg:"black",fg:"black" });

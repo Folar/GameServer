@@ -237,6 +237,7 @@ class GameBoard {
                 players[num].name + " was randomly chosen to roll first";
             let packet = this.acquire.setAcquirePacket("playerStart", str, "Pick a tile from the rack or click on an eligible tile on the board");
             this.currentPlayer = num;
+            players[num].state = GameBoard.GAMEBOARD_PLAY_TILE;
             this.acquire.broadCastAll(packet);
 
         } else {
