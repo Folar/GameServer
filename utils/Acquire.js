@@ -169,6 +169,7 @@ class Acquire {
             state: 0,
             currentPlayer: 0,
             currentSwapPlayer: 0,
+            tiles:[],
             message: "",
             messageType: "",
             buttonText: "Start",
@@ -278,6 +279,7 @@ class Acquire {
     }
 
     fillInPacket(packet) {
+        packet.tiles=this.gameBoard.tile;
         this.acquireData.players = new Array();
         for (let i in this.gameBoard.players) {
             let p = this.gameBoard.players[i];
@@ -370,6 +372,7 @@ class Acquire {
         lst.map((u) => {
             if(loadTiles && u.player.playing){
                 pkt = JSON.parse(JSON.stringify(packet));
+                //pkt.tiles=this.gameBoard.tile;
                 let r = u.player.getRack();
                 pkt.rack = r;
             }

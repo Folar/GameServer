@@ -104,7 +104,7 @@ class Player {
         switch(c)
         {
             case 'R':
-                return "lightgray";
+                return "black";
             case 'w':
                 return "white";
             case 's':
@@ -149,7 +149,7 @@ class Player {
             j++;
         }
         for (let i = 0; i < j - 1; i++) {
-            if (c[i] != 'R') {
+            if (c[i] != 'R' && c[i] != 'w') {
                 continue;
             }
             for (let k = i + 1; k < j; k++) {
@@ -193,8 +193,8 @@ class Player {
         for (let i = 0; i<6; i++) {
             if(this.tiles[i].row != -1){
                 result.push({label:this.tiles[i].getLabel(),ordinal:this.tiles[i].ordinal, bg:this.getTileColor(str[i]),fg: str[i] !='R'?"black":"white" });;
-            }
-
+            }else
+                result.push({label:this.tiles[i].getLabel(),ordinal:this.tiles[i].ordinal, bg:"black",fg:"black" });
         }
         return result;
 

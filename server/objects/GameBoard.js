@@ -212,6 +212,7 @@ class GameBoard {
         let lst = this.players.filter((player) => player.name === id);
         let p = lst[0];
         let t = p.startingTile;
+        this.tile[t.row][t.column].state = 9;
         p.playing = true;
     }
 
