@@ -172,8 +172,11 @@ class GameBoard {
         }
     }
 
+    getPlayer(id){
+       return this.players.filter((player) => player.name === id )[0];
+    }
     processMsg(cmd) {
-
+        this.getPlayer(cmd.name).state = 6;
         switch (cmd.action) {
             case GameBoard.GAMEBOARD_START:
                 return this.startPlayer(cmd);
@@ -291,12 +294,16 @@ class GameBoard {
             }
         }
     }
+
+    getLabel(row,col) {
+        return (1+col) +"-"+["A","B","C","D","E","F","G","H","I"][row]
+    }
     placeTile(row, col, msg) {
 
-
+        let str = msg.name +" played tile "+ this.getLabel(row,col);
         if (this.tile[row][col].getState() != Tile.EMPTY) {
 
-            return false;
+            return "";
         }
 
         this.row = row;
@@ -340,7 +347,7 @@ class GameBoard {
             }
             this.tile[row][col].setState(Tile.ONBOARD);
 
-            return true;
+            return str;
         }
 
 
@@ -382,7 +389,7 @@ class GameBoard {
                 if (h == -1) {
                     this.setGameState(GameBoard.STARTCHAIN);
                 } else {
-                    setGameState(GameBoard.BUYSTOCK);
+                    this.setGameState(GameBoard.BUYSTOCK);
                 }
             }
             if (h == -1) {
@@ -395,12 +402,12 @@ class GameBoard {
 
             this.growChain(chain, msg);
             this.players[this.currentPlayer].setState(GameBoard.BUYSTOCK);
-            if (getGameState() == GameBoard.PLACETILE) {
-                setGameState(GameBoard.BUYSTOCK);
+            if (this.getGameState() == GameBoard.PLACETILE) {
+                this.setGameState(GameBoard.BUYSTOCK);
             }
         }
 
-        return true;
+        return str;
     }
 
     mergeChain() {
@@ -775,24 +782,24 @@ class GameBoard {
         let col;
         let row;
         let x;
-        let t = msg.getTile();
-        row = t.getRow();
-        col = t.getColumn();
-        this.placeTile(row, col, msg);
-
+        row =msg.args.row;
+        col = msg.args.column;
+        let str = this.placeTile(row, col, msg);
 
         for (let i = 0; i < 6; i++) {
-            if (this.players[this.currentPlayer].getTiles()[i].getRow() == row &&
-                this.players[this.currentPlayer].getTiles()[i].getColumn() == col) {
-                this.players[this.currentPlayer].getTiles()[i] = dummyTile;
+            if (this.players[this.currentPlayer].tiles[i].getRow() == row &&
+                this.players[this.currentPlayer].tiles[i].getColumn() == col) {
+                this.players[this.currentPlayer].tiles[i] =new Tile();
                 break;
             }
         }
 
 
         this.playingTile = false;
-        let msgs = {msg};
-        return msgs;
+        let packet = this.acquire.setAcquirePacket("place", str, "Pick a tile from the rack or click on an eligible tile on the board");
+
+        this.acquire.broadCastAll(packet);
+        return;
     }
 
     isNonPlayable(row, col) {
@@ -995,7 +1002,7 @@ class GameBoard {
         this.players[this.currentPlayer].bonusShare(this.hot[state]);
         if (this.getGameState() == GameBoard.STARTCHAIN) {
 
-            setGameState(GameBoard.BUYSTOCK);
+            this.setGameState(GameBoard.BUYSTOCK);
         }
         this.players[this.currentPlayer].setState(GameBoard.BUYSTOCK);
 
@@ -1123,7 +1130,7 @@ class GameBoard {
         bh.appendMessage(str);
 
 
-        setGameState(GameBoard.GAMEOVER);
+        this.setGameState(GameBoard.GAMEOVER);
 
         return res;
     }

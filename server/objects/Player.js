@@ -194,9 +194,15 @@ class Player {
         for (let i = 0; i<6; i++) {
             if(this.tiles[i].row != -1){
                 pkt.tiles[this.tiles[i].row ][this.tiles[i].column].inRack = true;
-                result.push({label:this.tiles[i].getLabel(),ordinal:this.tiles[i].ordinal, bg:this.getTileColor(str[i]),fg: str[i] !='R'?"black":"white" });;
+                pkt.tiles[this.tiles[i].row ][this.tiles[i].column].rackState = str[i];
+                result.push({label:this.tiles[i].getLabel(),ordinal:this.tiles[i].ordinal, state:str[i],
+                    row:this.tiles[i].row,column:this.tiles[i].column, inRack:true,
+                    bg:this.getTileColor(str[i]),fg: str[i] !='R'?"black":"white" });
             }else
-                result.push({label:this.tiles[i].getLabel(),ordinal:this.tiles[i].ordinal, bg:"black",fg:"black" });
+                result.push({label:this.tiles[i].getLabel(),ordinal:this.tiles[i].ordinal,
+                    state:'d',
+                    row:-1,column:-1,
+                    bg:"black",fg:"black" });
         }
         return result;
 

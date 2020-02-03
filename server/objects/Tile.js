@@ -6,6 +6,7 @@ class Tile{
         this.dirty = false;
         this.inRack= false;
         this.dirty = false;
+        this.rackState= 'R'
         this.mergeTile = false;
         this.ordinal = row * 12 + col ;
         if(name !=null){

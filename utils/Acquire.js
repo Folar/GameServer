@@ -166,7 +166,7 @@ class Acquire {
     prepareAcquirePacket() {
 
         return {
-            state: 0,
+            gameState: 6,
             currentPlayer: 0,
             currentSwapPlayer: 0,
             tiles:[],
@@ -283,7 +283,7 @@ class Acquire {
         this.acquireData.players = new Array();
         for (let i in this.gameBoard.players) {
             let p = this.gameBoard.players[i];
-            this.acquireData.players.push({name: p.name, hotels: p.hotels, money: p.money, playing: p.playing});
+            this.acquireData.players.push({name: p.name, hotels: p.hotels, money: p.money, playing: p.playing,state:p.state});
         }
         for (let i in this.gameBoard.hotels) {
             let h = this.gameBoard.hot[i];
@@ -372,9 +372,11 @@ class Acquire {
         lst.map((u) => {
             if(loadTiles && u.player.playing){
                 pkt = JSON.parse(JSON.stringify(packet));
-                //pkt.tiles=this.gameBoard.tile;
-                let r = u.player.getRack();
+                let r = u.player.getRack(pkt);
                 pkt.rack = r;
+                pkt.gameState = u.player.state;
+                if (u.player.state == 6)
+                    pkt.instructions = "";
             }
             u.connection.send(JSON.stringify(pkt));
             pkt = packet;
