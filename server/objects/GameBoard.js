@@ -183,7 +183,7 @@ class GameBoard {
             case GameBoard.GAMEBOARD_PLAY_TILE:
                 return this.playTile(cmd);
             case GameBoard.GAMEBOARD_BUY_HOTEL:
-                return this.nextPlayer(cmd);
+                return this.buyStockAction(cmd);
             case GameBoard.GAMEBOARD_START_HOTEL:
                 return this.startHotel(cmd);
 
@@ -341,75 +341,87 @@ class GameBoard {
 
         if (this.cExamine == 0) {
             this.players[this.currentPlayer].setState(GameBoard.BUYSTOCK);
-            if (this.getGameState() == GameBoard.PLACETILE) {
-
-                this.setGameState(GameBoard.BUYSTOCK);
-            }
             this.tile[row][col].setState(Tile.ONBOARD);
-
-            return str;
-        }
-
-
-        let chain = Tile.EMPTY;
-
-        for (let i = 0; i < this.cExamine; i++) {
-            if (this.tilesExamine[i].getState() != Tile.ONBOARD) {
-                if (chain != Tile.EMPTY) {
-                    if (chain != this.tilesExamine[i].getState()) {
-                        this.tile[row][col].setState(Tile.ONBOARD);
-                        this.players[this.currentPlayer].setState(GameBoard.MERGE);
-
-                        if (this.getGameState() == GameBoard.PLACETILE) {
-                            if (this.getGameState() == GameBoard.PLACETILE) {
-                                this.setGameState(GameBoard.MERGE);
-                            }
-                            return this.mergeChain();
-                        }
-                        return true;
-                    }
-                } else {
-                    chain = this.tilesExamine[i].getState();
-                }
-            }
-        }
-
-
-
-        if (chain == Tile.EMPTY) {
-            if (this.isHotelsToBuy() == false) return false;
-            this.tile[row][col].setState(Tile.ONBOARD);
-            let h = this.isOneHotelLeft();
-            if (h != -1) {
-                this.startChain(h, msg.getCurrentPlayerID());
-                msg.appendMessage(this.players[this.currentPlayer].getName() +
-                    " starts " + this.hot[h].getName());
-            }
-            if (this.getGameState() == GameBoard.PLACETILE) {
-                if (h == -1) {
-                    this.setGameState(GameBoard.STARTCHAIN);
-                } else {
-                    this.setGameState(GameBoard.BUYSTOCK);
-                }
-            }
-            if (h == -1) {
-                this.players[this.currentPlayer].setState(GameBoard.STARTCHAIN);
-            } else {
-                this.players[this.currentPlayer].setState(GameBoard.BUYSTOCK);
-            }
 
         } else {
+            let chain = Tile.EMPTY;
 
-            this.growChain(chain, msg);
-            this.players[this.currentPlayer].setState(GameBoard.BUYSTOCK);
-            if (this.getGameState() == GameBoard.PLACETILE) {
-                this.setGameState(GameBoard.BUYSTOCK);
+            for (let i = 0; i < this.cExamine; i++) {
+                if (this.tilesExamine[i].getState() != Tile.ONBOARD) {
+                    if (chain != Tile.EMPTY) {
+                        if (chain != this.tilesExamine[i].getState()) {
+                            this.tile[row][col].setState(Tile.ONBOARD);
+                            this.players[this.currentPlayer].setState(GameBoard.MERGE);
+                            return this.mergeChain();
+                        }
+                    } else {
+                        chain = this.tilesExamine[i].getState();
+                    }
+                }
+            }
+
+
+            if (chain == Tile.EMPTY) {
+                if (this.isHotelsToBuy() == false) return false;
+                this.tile[row][col].setState(Tile.ONBOARD);
+                let h = this.isOneHotelLeft();
+
+
+                if (h == -1) {
+                    str = msg.name + " will choose hotel to start " + "\n"+str;
+                    this.players[this.currentPlayer].setState(GameBoard.STARTCHAIN);
+                } else {
+                    this.startChain(h);
+                    str = msg.name + " starts " + this.hot[h].getName() + "\n"+str;
+                    this.players[this.currentPlayer].setState(GameBoard.BUYSTOCK);
+                }
+
+            } else {
+
+                this.growChain(chain, msg);
+                this.players[this.currentPlayer].setState(GameBoard.BUYSTOCK);
+                // if (this.getGameState() == GameBoard.PLACETILE) {
+                //     this.setGameState(GameBoard.BUYSTOCK);
+                // }
             }
         }
+        let instr = "You can buy stock now, by clicking on the board tiles or using the dialog to the left of the board."+
+                     "\nHit either of the BUY buttons to complete the purchase"
+        switch ( this.players[this.currentPlayer].state) {
+            case GameBoard.STARTCHAIN:
+                instr = "Select the hotel buttons above the board to choose the hotel to start"
+                break;
+            case GameBoard.BUYSTOCK:
+                let i;
+                for(i = 0 ;i<7;i++){
+                    if(this.canBuyStock(i)){
+                        break;
+                    }
+                }
+                if(!this.canBuyStocks()){
+                    return this.nextPlayer(msg,str);
+                }
+                break;
 
-        return str;
+        }
+        let packet = this.acquire.setAcquirePacket("generic", str, instr);
+
+        this.acquire.broadCastAll(packet);
+        return;
     }
 
+    canBuyStocks(){
+        let i;
+        for(i = 0 ;i<7;i++){
+            if(this.canBuyStock(i)){
+                break;
+            }
+        }
+        if(i== 7){
+            return false;
+        }
+        return true;
+    }
     mergeChain() {
 
         let mergeNum = 0;
@@ -778,14 +790,7 @@ class GameBoard {
 
     }
 
-    playTile(msg) {
-        let col;
-        let row;
-        let x;
-        row =msg.args.row;
-        col = msg.args.column;
-        let str = this.placeTile(row, col, msg);
-
+    replaceRackTileWithDummy(row,col){
         for (let i = 0; i < 6; i++) {
             if (this.players[this.currentPlayer].tiles[i].getRow() == row &&
                 this.players[this.currentPlayer].tiles[i].getColumn() == col) {
@@ -793,12 +798,18 @@ class GameBoard {
                 break;
             }
         }
+    }
 
 
-        this.playingTile = false;
-        let packet = this.acquire.setAcquirePacket("place", str, "Pick a tile from the rack or click on an eligible tile on the board");
+    playTile(msg) {
+        let col;
+        let row;
+        let x;
+        row =msg.args.row;
+        col = msg.args.column;
+        this.replaceRackTileWithDummy(row,col);
+        this.placeTile(row, col, msg);
 
-        this.acquire.broadCastAll(packet);
         return;
     }
 
@@ -939,29 +950,33 @@ class GameBoard {
         }
         return h;
     }
-
-    nextPlayer(arg) {
-        let b = buyStock(arg);
+    buyStockAction(arg){
+        this.buyStock(arg);
+        let str = "";
+        this.nextPlayer(arg,str)
+    }
+    nextPlayer(arg,str) {
+        //let b = this.buyStock(arg);
 
         let replace = 0;
         let rt = [0, 0, 0, 0, 0, 0];
         for (let t = 0; t < 6; t++) {
-            if (this.players[this.currentPlayer].getTiles()[t] == this.dummyTile) {
+            if (this.players[this.currentPlayer].tiles[t].row == -1) {
                 while (this.isTile() == true) {
                     let ti = this.pickATile();
                     if (this.isDead(ti.getRow(), ti.getColumn()) == false) {
                         rt[replace++] = ti;
-                        this.players[this.currentPlayer].getTiles()[t] = ti;
+                        this.players[this.currentPlayer].tiles[t] = ti;
                         break;
                     }
                 }
-            } else if (this.isDead(this.players[this.currentPlayer].getTiles()[t].getRow(),
-                this.players[this.currentPlayer].getTiles()[t].getColumn()) == true) {
+            } else if (this.isDead(this.players[this.currentPlayer].tiles[t].getRow(),
+                this.players[this.currentPlayer].tiles[t].getColumn()) == true) {
                 while (this.isTile() == true) {
                     let ti = this.pickATile();
                     if (this.isDead(ti.getRow(), ti.getColumn()) == false) {
                         rt[replace++] = ti;
-                        this.players[this.currentPlayer].getTiles()[t] = ti;
+                        this.players[this.currentPlayer].tiles[t] = ti;
                         break;
                     }
                 }
@@ -973,24 +988,26 @@ class GameBoard {
             this.currentPlayer = 0;
         else
             this.currentPlayer++;
-        //System.out.println("this.currentPlayer =zzz " +  this.players[this.currentPlayer].getName());
-        this.players[this.currentPlayer].setState(GameBoard.PLACETILE);
-        //gameInfo(this.gameObject);
-        /*if(this.autoSave) {
-            saveGame();
-        }*/
 
-        if (this.allNonPlayable(this.players[this.currentPlayer].getTiles())) {
-            this.players[this.currentPlayer].setState(GameBoard.BUYSTOCK);
-            msgs[msgs.length - 1] = new AQCBuyState(this.currentPlayer, this.players[this.currentPlayer].getName());
-        } else {
-            msgs[msgs.length - 1] = new AQCPlaceState(this.currentPlayer, this.players[this.currentPlayer].getName());
-        }
-        return msgs;
+        if (str.length == 0)
+            str = this.players[this.currentPlayer].name + " goes next.";
+        else
+            str = this.players[this.currentPlayer].name + " goes next."+"\n"+str;
+        let packet = this.acquire.setAcquirePacket("playerStart", str, "Pick a tile from the rack or click on an eligible tile on the board");
+        this.players[this.currentPlayer].state = GameBoard.GAMEBOARD_PLAY_TILE;
+        this.acquire.broadCastAll(packet);
+
+        // if (this.allNonPlayable(this.players[this.currentPlayer].getTiles())) {
+        //     this.players[this.currentPlayer].setState(GameBoard.BUYSTOCK);
+        //     msgs[msgs.length - 1] = new AQCBuyState(this.currentPlayer, this.players[this.currentPlayer].getName());
+        // } else {
+        //     msgs[msgs.length - 1] = new AQCPlaceState(this.currentPlayer, this.players[this.currentPlayer].getName());
+        // }
+        return;
     }
 
 
-    startChain(state, cur) {
+    startChain(state) {
 
         if (this.hot[state].price() != 0) return false;
 
@@ -1000,10 +1017,7 @@ class GameBoard {
         }
         this.cExamine = 0;
         this.players[this.currentPlayer].bonusShare(this.hot[state]);
-        if (this.getGameState() == GameBoard.STARTCHAIN) {
 
-            this.setGameState(GameBoard.BUYSTOCK);
-        }
         this.players[this.currentPlayer].setState(GameBoard.BUYSTOCK);
 
 
@@ -1082,7 +1096,7 @@ class GameBoard {
     over40() {
         let i;
         for (i = 0; i < 7; i++) {
-            if (this.hot[i].count() > 40)
+            if (this.hot[i].count() > 41)
                 break;
         }
         if (i == 7) return false;
@@ -1090,7 +1104,7 @@ class GameBoard {
     }
 
     isTile() {
-        if (this.tileIndex < 107) return true;
+        if (this.tileIndex < 108) return true;
         return false;
     }
 
