@@ -61,9 +61,7 @@ class GameBoard {
         return 2
     };
 
-    static get BUYSTOCK() {
-        return 3
-    };
+
 
     static get GAMEOVER() {
         return 4
@@ -186,7 +184,6 @@ class GameBoard {
                 return this.buyStockAction(cmd);
             case GameBoard.GAMEBOARD_START_HOTEL:
                 return this.startHotel(cmd);
-
             case GameBoard.GAMEBOARD_NEXT_TRANSACTION:
                 return this.nextTrans();
             case GameBoard.GAMEBOARD_MERGE_HOTEL:
@@ -271,17 +268,7 @@ class GameBoard {
     setSwap(st) {
         this.stockTransaction = st;
     }
-    isHotelsToBuy()
-    {
-        let i;
-        for (i = 0; i < 7; i++) {
-            if (this.hot[i].count() == 0)
-                break;
-        }
-        if (i != 7) return true;
-        return false;
 
-    }
 
 
     takeOver(survivor, defunct)
@@ -340,7 +327,7 @@ class GameBoard {
 
 
         if (this.cExamine == 0) {
-            this.players[this.currentPlayer].setState(GameBoard.BUYSTOCK);
+            this.players[this.currentPlayer].setState(GameBoard.GAMEBOARD_BUY_HOTEL);
             this.tile[row][col].setState(Tile.ONBOARD);
 
         } else {
@@ -362,42 +349,35 @@ class GameBoard {
 
 
             if (chain == Tile.EMPTY) {
-                if (this.isHotelsToBuy() == false) return false;
                 this.tile[row][col].setState(Tile.ONBOARD);
                 let h = this.isOneHotelLeft();
 
 
                 if (h == -1) {
                     str = msg.name + " will choose hotel to start " + "\n"+str;
-                    this.players[this.currentPlayer].setState(GameBoard.STARTCHAIN);
+                    this.players[this.currentPlayer].setState(GameBoard.GAMEBOARD_START_HOTEL);
                 } else {
                     this.startChain(h);
                     str = msg.name + " starts " + this.hot[h].getName() + "\n"+str;
-                    this.players[this.currentPlayer].setState(GameBoard.BUYSTOCK);
+                    this.players[this.currentPlayer].setState(GameBoard.GAMEBOARD_BUY_HOTEL);
                 }
 
             } else {
 
                 this.growChain(chain, msg);
-                this.players[this.currentPlayer].setState(GameBoard.BUYSTOCK);
+                this.players[this.currentPlayer].setState(GameBoard.GAMEBOARD_BUY_HOTEL);
                 // if (this.getGameState() == GameBoard.PLACETILE) {
-                //     this.setGameState(GameBoard.BUYSTOCK);
+                //     this.setGameState(GameBoard.GAMEBOARD_BUY_HOTEL);
                 // }
             }
         }
         let instr = "You can buy stock now, by clicking on the board tiles or using the dialog to the left of the board."+
                      "\nHit either of the BUY buttons to complete the purchase"
         switch ( this.players[this.currentPlayer].state) {
-            case GameBoard.STARTCHAIN:
+            case GameBoard.GAMEBOARD_START_HOTEL:
                 instr = "Select the hotel buttons above the board to choose the hotel to start"
                 break;
-            case GameBoard.BUYSTOCK:
-                let i;
-                for(i = 0 ;i<7;i++){
-                    if(this.canBuyStock(i)){
-                        break;
-                    }
-                }
+            case GameBoard.GAMEBOARD_BUY_HOTEL:
                 if(!this.canBuyStocks()){
                     return this.nextPlayer(msg,str);
                 }
@@ -408,6 +388,17 @@ class GameBoard {
 
         this.acquire.broadCastAll(packet);
         return;
+    }
+    
+    startHotel(msg){
+        let str = msg.name +" starts "  + this.hot[msg.args.row].name;
+        this.startChain(msg.args.row);
+        if(!this.canBuyStocks()){
+            return this.nextPlayer(msg,str);
+        }
+        let packet = this.acquire.setAcquirePacket("generic", str, "");
+
+        this.acquire.broadCastAll(packet);
     }
 
     canBuyStocks(){
@@ -751,7 +742,7 @@ class GameBoard {
             this.setSwap(sst.getStockTransaction());
             msg[0] = sst;
         } else {
-            this.players[this.currentPlayer].setState(GameBoard.BUYSTOCK);
+            this.players[this.currentPlayer].setState(GameBoard.GAMEBOARD_BUY_HOTEL);
             msg[0] = new AQCBuyState(this.currentPlayer, this.players[this.currentPlayer].getName());
             msg[0].setMessage(this.players[this.currentPlayer].getName() + " you can buy stock now.");
             // msg[0].setTurnMergeTileOff(true);
@@ -812,7 +803,17 @@ class GameBoard {
 
         return;
     }
+    isHotelsToBuy()
+    {
+        let i;
+        for (i = 0; i < 7; i++) {
+            if (this.hot[i].count() == 0)
+                break;
+        }
+        if (i != 7) return true;
+        return false;
 
+    }
     isNonPlayable(row, col) {
 
         //pp("is non playable "	+ r.toString() + "-" + c.toString());
@@ -998,7 +999,7 @@ class GameBoard {
         this.acquire.broadCastAll(packet);
 
         // if (this.allNonPlayable(this.players[this.currentPlayer].getTiles())) {
-        //     this.players[this.currentPlayer].setState(GameBoard.BUYSTOCK);
+        //     this.players[this.currentPlayer].setState(GameBoard.GAMEBOARD_BUY_HOTEL);
         //     msgs[msgs.length - 1] = new AQCBuyState(this.currentPlayer, this.players[this.currentPlayer].getName());
         // } else {
         //     msgs[msgs.length - 1] = new AQCPlaceState(this.currentPlayer, this.players[this.currentPlayer].getName());
@@ -1018,7 +1019,7 @@ class GameBoard {
         this.cExamine = 0;
         this.players[this.currentPlayer].bonusShare(this.hot[state]);
 
-        this.players[this.currentPlayer].setState(GameBoard.BUYSTOCK);
+        this.players[this.currentPlayer].setState(GameBoard.GAMEBOARD_BUY_HOTEL);
 
 
         return true;
@@ -1054,7 +1055,7 @@ class GameBoard {
 
     canBuyStock(i) {
         if (this.hot[i].price() == 0) return false;
-        if (this.players[this.currentPlayer].getMoney() < this.hot[i].price())
+        if (this.players[this.currentPlayer].money < this.hot[i].price())
             return false;
         let av = this.hot[i].getAvailShares();
         if (av == 0) return false;

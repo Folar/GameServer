@@ -24,12 +24,13 @@ class Hotel {
     static get AMERICAN() {
         return 2;
     }
-    static get WORLDWIDE() {
+    static get FESTIVAL() {
         return 3;
     }
-    static get FESTIVAL() {
+    static get WORLDWIDE() {
         return 4;
     }
+
     static get CONTINENTAL() {
         return 5;
     }
@@ -93,7 +94,7 @@ class Hotel {
         if(cnt == 0) return 0;
         let base = 200;
         let price;
-        switch (hotel) {
+        switch (this.hotel) {
             case Hotel.LUXOR:
             case Hotel.TOWER:
                 base = 200;
@@ -125,8 +126,11 @@ class Hotel {
         return price;
     }
 
+    setAvailShares(a){
+        this.availShares = a;
+    }
     getAvailShares(){
-        this.availShares;
+        return this.availShares;
     }
 
 }

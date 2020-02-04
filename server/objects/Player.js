@@ -61,18 +61,18 @@ class Player {
         let amt = 0;
         for (let i = 0; i < 7; i++) {
             if (this.hotels[i] != 0) {
-                amt = this.hotels[i] * this.gameBoard.getHotels()[i].price();
+                amt = this.hotels[i] * this.gameBoard.hot[i].price();
                 this.money += amt;
             }
         }
-        return m_money;
+        return this.money;
     }
 
     bonusShare(h) {
         let av = h.getAvailShares();
         if (av == 0) return false;
         h.setAvailShares(av - 1);
-        m_hotels[h.m_hotel]++;
+        this.hotels[h.hotel]++;
         return true;
     }
 

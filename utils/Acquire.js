@@ -275,7 +275,7 @@ class Acquire {
                 total: 0,
                 info: "Cost $0"
             }
-        }
+        };
     }
 
     fillInPacket(packet) {
@@ -285,7 +285,7 @@ class Acquire {
             let p = this.gameBoard.players[i];
             this.acquireData.players.push({name: p.name, hotels: p.hotels, money: p.money, playing: p.playing,state:p.state});
         }
-        for (let i in this.gameBoard.hotels) {
+        for (let i in this.gameBoard.hot) {
             let h = this.gameBoard.hot[i];
             this.acquireData.hotels[i].available = h.availShares;
             this.acquireData.hotels[i].price = h.price();
