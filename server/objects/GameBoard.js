@@ -181,6 +181,7 @@ class GameBoard {
             case GameBoard.GAMEBOARD_PLAY_TILE:
                 return this.playTile(cmd);
             case GameBoard.GAMEBOARD_BUY_HOTEL:
+                debugger;
                 return this.buyStockAction(cmd);
             case GameBoard.GAMEBOARD_START_HOTEL:
                 return this.startHotel(cmd);
@@ -384,6 +385,7 @@ class GameBoard {
                 break;
 
         }
+        str = this.players[this.currentPlayer].name + " is buying stock now\n" + str;
         let packet = this.acquire.setAcquirePacket("generic", str, instr);
 
         this.acquire.broadCastAll(packet);
@@ -396,6 +398,7 @@ class GameBoard {
         if(!this.canBuyStocks()){
             return this.nextPlayer(msg,str);
         }
+        str = msg.name + " is buying stock now. \n"+str;
         let packet = this.acquire.setAcquirePacket("generic", str, "");
 
         this.acquire.broadCastAll(packet);

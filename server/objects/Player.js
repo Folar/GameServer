@@ -87,7 +87,7 @@ class Player {
 
         av = d.getAvailShares();
         d.setAvailShares(av + sell);
-        m_hotels[d.hotel] -= sell;
+        this.hotels[d.hotel] -= sell;
         //this.money += sell * d.firstBonus()/10; todo
     }
 
