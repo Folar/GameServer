@@ -181,7 +181,6 @@ class GameBoard {
             case GameBoard.GAMEBOARD_PLAY_TILE:
                 return this.playTile(cmd);
             case GameBoard.GAMEBOARD_BUY_HOTEL:
-                debugger;
                 return this.buyStockAction(cmd);
             case GameBoard.GAMEBOARD_START_HOTEL:
                 return this.startHotel(cmd);
@@ -379,13 +378,14 @@ class GameBoard {
                 instr = "Select the hotel buttons above the board to choose the hotel to start"
                 break;
             case GameBoard.GAMEBOARD_BUY_HOTEL:
+                str = this.players[this.currentPlayer].name + " is buying stock now\n" + str;
                 if(!this.canBuyStocks()){
                     return this.nextPlayer(msg,str);
                 }
                 break;
 
         }
-        str = this.players[this.currentPlayer].name + " is buying stock now\n" + str;
+
         let packet = this.acquire.setAcquirePacket("generic", str, instr);
 
         this.acquire.broadCastAll(packet);
@@ -778,7 +778,7 @@ class GameBoard {
     growChain(state, msg) {
         this.tile[this.row][this.column].setState(state);
         for (let i = 0; i < this.cExamine; i++) {
-            walkChain(this.tilesExamine[i], state);
+            this.walkChain(this.tilesExamine[i], state);
         }
         this.cExamine = 0;
 
@@ -955,8 +955,7 @@ class GameBoard {
         return h;
     }
     buyStockAction(arg){
-        this.buyStock(arg);
-        let str = "";
+        let str = this.buyStock(arg);
         this.nextPlayer(arg,str)
     }
     nextPlayer(arg,str) {
@@ -1066,16 +1065,24 @@ class GameBoard {
     }
 
 
-    buyStock(bh) {
+    buyStock(cmd) {
         let b = false;
-        for (let i = 0; i < bh.getCount(); i++) {
-            for (let j = 0; j < bh.getAmount(i); j++) {
+        let n =[]
+        let str =cmd.name + " buys ";
+        for (let i = 0; i < cmd.args.hotels.length; i++) {
+            if(cmd.args.amt[i]>0) {
+                let h = Hotel.HOTELS.indexOf(cmd.args.hotels[i]);
                 b = true;
-                this.players[bh.getCurrentPlayerID()].purchaseStock(this.hot[bh.getHotel(i)]);
+                n.push(cmd.args.amt[i]+" "+ cmd.args.hotels[i]);
+                this.players[this.currentPlayer].purchaseStock(this.hot[h],cmd.args.amt[i]);
             }
 
         }
-        return b;
+        if (!b)
+            str = cmd.name + " buys no stock";
+        else
+            str = str +this.acquire.formatNameList(n);
+        return str;
     }
 
     isAllSafe() {

@@ -91,12 +91,12 @@ class Player {
         //this.money += sell * d.firstBonus()/10; todo
     }
 
-    purchaseStock(h) {
+    purchaseStock(h,cnt) {
         let av = h.getAvailShares();
         if (av == 0) return false;
-        h.setAvailShares(av - 1);
-        this.money = this.money - h.price();
-        hotels[h.hotel]++;
+        h.setAvailShares(av - cnt);
+        this.money = this.money - h.price()*cnt;
+        this.hotels[h.hotel] += cnt;
         return true;
     }
     getTileColor(c)
