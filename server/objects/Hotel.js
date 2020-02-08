@@ -24,12 +24,13 @@ class Hotel {
     static get AMERICAN() {
         return 2;
     }
-    static get FESTIVAL() {
+    static get WORLDWIDE() {
         return 3;
     }
-    static get WORLDWIDE() {
+    static get FESTIVAL() {
         return 4;
     }
+
 
     static get CONTINENTAL() {
         return 5;
@@ -75,7 +76,7 @@ class Hotel {
     }
     secondBonus()
     {
-        return this.m_second ;
+        return this.second ;
     }
     firstBonus ()
     {

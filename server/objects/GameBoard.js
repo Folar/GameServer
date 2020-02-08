@@ -153,8 +153,8 @@ class GameBoard {
         this.hot.push(new Hotel(Hotel.LUXOR, "Luxor", this));
         this.hot.push(new Hotel(Hotel.TOWER, "Tower", this));
         this.hot.push(new Hotel(Hotel.AMERICAN, "American", this));
-        this.hot.push(new Hotel(Hotel.FESTIVAL, "Festival", this));
         this.hot.push(new Hotel(Hotel.WORLDWIDE, "WorldWide", this));
+        this.hot.push(new Hotel(Hotel.FESTIVAL, "Festival", this));
         this.hot.push(new Hotel(Hotel.CONTINENTAL, "Continental", this));
         this.hot.push(new Hotel(Hotel.IMPERIAL, "Imperial", this));
 
@@ -177,12 +177,17 @@ class GameBoard {
         t[5][3].state=2;
         t[5][2].state=2;
 
+        t[2][5].state=1;
         t[3][5].state=1;
-        t[4][5].state=1;
+       // t[4][5].state=1;
+
+        //t[6][5].state=5;
+        t[7][5].state=5;
+        t[8][5].state=5;
 
         t[5][6].state=3;
         t[5][7].state=3;
-        t[5][8].state=3;
+       // t[5][8].state=3;
     }
 
 
@@ -203,7 +208,13 @@ class GameBoard {
             case GameBoard.GAMEBOARD_NEXT_TRANSACTION:
                 return this.nextTrans();
             case GameBoard.GAMEBOARD_MERGE_HOTEL:
-                return this.mergeHotels(cmd);
+                let str = "";
+                let o=[];
+                for (let i = 0; i < cmd.args.order.length; i++) {
+                    let h = Hotel.HOTELS.indexOf(cmd.args.order[i]);
+                    o.push(h);
+                }
+                return this.setMerge(cmd.args.cnt,o,str);
             case GameBoard.GAMEBOARD_SWAP_HOTELS:
                 return this.swapHotels(cmd);
 
@@ -355,12 +366,13 @@ class GameBoard {
                         if (chain != this.tilesExamine[i].getState()) {
                             this.tile[row][col].setState(Tile.ONBOARD);
                             this.players[this.currentPlayer].setState(GameBoard.GAMEBOARD_MERGE_HOTEL);
-                            this.mergeChain();
-                            str = this.players[this.currentPlayer].name + " is deciding the order of the\n" + str;
-                            let packet = this.acquire.setAcquirePacket("generic", str, "");
+                            if (this.mergeChain(str)) {
+                                str = this.players[this.currentPlayer].name + " is deciding the order of the\n" + str;
+                                let packet = this.acquire.setAcquirePacket("generic", str, "");
 
-                            this.acquire.broadCastAll(packet);
-                            return;
+                                this.acquire.broadCastAll(packet);
+                                return;
+                            }
                         }
                     } else {
                         chain = this.tilesExamine[i].getState();
@@ -437,7 +449,7 @@ class GameBoard {
         }
         return true;
     }
-    mergeChain() {
+    mergeChain(str) {
 
         let mergeNum = 0;
         let j;
@@ -505,11 +517,11 @@ class GameBoard {
             }
 
             this.players[this.currentPlayer].setState(GameBoard.GAMEBOARD_CHOOSE_ORDER);
-
+            return true;
         } else {
-            this.setMerge(mergeNum, mergeList);
+            this.setMerge(mergeNum, mergeList,str);
         }
-        return true;
+        return false;
     }
 
     round(x) {
@@ -521,7 +533,7 @@ class GameBoard {
         return x;
     }
 
-    bonusPayout(defunct, mergeIndex, aqc) {
+    bonusPayout(defunct, mergeIndex, str) {
         let cnt = 0;
         let bonusAmt;
         let bonusWinners;
@@ -529,7 +541,7 @@ class GameBoard {
         let i;
         // figure partners
         for (i = 0; i < this.playerNum; i++) {
-            if (this.players[i].this.hotels[defunct] != 0) {
+            if (this.players[i].hotels[defunct] != 0) {
                 partners.push(this.players[i]);
                 cnt++;
             }
@@ -537,12 +549,12 @@ class GameBoard {
 
         if (cnt == 1) {
             // only one owner
-            let amt = partners[0].getMoney();
+            let amt = partners[0].money;
             bonusAmt = this.hot[defunct].firstBonus() +
                 this.hot[defunct].secondBonus();
             amt = amt + this.hot[defunct].firstBonus() +
                 this.hot[defunct].secondBonus();
-            partners[0].setMoney(amt);
+            partners[0].money = amt;
 
 
             if (mergeIndex != -1) {
@@ -587,9 +599,9 @@ class GameBoard {
                 bonusWinners = partners[0].getName() +
                     " Wins first bonus for " + bonusAmt;
 
-                let amt = partners[0].getMoney();
+                let amt = partners[0].money;
                 amt = amt + this.hot[defunct].firstBonus();
-                partners[0].setMoney(amt);
+                partners[0].money = amt;
                 if (mergeIndex != -1) {
                     // setAllMoney(partners[0],amt);
                 }
@@ -600,9 +612,9 @@ class GameBoard {
                         partners[1].getName() +
                         " Wins second bonus for " + bonusAmt;
 
-                    amt = partners[1].getMoney();
+                    amt = partners[1].money;
                     amt = amt + this.hot[defunct].secondBonus();
-                    partners[1].setMoney(amt);
+                    partners[1].money = amt;
                     if (mergeIndex != -1) {
                         //setAllMoney(partners[1],amt);
                     }
@@ -617,8 +629,8 @@ class GameBoard {
                         bonusWinners = bonusWinners +
                             partners[j + 1].getName() + " ";
 
-                        amt = partners[j + 1].getMoney() + evenShare;
-                        partners[j + 1].setMoney(amt);
+                        amt = partners[j + 1].money + evenShare;
+                        partners[j + 1].money = amt;
                         if (mergeIndex != -1) {
                             //setAllMoney(partners[j+1],amt);
                         }
@@ -646,8 +658,8 @@ class GameBoard {
                     if (j + 1 < part[0]) {
                         bonusWinners = bonusWinners + "& ";
                     }
-                    let amt = partners[j].getMoney() + evenShare;
-                    partners[j].setMoney(amt);
+                    let amt = partners[j].money + evenShare;
+                    partners[j].money = amt;
 
                 }
                 bonusWinners = bonusWinners +
@@ -656,42 +668,41 @@ class GameBoard {
             }
 
         }
-        //aqc.appendMessage("For " + this.hot[defunct].this.name+  ", "+ bonusWinners);
+        str ="For " + this.hot[defunct].name+  ", "+ bonusWinners+"\n"+str;
 
         if (mergeIndex != -1)
             this.bonusWinners[mergeIndex - 1] = bonusWinners;
 
     }
 
-    mergeHotels(arg) {
+    setMerge(mergeNum,mergeList,str) {
 
-        let mergeNum = arg.getHotelCount();
-        let mergeList = arg.getMergeList();
+
         this.tile[this.row][this.column].mergeTile = true;
-        this.tile[this.row][this.column].setState(this.hot[mergeList[0]].getHotel());
+
+        this.tile[this.row][this.column].setState(mergeList[0]);
         let p = this.hot[mergeList[1]].count();
         for (let i = 0; i < this.cExamine; i++) {
-            walkChain(this.tilesExamine[i], this.hot[mergeList[0]].getHotel());
+            this.walkChain(this.tilesExamine[i], mergeList[0]);
         }
 
-        let dstr = this.hot[mergeList[1]].getName();
+        let dstr = this.hot[mergeList[1]].name;
         for (let i = 2; i < mergeNum; i++) {
-            dstr = dstr + " and " + this.hot[mergeList[i]].getName();
+            dstr = dstr + " and " + this.hot[mergeList[i]].name;
         }
 
-        arg.setMessage(this.players[this.currentPlayer].getName() + " merges " + dstr +
-            " into " + this.hot[mergeList[0]].getName() + ".");
+        str =this.players[this.currentPlayer].name + " merges " + dstr +
+            " into " + this.hot[mergeList[0]].name + ".\n"+str;
 
         for (let i = 1; i < mergeNum; i++) {
             this.hot[mergeList[i]].calcBonus();
-            this.takeOver(this.hot[mergeList[0]].getHotel(),
-                this.hot[mergeList[i]].getHotel());
+            this.takeOver(mergeList[0], mergeList[i]);
         }
 
         this.cExamine = 0;
 
         for (let i = 1; i < mergeNum; i++) {
-            this.bonusPayout(this.hot[mergeList[i]].getHotel(), i, arg);
+            this.bonusPayout(mergeList[i], i, str);
         }
 
         msgs[0] = arg;
@@ -1122,7 +1133,7 @@ class GameBoard {
     over40() {
         let i;
         for (i = 0; i < 7; i++) {
-            if (this.hot[i].count() > 41)
+            if (this.hot[i].count() > 40)
                 break;
         }
         if (i == 7) return false;

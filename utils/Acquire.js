@@ -407,6 +407,7 @@ class Acquire {
                         }
 
                     }
+                    pkt.merger.oneTouch = oneTouch;
                     pkt.merger.hotelColors = colors;
                     pkt.merger.hotels = hotels;
                     pkt.merger.hotelSizes = sizes;
