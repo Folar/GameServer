@@ -48,9 +48,16 @@ class Player {
         return this.name;
     }
 
-
     pickFirstTiles() {
+        this.pickFirstTilesTesting(); return;
         for (let i = 0; i < 6; i++) {
+            this.tiles[i] = this.gameBoard.pickATile();
+        }
+        this.startingTile = this.gameBoard.pickATile();
+    }
+    pickFirstTilesTesting() {
+        this.tiles[0] = new Tile(5,5)
+        for (let i = 1; i < 6; i++) {
             this.tiles[i] = this.gameBoard.pickATile();
         }
         this.startingTile = this.gameBoard.pickATile();

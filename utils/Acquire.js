@@ -1,3 +1,5 @@
+const {Hotel} = require('../server/objects/Hotel.js');
+const {GameBoard} = require('../server/objects/GameBoard.js');
 class Acquire {
 
 
@@ -163,6 +165,11 @@ class Acquire {
         return this.acquireData;
     }
 
+    pxrepareAcquirePacket() {
+
+        return;
+    }
+
     prepareAcquirePacket() {
 
         return {
@@ -255,15 +262,15 @@ class Acquire {
             },
             merger: {
 
-                title: "",
+                title: "Choose the order of the merger",
                 clickCount: 0,
                 sourceIndex: 0,
                 tempColor: "",
                 info: "Choose the hotel that you want to switch",
                 //info:"Select either hotel to switch the order",
-                //hotels:["Festival","Continental"],
-                //hotelColors:["green","cyan"],
+                oneTouch:true,
                 hotels: [],
+                hotelSizes: [],
                 hotelColors: []
             },
             buy: {
@@ -273,6 +280,7 @@ class Acquire {
                 hotelColors: [],
                 playerBaseMoney: 0,
                 total: 0,
+                error:"",
                 info: "Cost $0"
             }
         };
@@ -377,6 +385,50 @@ class Acquire {
                 pkt.gameState = u.player.state;
                 if (u.player.state == 6)
                     pkt.instructions = "";
+                else if (u.player.state == 109) {
+                    pkt.dlgType = 2;
+                    let oneTouch = true;
+                    pkt.merger.info= "Select one of the hotels to switch the order"
+                    let hotels = [];
+                    let sizes = [];
+                    let colors = [];
+                    for(let i=0;i<this.gameBoard.split.length;i++){
+                        let grp = this.gameBoard.split[i];
+                        for (let j = 0;j<grp.length;j++){
+
+                            hotels.push(Hotel.HOTELS[grp[j]]);
+                            colors.push(Hotel.HOTEL_COLORS[grp[j]]);
+                            sizes.push(this.acquireData.hotels[grp[j]].size);
+                        }
+                        if(grp.length >2){
+                            oneTouch = false;
+                            pkt.merger.info= "Choose the hotel that you want to switch";
+                            //info:"Select either hotel to switch the order
+                        }
+
+                    }
+                    pkt.merger.hotelColors = colors;
+                    pkt.merger.hotels = hotels;
+                    pkt.merger.hotelSizes = sizes;
+                }
+                else if (u.player.state == 102) {
+                    pkt.dlgType = 3;
+                    let hotels = [];
+                    let colors = [];
+                    for (let i = 0;i<7;i++){
+
+                        if(this.gameBoard.canBuyStock(i)){
+                            hotels.push(Hotel.HOTELS[i]);
+                            colors.push(Hotel.HOTEL_COLORS[i]);
+                        }
+                    }
+                    pkt.buy.error = "";
+                    pkt.buy.hotelColors = colors;
+                    pkt.buy.hotels = hotels;
+                    pkt.buy.playerBaseMoney = u.player.money;
+                    pkt.buy.amt = [0, 0, 0, 0, 0, 0, 0];
+                    pkt.buy.total = 0;
+                }
             }
             u.connection.send(JSON.stringify(pkt));
             pkt = packet;

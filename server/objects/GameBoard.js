@@ -44,6 +44,7 @@ class GameBoard {
         this.playingTile = false;
         this.acquireStarted = false;
         this.stockTransaction;
+        this.split=[];
         this.initTiles();
         this.initHotels();
         acquire.setGameBoard(this);
@@ -83,8 +84,8 @@ class GameBoard {
         return 8
     };
 
-    static get CHOOSE_ORDER() {
-        return 9
+    static get GAMEBOARD_CHOOSE_ORDER() {
+        return 109
     };
 
     static get GAMEBOARD_START() {
@@ -168,7 +169,22 @@ class GameBoard {
             }
             this.tile.push(k);
         }
+        this.forTesting( this.tile);
     }
+
+    forTesting(t){
+        t[5][4].state=2;
+        t[5][3].state=2;
+        t[5][2].state=2;
+
+        t[3][5].state=1;
+        t[4][5].state=1;
+
+        t[5][6].state=3;
+        t[5][7].state=3;
+        t[5][8].state=3;
+    }
+
 
     getPlayer(id){
        return this.players.filter((player) => player.name === id )[0];
@@ -338,8 +354,13 @@ class GameBoard {
                     if (chain != Tile.EMPTY) {
                         if (chain != this.tilesExamine[i].getState()) {
                             this.tile[row][col].setState(Tile.ONBOARD);
-                            this.players[this.currentPlayer].setState(GameBoard.MERGE);
-                            return this.mergeChain();
+                            this.players[this.currentPlayer].setState(GameBoard.GAMEBOARD_MERGE_HOTEL);
+                            this.mergeChain();
+                            str = this.players[this.currentPlayer].name + " is deciding the order of the\n" + str;
+                            let packet = this.acquire.setAcquirePacket("generic", str, "");
+
+                            this.acquire.broadCastAll(packet);
+                            return;
                         }
                     } else {
                         chain = this.tilesExamine[i].getState();
@@ -472,27 +493,21 @@ class GameBoard {
         }
         nParts++;
         if (nParts < mergeNum) {
-            let split = [];
+            this.split = [];
             let pos = 0;
             for (i = 0; i < nParts; i++) {
-                split.push([]);
+                this.split.push([]);
                 for (j = 0; j < part[i]; j++) {
-                    split[i].push(order[j + pos].getState());
+                    this.split[i].push(order[j + pos].getState());
                     /// xxx = split[i][j];
                 }
                 pos += part[i];
             }
 
-            // DHTMLMergeList = split;
-            //DHTMLMergeNum = mergeNum;
-            this.players[this.currentPlayer].setState(GameBoard.CHOOSE_ORDER);
+            this.players[this.currentPlayer].setState(GameBoard.GAMEBOARD_CHOOSE_ORDER);
 
         } else {
-            if (this.players[this.currentPlayer].isDHTMLClient()) {
-                this.players[this.currentPlayer].setMerge(mergeNum, mergeList);
-            } else {
-                this.setMerge(mergeNum, mergeList);
-            }
+            this.setMerge(mergeNum, mergeList);
         }
         return true;
     }
