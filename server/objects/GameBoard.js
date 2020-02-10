@@ -574,8 +574,8 @@ class GameBoard {
             let j;
             for (i = 0; i < cnt - 1; i++) {
                 for (j = i + 1; j < cnt; j++) {
-                    if (partners[i].this.hotels[defunct] <
-                        partners[j].this.hotels[defunct]) {
+                    if (partners[i].hotels[defunct] <
+                        partners[j].hotels[defunct]) {
                         temp = partners[i];
                         partners[i] = partners[j];
                         partners[j] = temp;
@@ -586,12 +586,12 @@ class GameBoard {
             // partition
             let nParts = 0;
             let part = [0, 0, 0, 0, 0, 0];
-            let shareCnt = partners[0].this.hotels[defunct];
+            let shareCnt = partners[0].hotels[defunct];
             for (i = 0; i < cnt; i++) {
-                if (partners[i].this.hotels[defunct] == shareCnt) {
+                if (partners[i].hotels[defunct] == shareCnt) {
                     part[nParts]++;
                 } else {
-                    shareCnt = partners[i].this.hotels[defunct];
+                    shareCnt = partners[i].hotels[defunct];
                     nParts++;
                     part[nParts]++;
                 }
@@ -626,7 +626,7 @@ class GameBoard {
 
                     let evenShare = this.hot[defunct].secondBonus();
                     evenShare /= part[1];
-                    evenShare = thiis.round(evenShare);
+                    evenShare = this.round(evenShare);
                     for (j = 0; j < part[1]; j++) {
                         bonusWinners = bonusWinners +
                             partners[j + 1].getName() + " ";
@@ -652,7 +652,7 @@ class GameBoard {
                 bonusAmt = evenShare;
 
                 evenShare /= part[0];
-                evenShare = round(evenShare);
+                evenShare = this.round(evenShare);
                 bonusWinners = "";
                 for (j = 0; j < part[0]; j++) {
                     bonusWinners = bonusWinners +
@@ -788,9 +788,9 @@ class GameBoard {
         let playIndex = this.currentPlayer;
         let str = this.hot[survivor].name+ " takeover of " +
             this.hot[defunct].name;
-        this.stockTrade.push(new StockTransaction());
-        for (let i = 0; i < this.playerNum; i++) {
 
+        for (let i = 0; i < this.playerNum; i++) {
+            this.stockTrade.push(new StockTransaction());
             if (this.players[playIndex].hotels[defunct] != 0) {
                 this.stockTrade[this.tradeCnt].index = this.tradeCnt;
                 this.stockTrade[this.tradeCnt].player= playIndex;
