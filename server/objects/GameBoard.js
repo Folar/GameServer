@@ -1,6 +1,7 @@
 const {Tile} = require('./Tile.js');
 const {Hotel} = require('./Hotel.js');
 const {Player} = require('./Player.js');
+const {StockTransaction} = require('./StockTransaction.js');
 const {AboutNeighbors} = require('./AboutNeighbors.js');
 
 class GameBoard {
@@ -112,7 +113,7 @@ class GameBoard {
         return 105;
     }
 
-    static get GAMEBOARD_SWAP_HOTELS() {
+    static get GAMEBOARD_TRADE_STOCK() {
         return 106;
     }
 
@@ -372,7 +373,8 @@ class GameBoard {
 
                                 this.acquire.broadCastAll(packet);
                                 return;
-                            }
+                            } else
+                                return;
                         }
                     } else {
                         chain = this.tilesExamine[i].getState();
@@ -705,26 +707,29 @@ class GameBoard {
             this.bonusPayout(mergeList[i], i, str);
         }
 
-        msgs[0] = arg;
+
         this.tradeIndex = 0;
         this.tradeCnt = 0;
-
+        this.stockTrade = [];
         for (let i = 1; i < mergeNum; i++) {
-            this.setSwapQueue(mergeList[0], this.mergeList[i], i);
+            this.setSwapQueue(mergeList[0], mergeList[i], i);
         }
-        msgs[1] = ths.firstSwap();
-        return msgs;
+        let st = this.firstSwap();
+        str = st + str;
+        let packet = this.acquire.setAcquirePacket("playerStart", str, "Pick a tile from the rack or click on an eligible tile on the board");
+        this.acquire.broadCastAll(packet);
+        return ;
     }
 
     firstSwap() {
         this.players[this.currentPlayer].setState(GameBoard.OTHER);
-        this.players[this.stockTrade[0].getPlayer()].setState(GameBoard.SWAP);
-        let sst = swapStockTransaction(this.stockTrade[0]);
-        sst.setMessage(this.players[this.stockTrade[0].getPlayer()].getName() +
+        this.players[this.stockTrade[0].player].setState(GameBoard.GAMEBOARD_TRADE_STOCK);
+        let sst = this.stockTrade[0];
+        let str =this.players[this.stockTrade[0].player].name +
             " is deciding what to do with his/her shares of " +
-            this.hot[this.stockTrade[0].getDefunct()].getName() + ".");
-        this.setSwap(sst.getStockTransaction());
-        return sst;
+            this.hot[this.stockTrade[0].defunct].name + ".\n";
+        this.setSwap(sst);
+        return str;
     }
 
     trade(ass) {
@@ -767,7 +772,7 @@ class GameBoard {
             sst.setMessage(this.players[this.stockTrade[this.tradeIndex].getPlayer()].getName() +
                 " is deciding what to do with his/her shares of " +
                 this.hot[this.stockTrade[this.tradeIndex].getDefunct()].getName() + ".");
-            this.players[this.stockTrade[this.tradeIndex].getPlayer()].setState(GameBoard.SWAP);
+            this.players[this.stockTrade[this.tradeIndex].getPlayer()].setState(GameBoard.GAMEBOARD_TRADE_STOCK);
             this.setSwap(sst.getStockTransaction());
             msg[0] = sst;
         } else {
@@ -781,17 +786,18 @@ class GameBoard {
 
     setSwapQueue(survivor, defunct, mergeIndex) {
         let playIndex = this.currentPlayer;
-        let str = this.hot[survivor].getName() + " takeover of " +
-            this.hot[defunct].getName();
+        let str = this.hot[survivor].name+ " takeover of " +
+            this.hot[defunct].name;
+        this.stockTrade.push(new StockTransaction());
         for (let i = 0; i < this.playerNum; i++) {
 
-            if (this.players[playIndex].this.hotels[defunct] != 0) {
-                this.stockTrade[this.tradeCnt].setIndex(this.tradeCnt);
-                this.stockTrade[this.tradeCnt].setPlayer(playIndex);
-                this.stockTrade[this.tradeCnt].setSurvivor(survivor);
-                this.stockTrade[this.tradeCnt].setDefunct(defunct);
-                this.stockTrade[this.tradeCnt].setTitle(str);
-                this.stockTrade[this.tradeCnt++].setBonusStr(this.bonusWinners[mergeIndex - 1]);
+            if (this.players[playIndex].hotels[defunct] != 0) {
+                this.stockTrade[this.tradeCnt].index = this.tradeCnt;
+                this.stockTrade[this.tradeCnt].player= playIndex;
+                this.stockTrade[this.tradeCnt].survivor = survivor;
+                this.stockTrade[this.tradeCnt].defunct =defunct;
+                this.stockTrade[this.tradeCnt].title=str;
+                this.stockTrade[this.tradeCnt++].bonusStr = this.bonusWinners[mergeIndex - 1];
             }
             if (playIndex == (this.playerNum - 1)) {
                 playIndex = 0;
@@ -1026,12 +1032,7 @@ class GameBoard {
         this.players[this.currentPlayer].state = GameBoard.GAMEBOARD_PLAY_TILE;
         this.acquire.broadCastAll(packet);
 
-        // if (this.allNonPlayable(this.players[this.currentPlayer].getTiles())) {
-        //     this.players[this.currentPlayer].setState(GameBoard.GAMEBOARD_BUY_HOTEL);
-        //     msgs[msgs.length - 1] = new AQCBuyState(this.currentPlayer, this.players[this.currentPlayer].getName());
-        // } else {
-        //     msgs[msgs.length - 1] = new AQCPlaceState(this.currentPlayer, this.players[this.currentPlayer].getName());
-        // }
+
         return;
     }
 

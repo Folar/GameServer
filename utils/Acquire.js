@@ -1,4 +1,4 @@
-const {Hotel} = require('../server/objects/Hotel.js');
+const {Hotel} = require('../server/objects/Hotel');
 const {GameBoard} = require('../server/objects/GameBoard.js');
 class Acquire {
 
@@ -385,6 +385,30 @@ class Acquire {
                 pkt.gameState = u.player.state;
                 if (u.player.state == 6)
                     pkt.instructions = "";
+                else if (u.player.state == 106){
+                    pkt.dlgType = 1;
+                    let st = this.gameBoard.stockTransaction;
+                    let p = this.gameBoard.players[st.player];
+                    pkt.stk.keep =p.hotels[st.defunct];
+                    pkt.stk.title = st.title;
+                    pkt.stk.survivor= Hotel.HOTELS[st.survivor];
+                    pkt.stk.defunct= Hotel.HOTELS[st.defunct];
+                    pkt.stk.survivorColor= Hotel.HOTEL_COLORS[st.survivor];
+                    pkt.stk.defunctColor=  Hotel.HOTEL_COLORS[st.defunct];
+                    pkt.stk.defunctPrice= this.gameBoard.hot[st.defunct].first/10;
+                    pkt.stk.playerMoneyBase= p.money;
+                    pkt.stk.total = p.hotels[st.defunct];
+                    pkt.stk.playerSurvivorBase= p.hotels[st.survivor];
+                    pkt.stk.playerDefunctBase= p.hotels[st.defunct];
+                    pkt.stk.hotelAvailDefunctBase= pkt.hotels[st.defunct].available;
+                    pkt.stk.hotelAvailSurvivorBase= pkt.hotels[st.survivor].available;
+                    let str = "\nA share of "+ pkt.stk.survivor + " is now worth " + pkt.hotels[st.survivor].price +
+                        ". There are "+pkt.stk.hotelAvailSurvivorBase+" available.\n";
+                    str += "A share of "+pkt.stk.defunct +" was worth "+pkt.stk.defunctPrice +
+                        ". You have " + pkt.stk.hotelAvailDefunctBase+ " shares."
+                    pkt.stk.info= st.bonusStr+str;
+
+                }
                 else if (u.player.state == 109) {
                     pkt.dlgType = 2;
                     let oneTouch = true;

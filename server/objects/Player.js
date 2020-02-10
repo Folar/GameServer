@@ -61,6 +61,9 @@ class Player {
             this.tiles[i] = this.gameBoard.pickATile();
         }
         this.startingTile = this.gameBoard.pickATile();
+        this.hotels[3] =7;
+        this.money= 3900;
+        this.gameBoard.hot[3].availShares = 18;
     }
 
 
