@@ -250,6 +250,7 @@ class Acquire {
                 swap: 0,
                 sell: 0,
                 total: 0,
+                player:-1,
                 survivorColor: "",
                 defunctColor: "",
                 defunctPrice: 0,
@@ -390,6 +391,7 @@ class Acquire {
                     let st = this.gameBoard.stockTransaction;
                     let p = this.gameBoard.players[st.player];
                     pkt.stk.keep =p.hotels[st.defunct];
+                    pkt.stk.player = st.player;
                     pkt.stk.title = st.title;
                     pkt.stk.survivor= Hotel.HOTELS[st.survivor];
                     pkt.stk.defunct= Hotel.HOTELS[st.defunct];
@@ -405,7 +407,7 @@ class Acquire {
                     let str = "\nA share of "+ pkt.stk.survivor + " is now worth " + pkt.hotels[st.survivor].price +
                         ". There are "+pkt.stk.hotelAvailSurvivorBase+" available.\n";
                     str += "A share of "+pkt.stk.defunct +" was worth "+pkt.stk.defunctPrice +
-                        ". You have " + pkt.stk.hotelAvailDefunctBase+ " shares."
+                        ". You have " +  p.hotels[st.defunct]+ " shares."
                     pkt.stk.info= st.bonusStr+str;
 
                 }

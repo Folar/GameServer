@@ -207,9 +207,10 @@ class GameBoard {
             case GameBoard.GAMEBOARD_START_HOTEL:
                 return this.startHotel(cmd);
             case GameBoard.GAMEBOARD_NEXT_TRANSACTION:
-                return this.nextTrans();
+                let str = this.trade(cmd);
+                return this.nextTrans(str);
             case GameBoard.GAMEBOARD_MERGE_HOTEL:
-                let str = "";
+                str = "";
                 let o=[];
                 for (let i = 0; i < cmd.args.order.length; i++) {
                     let h = Hotel.HOTELS.indexOf(cmd.args.order[i]);
@@ -732,28 +733,24 @@ class GameBoard {
         return str;
     }
 
-    trade(ass) {
+    trade(cmd) {
 
         let str =
-            this.players[ass.getCurrentPlayerID()].getName() + " swaps " + ass.getSwap() + " shares of "
-            + this.hot[ass.getDefunct()].getName() + " for " +
-            this.hot[ass.getSurvivor()].getName() + ".\n" +
-            this.players[ass.getCurrentPlayerID()].getName() + " sells " + ass.getSell() + " shares of "
-            + this.hot[ass.getDefunct()].getName() + ".";
-        ass.setMessage(str);
+            cmd.name + " swaps " + cmd.args.swap + " shares of "
+            + cmd.args.defunct + " for " +
+            cmd.args.survivor+ ".\n" +
+            cmd.name + " sells " + cmd.args.sell + " shares of "
+            + cmd.args.defunct + ".";
+
+        this.players[cmd.args.player].swapStock(
+            this.hot[Hotel.HOTELS.indexOf(cmd.args.survivor)],
+            this.hot[Hotel.HOTELS.indexOf(cmd.args.defunct)],
+            cmd.args.swap,
+            cmd.args.sell);
 
 
-        this.players[ass.getCurrentPlayerID()].setState(GameBoard.OTHER);
 
-        this.players[ass.getCurrentPlayerID()].swapStock(
-            this.hot[ass.getSurvivor()],
-            this.hot[ass.getDefunct()],
-            ass.getSwap(),
-            ass.getSell());
-
-
-        let msg = [ass];
-        return msg;
+        return str;
     }
 
     addPlayer(name) {
@@ -764,24 +761,37 @@ class GameBoard {
         return p;
     }
 
-    nextTrans() {
+    nextTrans(s) {
         this.tradeIndex++;
         //AQC msg[]= new AQC[1];
         if (this.tradeIndex < this.tradeCnt) {
-            let sst = swapStockTransaction(this.stockTrade[this.tradeIndex]);//todo
-            sst.setMessage(this.players[this.stockTrade[this.tradeIndex].getPlayer()].getName() +
+            let sst = this.stockTrade[this.tradeIndex];
+            this.players[this.stockTrade[this.tradeIndex].player].setState(GameBoard.GAMEBOARD_TRADE_STOCK);
+            let str =this.players[this.stockTrade[this.tradeIndex].player].name +
                 " is deciding what to do with his/her shares of " +
-                this.hot[this.stockTrade[this.tradeIndex].getDefunct()].getName() + ".");
-            this.players[this.stockTrade[this.tradeIndex].getPlayer()].setState(GameBoard.GAMEBOARD_TRADE_STOCK);
-            this.setSwap(sst.getStockTransaction());
-            msg[0] = sst;
+                this.hot[this.stockTrade[this.tradeIndex].defunct].name + ".\n";
+            s += str;
+            this.setSwap(sst);
         } else {
             this.players[this.currentPlayer].setState(GameBoard.GAMEBOARD_BUY_HOTEL);
-            msg[0] = new AQCBuyState(this.currentPlayer, this.players[this.currentPlayer].getName());
-            msg[0].setMessage(this.players[this.currentPlayer].getName() + " you can buy stock now.");
-            // msg[0].setTurnMergeTileOff(true);
         }
-        return msg;
+        let instr = "";
+        switch ( this.players[this.currentPlayer].state) {
+            case GameBoard.GAMEBOARD_TRADE_STOCK:
+                break;
+            case GameBoard.GAMEBOARD_BUY_HOTEL:
+                s = this.players[this.currentPlayer].name + " is buying stock now\n" + s;
+                if(!this.canBuyStocks()){
+                    return this.nextPlayer(msg,str);
+                }
+                break;
+
+        }
+
+        let packet = this.acquire.setAcquirePacket("generic", s, instr);
+
+        this.acquire.broadCastAll(packet);
+        return;
     }
 
     setSwapQueue(survivor, defunct, mergeIndex) {
