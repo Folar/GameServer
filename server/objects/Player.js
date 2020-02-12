@@ -118,7 +118,7 @@ class Player {
             case 'w':
                 return "white";
             case 's':
-                return "green";
+                return "#967BB6";
             case 'd':
                 return "black";
             case 'n':

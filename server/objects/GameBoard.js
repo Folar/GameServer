@@ -170,7 +170,20 @@ class GameBoard {
             }
             this.tile.push(k);
         }
+
         this.forTesting( this.tile);
+        this.shuffle();
+    }
+    shuffle() {
+        // for 1000 turns
+        // switch the values of two random cards
+        for (let i = 0; i < 1000; i++) {
+            let location1 = Math.floor((Math.random() * this.tileBag.length));
+            let location2 = Math.floor((Math.random() * this.tileBag.length));
+            let tmp = this.tileBag[location1];
+            this.tileBag[location1] = this.tileBag[location2];
+            this.tileBag[location2] = tmp;
+        }
     }
 
     forTesting(t){
@@ -180,7 +193,7 @@ class GameBoard {
 
         t[2][5].state=1;
         t[3][5].state=1;
-       // t[4][5].state=1;
+        //t[4][5].state=1;
 
         //t[6][5].state=5;
         t[7][5].state=5;
@@ -210,18 +223,13 @@ class GameBoard {
                 let str = this.trade(cmd);
                 return this.nextTrans(str);
             case GameBoard.GAMEBOARD_MERGE_HOTEL:
-                str = "";
+                let s = "";
                 let o=[];
                 for (let i = 0; i < cmd.args.order.length; i++) {
                     let h = Hotel.HOTELS.indexOf(cmd.args.order[i]);
                     o.push(h);
                 }
-                return this.setMerge(cmd.args.cnt,o,str);
-            case GameBoard.GAMEBOARD_SWAP_HOTELS:
-                return this.swapHotels(cmd);
-
-            case GameBoard.GAMEBOARD_SWAP_STOCK:
-                return this.trade(cmd);
+                return this.setMerge(cmd.args.cnt,o,s);
             case GameBoard.GAMEBOARD_END_GAME:
                 return this.chooseWinner(cmd);
         }
@@ -675,7 +683,7 @@ class GameBoard {
 
         if (mergeIndex != -1)
             this.bonusWinners[mergeIndex - 1] = bonusWinners;
-
+        return str;
     }
 
     setMerge(mergeNum,mergeList,str) {
@@ -695,7 +703,7 @@ class GameBoard {
         }
 
         str =this.players[this.currentPlayer].name + " merges " + dstr +
-            " into " + this.hot[mergeList[0]].name + ".\n"+str;
+            " into " + this.hot[mergeList[0]].name +str;
 
         for (let i = 1; i < mergeNum; i++) {
             this.hot[mergeList[i]].calcBonus();
@@ -705,7 +713,7 @@ class GameBoard {
         this.cExamine = 0;
 
         for (let i = 1; i < mergeNum; i++) {
-            this.bonusPayout(mergeList[i], i, str);
+            str = this.bonusPayout(mergeList[i], i, str);
         }
 
 
@@ -770,7 +778,7 @@ class GameBoard {
             let str =this.players[this.stockTrade[this.tradeIndex].player].name +
                 " is deciding what to do with his/her shares of " +
                 this.hot[this.stockTrade[this.tradeIndex].defunct].name + ".\n";
-            s += str;
+            s = str + s;
             this.setSwap(sst);
         } else {
             this.players[this.currentPlayer].setState(GameBoard.GAMEBOARD_BUY_HOTEL);
@@ -1005,18 +1013,10 @@ class GameBoard {
 
         let replace = 0;
         let rt = [0, 0, 0, 0, 0, 0];
+        let playable = false;
         for (let t = 0; t < 6; t++) {
-            if (this.players[this.currentPlayer].tiles[t].row == -1) {
-                while (this.isTile() == true) {
-                    let ti = this.pickATile();
-                    if (this.isDead(ti.getRow(), ti.getColumn()) == false) {
-                        rt[replace++] = ti;
-                        this.players[this.currentPlayer].tiles[t] = ti;
-                        break;
-                    }
-                }
-            } else if (this.isDead(this.players[this.currentPlayer].tiles[t].getRow(),
-                this.players[this.currentPlayer].tiles[t].getColumn()) == true) {
+            let cur =  this.players[this.currentPlayer].tiles[t];
+            if (cur.row == -1 || this.isDead(cur.getRow(),cur.getColumn()) == true ) {
                 while (this.isTile() == true) {
                     let ti = this.pickATile();
                     if (this.isDead(ti.getRow(), ti.getColumn()) == false) {
@@ -1028,18 +1028,37 @@ class GameBoard {
             }
         }
 
-        this.players[this.currentPlayer].setState(GameBoard.OTHER);
-        if (this.currentPlayer == this.playerNum - 1)
-            this.currentPlayer = 0;
-        else
-            this.currentPlayer++;
+        while (true) {
+            this.players[this.currentPlayer].setState(GameBoard.OTHER);
+            if (this.currentPlayer == this.playerNum - 1)
+                this.currentPlayer = 0;
+            else
+                this.currentPlayer++;
+
+            for (let t = 0; t < 6; t++) {
+                let cur = this.players[this.currentPlayer].tiles[t];
+                if (cur.row != -1 && !this.isDead(cur.getRow(), cur.getColumn()) &&
+                    !this.isNonPlayable(cur.getRow(), cur.getColumn())) {
+                    playable = true;
+                }
+            }
+            if(!this.checkForEnd() || playable || this.canBuyStocks())
+                break;
+        }
+
 
         if (str.length == 0)
             str = this.players[this.currentPlayer].name + " goes next.";
         else
             str = this.players[this.currentPlayer].name + " goes next."+"\n"+str;
+        if(!playable){
+            str = this.players[this.currentPlayer].name + " can not play a tile from his rack."+"\n"+str;
+            this.players[this.currentPlayer].state = GameBoard.GAMEBOARD_BUY_HOTEL;
+        } else
+            this.players[this.currentPlayer].state = GameBoard.GAMEBOARD_PLAY_TILE;
+
         let packet = this.acquire.setAcquirePacket("playerStart", str, "Pick a tile from the rack or click on an eligible tile on the board");
-        this.players[this.currentPlayer].state = GameBoard.GAMEBOARD_PLAY_TILE;
+
         this.acquire.broadCastAll(packet);
 
 
@@ -1135,7 +1154,7 @@ class GameBoard {
     }
 
     checkForEnd() {
-        if (this.over40() || thiis.isAllSafe())
+        if (this.over40() || this.isAllSafe() )
             return true;
         else
             return false;
@@ -1144,7 +1163,7 @@ class GameBoard {
     over40() {
         let i;
         for (i = 0; i < 7; i++) {
-            if (this.hot[i].count() > 40)
+            if (this.hot[i].count() > 5)
                 break;
         }
         if (i == 7) return false;
@@ -1156,20 +1175,22 @@ class GameBoard {
         return false;
     }
 
-    chooseWinner(bh) {
-        this.buyStock(bh);
-        let m = [];
+     chooseWinner(cmd) {
+        let str = "";
+        if( cmd.args.state == GameBoard.GAMEBOARD_BUY_HOTEL)
+            str = this.buyStock(cmd);
+
         for (let i = 0; i < 7; i++) {
             if (this.hot[i].count() != 0) {
                 this.hot[i].calcBonus();
-                this.bonusPayout(i, -1, bh);
+                str =this.bonusPayout(i, -1, str);
             }
         }
         let amt = 0;
         let winner = 0;
         for (let i = 0; i < this.playerNum; i++) {
             let w = this.players[i].worth();
-            this.players[i].setMoney(w);
+            this.players[i].money = w;
             if (amt < w) {
                 amt = w;
                 winner = i;
@@ -1179,22 +1200,18 @@ class GameBoard {
         }
 
         for (let i = 0; i < this.playerNum; i++) {
-            this.players[i].setState(GAMEOVER);
+            this.players[i].setState(GameBoard.GAMEOVER);
 
         }
-        let res = [];
 
-        res[0] = bh;
-
-
-        let str = this.players[bh.getCurrentPlayerID()].getName() + " ends the Game.\n>> " +
-            this.players[winner].getName() + " is the WINNER!!.";
-        bh.appendMessage(str);
+        let  arr = this.acquire.findMinMax()
+        str =
+            arr[3] + " is/are the WINNER!!. With the amount of "+arr[2]+"\n"+cmd.name + " ends the Game.\n"+str;
+         let packet = this.acquire.setAcquirePacket("generic", str, "Hit reload to start a new game");
+         this.acquire.broadCastAll(packet);
 
 
-        this.setGameState(GameBoard.GAMEOVER);
-
-        return res;
+        return ;
     }
 
     surroundingTiles(ti) {

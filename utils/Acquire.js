@@ -117,25 +117,25 @@ class Acquire {
     }
 
     findMinMax() {
-        let min = 20000;
+        let min = 1000000;
         let max = -1;
         let minNames = [];
         let maxNames = [];
         let ulst = this.users;
         for (let item in ulst) {
-            if (ulst[item].money < min) {
-                min = ulst[item].money;
+            if (ulst[item].player.money < min) {
+                min = ulst[item].player.money;
                 minNames = [];
-                minNames.push(ulst[item].name);
-            } else if (ulst[item].money == min) {
-                minNames.push(ulst[item].name)
+                minNames.push(ulst[item].player.name);
+            } else if (ulst[item].player.money == min) {
+                minNames.push(ulst[item].player.name)
             }
-            if (ulst[item].money > max) {
-                max = ulst[item].money;
+            if (ulst[item].player.money > max) {
+                max = ulst[item].player.money;
                 maxNames = [];
-                maxNames.push(ulst[item].name);
-            } else if (ulst[item].money == max) {
-                maxNames.push(ulst[item].name)
+                maxNames.push(ulst[item].player.name);
+            } else if (ulst[item].player.money == max) {
+                maxNames.push(ulst[item].player.name)
             }
         }
         return [min, minNames, max, maxNames];
@@ -242,6 +242,8 @@ class Acquire {
                 }
             ],
             players: [],
+            canEnd:false,
+            over:false,
             stk: {
                 title: "",
                 survivor: "",
@@ -289,6 +291,8 @@ class Acquire {
 
     fillInPacket(packet) {
         packet.tiles=this.gameBoard.tile;
+        packet.canEnd = false;
+        packet.dlgType = 0;
         this.acquireData.players = new Array();
         for (let i in this.gameBoard.players) {
             let p = this.gameBoard.players[i];
@@ -386,6 +390,10 @@ class Acquire {
                 pkt.gameState = u.player.state;
                 if (u.player.state == 6)
                     pkt.instructions = "";
+                else if (u.player.state == 101){
+                    if(this.gameBoard.checkForEnd())
+                        pkt.canEnd = true;
+                }
                 else if (u.player.state == 106){
                     pkt.dlgType = 1;
                     let st = this.gameBoard.stockTransaction;
@@ -449,12 +457,18 @@ class Acquire {
                             colors.push(Hotel.HOTEL_COLORS[i]);
                         }
                     }
+                    if(this.gameBoard.checkForEnd())
+                        pkt.canEnd = true;
                     pkt.buy.error = "";
                     pkt.buy.hotelColors = colors;
                     pkt.buy.hotels = hotels;
                     pkt.buy.playerBaseMoney = u.player.money;
                     pkt.buy.amt = [0, 0, 0, 0, 0, 0, 0];
                     pkt.buy.total = 0;
+                }
+                else if (u.player.state == GameBoard.GAMEOVER) {
+                    pkt.over = true;
+                    pkt.dlgType = 0;
                 }
             }
             u.connection.send(JSON.stringify(pkt));
