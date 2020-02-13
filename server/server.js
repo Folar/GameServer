@@ -291,10 +291,15 @@ wsServer.on('request', function (request) {
 
                         case 6:
                             if (acquire.chkForDuplicateName(msg.name)) {
-                                packet = acquire.prepareAcquirePacket("dupUser", msg.name + " has already signed on, please choose another","");
+                                if(acquire.chkForReconnect(msg.name) == -1) {
+                                    packet = acquire.prepareAcquirePacket("dupUser", msg.name + " has already signed on, please choose another", "");
 
-                                packet.messageType = "dupUser";
-                                connection.send(JSON.stringify(packet));
+                                    packet.messageType = "dupUser";
+                                    connection.send(JSON.stringify(packet));
+                                }else{
+                                    acquire.reconnectUser(connection,msg.name);
+
+                                }
                                 break;
                             } else {
                                 let user = null
@@ -316,7 +321,7 @@ wsServer.on('request', function (request) {
                                         "Start");
                                     acquire.send(msg.name, packet);
                                     packet.messageType = "newPlayer";
-                                    packet.instructions ="xxx";
+                                    packet.instructions ="";
                                     packet.message = msg.name + " is now Playing\n\n";
                                     acquire.broadCastMessage(msg.name, packet);
                                 }
@@ -346,6 +351,7 @@ wsServer.on('request', function (request) {
         // if(takeSix.users.length == 1){
         //     takeSix.removeAllConnections();
         // }
+        acquire.lookForDropConnection();
         console.log((new Date()) + ' Peer ' + connection.remoteAddress + ' disconnected.');
     });
 });

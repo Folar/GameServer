@@ -109,7 +109,30 @@ class Acquire {
         return card;
     }
 
-
+    chkForReconnect(n) {
+        let ulst = this.users;
+        for (let item in ulst) {
+            if (ulst[item].name == n) {
+                for (let name in this.gameBoard.lostPlayers){
+                    if (n == this.gameBoard.lostPlayers[name] ){
+                        return item;
+                    }
+                }
+            }
+        }
+        return -1;
+    }
+    reconnectUser(connection,name){
+        this.gameBoard.lostPlayers = [];
+        let ulst = this.users;
+        for (let item in ulst) {
+            if (ulst[item].name == name) {
+                ulst[item].connection = connection;
+                this.lookForDropConnection(true);
+                return true;
+            }
+        }
+    }
     chkForDuplicateName(n) {
         let ulst = this.users;
         for (let item in ulst) {
@@ -368,7 +391,23 @@ class Acquire {
         this.users.filter((user) => user.name === id)[0].playing = false;
 
     }
+    lookForDropConnection(force = false) {
+        let lst = this.users;
+        let players = [];
+        lst.map((u) => {
+            if (u.player.state != GameBoard.GAMEOVER) {
 
+                   let state = u.connection.state;
+                   if(state == "closed"){
+                       players.push(u.player.name);
+                   }
+            }
+            if (players.length!=0 || force){
+                this.gameBoard.lostConnection(players);
+            }
+
+        });
+    }
 
     closeSockets(lst) {
         lst.map((u) => {
@@ -378,7 +417,7 @@ class Acquire {
 
     sendWatcherPacket(lst, packet) {
         lst.map((u) => {
-            packet.state = u.state;
+            packet.state = 6;
             packet.users = this.getUserList();
             u.connection.send(JSON.stringify(packet));
         });
@@ -387,97 +426,96 @@ class Acquire {
     sendPacket(lst, packet, loadTiles = false) {
         let pkt = packet;
         lst.map((u) => {
-            if(loadTiles && u.player.playing){
-                pkt = JSON.parse(JSON.stringify(packet));
-                let r = u.player.getRack(pkt);
-                pkt.rack = r;
-                pkt.gameState = u.player.state;
-                if (u.player.state == 6)
-                    pkt.instructions = "";
-                else if (u.player.state == 101){
-                    if(this.gameBoard.checkForEnd())
-                        pkt.canEnd = true;
-                }
-                else if (u.player.state == 106){
-                    pkt.dlgType = 1;
-                    let st = this.gameBoard.stockTransaction;
-                    let p = this.gameBoard.players[st.player];
-                    pkt.stk.keep =p.hotels[st.defunct];
-                    pkt.stk.player = st.player;
-                    pkt.stk.title = st.title;
-                    pkt.stk.survivor= Hotel.HOTELS[st.survivor];
-                    pkt.stk.defunct= Hotel.HOTELS[st.defunct];
-                    pkt.stk.survivorColor= Hotel.HOTEL_COLORS[st.survivor];
-                    pkt.stk.defunctColor=  Hotel.HOTEL_COLORS[st.defunct];
-                    pkt.stk.defunctPrice= this.gameBoard.hot[st.defunct].first/10;
-                    pkt.stk.playerMoneyBase= p.money;
-                    pkt.stk.total = p.hotels[st.defunct];
-                    pkt.stk.playerSurvivorBase= p.hotels[st.survivor];
-                    pkt.stk.playerDefunctBase= p.hotels[st.defunct];
-                    pkt.stk.hotelAvailDefunctBase= pkt.hotels[st.defunct].available;
-                    pkt.stk.hotelAvailSurvivorBase= pkt.hotels[st.survivor].available;
-                    let str = "\nA share of "+ pkt.stk.survivor + " is now worth " + pkt.hotels[st.survivor].price +
-                        ". There are "+pkt.stk.hotelAvailSurvivorBase+" available.\n";
-                    str += "A share of "+pkt.stk.defunct +" was worth "+pkt.stk.defunctPrice +
-                        ". You have " +  p.hotels[st.defunct]+ " shares."
-                    pkt.stk.info= st.bonusStr+str;
+            if(u.connection.state == "open") {
+                if (loadTiles && u.player.playing) {
+                    pkt = JSON.parse(JSON.stringify(packet));
+                    let r = u.player.getRack(pkt);
+                    pkt.rack = r;
+                    pkt.gameState = u.player.state;
+                    if (u.player.state == 6)
+                        pkt.instructions = "";
+                    else if (u.player.state == 101) {
+                        if (this.gameBoard.checkForEnd())
+                            pkt.canEnd = true;
+                    } else if (u.player.state == 106) {
+                        pkt.dlgType = 1;
+                        let st = this.gameBoard.stockTransaction;
+                        let p = this.gameBoard.players[st.player];
+                        pkt.stk.keep = p.hotels[st.defunct];
+                        pkt.stk.player = st.player;
+                        pkt.stk.title = st.title;
+                        pkt.stk.survivor = Hotel.HOTELS[st.survivor];
+                        pkt.stk.defunct = Hotel.HOTELS[st.defunct];
+                        pkt.stk.survivorColor = Hotel.HOTEL_COLORS[st.survivor];
+                        pkt.stk.defunctColor = Hotel.HOTEL_COLORS[st.defunct];
+                        pkt.stk.defunctPrice = this.gameBoard.hot[st.defunct].first / 10;
+                        pkt.stk.playerMoneyBase = p.money;
+                        pkt.stk.total = p.hotels[st.defunct];
+                        pkt.stk.playerSurvivorBase = p.hotels[st.survivor];
+                        pkt.stk.playerDefunctBase = p.hotels[st.defunct];
+                        pkt.stk.hotelAvailDefunctBase = pkt.hotels[st.defunct].available;
+                        pkt.stk.hotelAvailSurvivorBase = pkt.hotels[st.survivor].available;
+                        let str = "\nA share of " + pkt.stk.survivor + " is now worth " + pkt.hotels[st.survivor].price +
+                            ". There are " + pkt.stk.hotelAvailSurvivorBase + " available.\n";
+                        str += "A share of " + pkt.stk.defunct + " was worth " + pkt.stk.defunctPrice +
+                            ". You have " + p.hotels[st.defunct] + " shares."
+                        pkt.stk.info = st.bonusStr + str;
 
-                }
-                else if (u.player.state == 109) {
-                    pkt.dlgType = 2;
-                    let oneTouch = true;
-                    pkt.merger.info= "Select one of the hotels to switch the order"
-                    let hotels = [];
-                    let sizes = [];
-                    let colors = [];
-                    for(let i=0;i<this.gameBoard.split.length;i++){
-                        let grp = this.gameBoard.split[i];
-                        for (let j = 0;j<grp.length;j++){
+                    } else if (u.player.state == 109) {
+                        pkt.dlgType = 2;
+                        let oneTouch = true;
+                        pkt.merger.info = "Select one of the hotels to switch the order"
+                        let hotels = [];
+                        let sizes = [];
+                        let colors = [];
+                        for (let i = 0; i < this.gameBoard.split.length; i++) {
+                            let grp = this.gameBoard.split[i];
+                            for (let j = 0; j < grp.length; j++) {
 
-                            hotels.push(Hotel.HOTELS[grp[j]]);
-                            colors.push(Hotel.HOTEL_COLORS[grp[j]]);
-                            sizes.push(this.acquireData.hotels[grp[j]].size);
+                                hotels.push(Hotel.HOTELS[grp[j]]);
+                                colors.push(Hotel.HOTEL_COLORS[grp[j]]);
+                                sizes.push(this.acquireData.hotels[grp[j]].size);
+                            }
+                            if (grp.length > 2) {
+                                oneTouch = false;
+                                pkt.merger.info = "Choose the hotel that you want to switch";
+                                //info:"Select either hotel to switch the order
+                            }
+
                         }
-                        if(grp.length >2){
-                            oneTouch = false;
-                            pkt.merger.info= "Choose the hotel that you want to switch";
-                            //info:"Select either hotel to switch the order
-                        }
+                        pkt.merger.oneTouch = oneTouch;
+                        pkt.merger.hotelColors = colors;
+                        pkt.merger.hotels = hotels;
+                        pkt.merger.hotelSizes = sizes;
+                    } else if (u.player.state == 102) {
+                        pkt.dlgType = 3;
+                        let hotels = [];
+                        let colors = [];
+                        for (let i = 0; i < 7; i++) {
 
+                            if (this.gameBoard.canBuyStock(i)) {
+                                hotels.push(Hotel.HOTELS[i]);
+                                colors.push(Hotel.HOTEL_COLORS[i]);
+                            }
+                        }
+                        if (this.gameBoard.checkForEnd())
+                            pkt.canEnd = true;
+                        pkt.buy.error = "";
+                        pkt.buy.hotelColors = colors;
+                        pkt.buy.hotels = hotels;
+                        pkt.buy.playerBaseMoney = u.player.money;
+                        pkt.buy.amt = [0, 0, 0, 0, 0, 0, 0];
+                        pkt.buy.total = 0;
+                    } else if (u.player.state == GameBoard.GAMEOVER) {
+                        pkt.over = true;
+                        pkt.dlgType = 0;
                     }
-                    pkt.merger.oneTouch = oneTouch;
-                    pkt.merger.hotelColors = colors;
-                    pkt.merger.hotels = hotels;
-                    pkt.merger.hotelSizes = sizes;
                 }
-                else if (u.player.state == 102) {
-                    pkt.dlgType = 3;
-                    let hotels = [];
-                    let colors = [];
-                    for (let i = 0;i<7;i++){
-
-                        if(this.gameBoard.canBuyStock(i)){
-                            hotels.push(Hotel.HOTELS[i]);
-                            colors.push(Hotel.HOTEL_COLORS[i]);
-                        }
-                    }
-                    if(this.gameBoard.checkForEnd())
-                        pkt.canEnd = true;
-                    pkt.buy.error = "";
-                    pkt.buy.hotelColors = colors;
-                    pkt.buy.hotels = hotels;
-                    pkt.buy.playerBaseMoney = u.player.money;
-                    pkt.buy.amt = [0, 0, 0, 0, 0, 0, 0];
-                    pkt.buy.total = 0;
-                }
-                else if (u.player.state == GameBoard.GAMEOVER) {
-                    pkt.over = true;
-                    pkt.dlgType = 0;
-                }
+                u.connection.send(JSON.stringify(pkt));
+                pkt = packet;
             }
-            u.connection.send(JSON.stringify(pkt));
-            pkt = packet;
         });
+
     }
 
 

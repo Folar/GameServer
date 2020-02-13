@@ -48,6 +48,7 @@ class GameBoard {
         this.split=[];
         this.initTiles();
         this.initHotels();
+        this.lostPlayers = [];
         acquire.setGameBoard(this);
     }
 
@@ -149,6 +150,18 @@ class GameBoard {
         this.tileCnt = 0;
     }
 
+    lostConnection(players){
+        this.lostPlayers = players;
+        let str = "Everyone is reconnected, resume play"
+        if (this.lostPlayers.length != 0) {
+            let p = this.acquire.formatNameList(players)
+            str = p  + " has lost their connections please wait";
+        }
+        let packet = this.acquire.setAcquirePacket("playerStart", str, "");
+        this.acquire.broadCastAll(packet);
+
+    }
+
     initHotels() {
         this.hot = [];
         this.hot.push(new Hotel(Hotel.LUXOR, "Luxor", this));
@@ -211,6 +224,7 @@ class GameBoard {
        return this.players.filter((player) => player.name === id )[0];
     }
     processMsg(cmd) {
+        if(this.lostPlayers.length> 0)return;
         this.getPlayer(cmd.name).state = 6;
         switch (cmd.action) {
             case GameBoard.GAMEBOARD_START:
