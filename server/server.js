@@ -298,7 +298,7 @@ wsServer.on('request', function (request) {
                                 break;
                             } else {
                                 let user = null
-                                if (gameBoard.hasAcquireStarted()) {
+                                if (acquire.hasAcquireStarted()) {
                                     user = acquire.addWatchers(connection, msg.name);
                                     packet = acquire.setAcquirePacket("newWatcher", "The game has already started, but you can still watch the game", "","");
                                     packet.messageType = "newWatcher";

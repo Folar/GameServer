@@ -162,6 +162,8 @@ class GameBoard {
     }
 
     initTiles() {
+        this.tileBag= [];
+        this.tile =[];
         for (let i = 0; i < 9; i++) {
             let k = [];
             for (let j = 0; j < 12; j++) {
@@ -191,13 +193,13 @@ class GameBoard {
         t[5][3].state=2;
         t[5][2].state=2;
 
-        t[2][5].state=1;
-        t[3][5].state=1;
+        //t[2][5].state=1;
+        //t[3][5].state=1;
         //t[4][5].state=1;
 
         //t[6][5].state=5;
-        t[7][5].state=5;
-        t[8][5].state=5;
+        //t[7][5].state=5;
+        //t[8][5].state=5;
 
         t[5][6].state=3;
         t[5][7].state=3;
@@ -237,13 +239,7 @@ class GameBoard {
     }
 
 
-    setAcquireStarted(f) {
-        this.acquireStarted = f;
-    }
 
-    hasAcquireStarted() {
-        return this.acquireStarted;
-    }
 
     setPlay(id) {
         let lst = this.players.filter((player) => player.name === id);
@@ -267,7 +263,7 @@ class GameBoard {
 
         let str = "";
         if (ulst.length == 0) {
-            this.setAcquireStarted(true);
+            this.acquire.setAcquireStarted(true);
             let players = this.getPlaying();
             let num = Math.floor(Math.random() * players.length);
             str = "Let the games begin! " +
@@ -1209,7 +1205,7 @@ class GameBoard {
             arr[3] + " is/are the WINNER!!. With the amount of "+arr[2]+"\n"+cmd.name + " ends the Game.\n"+str;
          let packet = this.acquire.setAcquirePacket("generic", str, "Hit reload to start a new game");
          this.acquire.broadCastAll(packet);
-
+         this.acquire.removeAllConnections();
 
         return ;
     }

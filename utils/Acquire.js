@@ -18,7 +18,7 @@ class Acquire {
     }
 
     setAcquireStarted(f) {
-        this.acquireStarted = f;
+        this.acquireStarted=f ;
     }
 
     hasAcquireStarted() {
@@ -52,7 +52,11 @@ class Acquire {
         this.closeSockets(lst);
         this.watchers = [];
         this.users = [];
-
+        this.gameBoard.players = [];
+        this.gameBoard.playerNum = 0;
+        this.gameBoard.initTiles();
+        this.gameBoard.initHotels();
+        this.setAcquireStarted(false);
         this.acquireData = this.prepareAcquirePacket();
 
     }
