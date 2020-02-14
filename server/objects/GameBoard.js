@@ -412,7 +412,7 @@ class GameBoard {
                     this.players[this.currentPlayer].setState(GameBoard.GAMEBOARD_START_HOTEL);
                 } else {
                     this.startChain(h);
-                    str = msg.name + " starts " + this.hot[h].getName() + "\n"+str;
+                    str = msg.name + " starts " + this.hot[h].name + "\n"+str;
                     this.players[this.currentPlayer].setState(GameBoard.GAMEBOARD_BUY_HOTEL);
                 }
 
