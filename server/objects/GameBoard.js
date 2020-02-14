@@ -186,7 +186,7 @@ class GameBoard {
             this.tile.push(k);
         }
 
-        this.forTesting( this.tile);
+       // this.forTesting( this.tile);
         this.shuffle();
     }
     shuffle() {

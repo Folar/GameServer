@@ -49,7 +49,7 @@ class Player {
     }
 
     pickFirstTiles() {
-        this.pickFirstTilesTesting(); return;
+      //  this.pickFirstTilesTesting(); return;
         for (let i = 0; i < 6; i++) {
             this.tiles[i] = this.gameBoard.pickATile();
         }

@@ -402,11 +402,11 @@ class Acquire {
                        players.push(u.player.name);
                    }
             }
-            if (players.length!=0 || force){
-                this.gameBoard.lostConnection(players);
-            }
 
         });
+        if (players.length!=0 || force){
+            this.gameBoard.lostConnection(players);
+        }
     }
 
     closeSockets(lst) {
