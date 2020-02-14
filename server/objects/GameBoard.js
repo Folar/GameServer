@@ -1177,7 +1177,7 @@ class GameBoard {
     over40() {
         let i;
         for (i = 0; i < 7; i++) {
-            if (this.hot[i].count() > 5)
+            if (this.hot[i].count() > 40)
                 break;
         }
         if (i == 7) return false;
