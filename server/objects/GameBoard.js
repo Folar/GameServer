@@ -432,10 +432,12 @@ class GameBoard {
                 instr = "Select the hotel buttons above the board to choose the hotel to start"
                 break;
             case GameBoard.GAMEBOARD_BUY_HOTEL:
-                str = this.players[this.currentPlayer].name + " is buying stock now\n" + str;
+
                 if(!this.canBuyStocks()){
+                    str = this.players[this.currentPlayer].name + " unable to buy stock now\n" + str;
                     return this.nextPlayer(msg,str);
                 }
+                str = this.players[this.currentPlayer].name + " is buying stock now\n" + str;
                 break;
 
         }
@@ -450,6 +452,7 @@ class GameBoard {
         let str = msg.name +" starts "  + this.hot[msg.args.row].name;
         this.startChain(msg.args.row);
         if(!this.canBuyStocks()){
+            str = msg.name + " is unable to buy stock now. \n"+str;
             return this.nextPlayer(msg,str);
         }
         str = msg.name + " is buying stock now. \n"+str;
@@ -798,10 +801,11 @@ class GameBoard {
             case GameBoard.GAMEBOARD_TRADE_STOCK:
                 break;
             case GameBoard.GAMEBOARD_BUY_HOTEL:
-                s = this.players[this.currentPlayer].name + " is buying stock now\n" + s;
+
                 if(!this.canBuyStocks()){
-                    return this.nextPlayer(msg,str);
+                    return this.nextPlayer(msg, this.players[this.currentPlayer].name + " unable to buy stock now\n" +s);
                 }
+                s = this.players[this.currentPlayer].name + " is buying stock now\n" + s;
                 break;
 
         }
