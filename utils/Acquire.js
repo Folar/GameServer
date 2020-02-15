@@ -53,7 +53,9 @@ class Acquire {
         this.watchers = [];
         this.users = [];
         this.gameBoard.players = [];
+        this.gameBoard.stopProcessing = false;
         this.gameBoard.playerNum = 0;
+        this.gameBoard.lostPlayers =[];
         this.gameBoard.initTiles();
         this.gameBoard.initHotels();
         this.setAcquireStarted(false);

@@ -49,6 +49,7 @@ class GameBoard {
         this.initTiles();
         this.initHotels();
         this.lostPlayers = [];
+        this.stopProcessing = false;
         acquire.setGameBoard(this);
     }
 
@@ -154,8 +155,11 @@ class GameBoard {
         this.lostPlayers = players;
         let str = "Everyone is reconnected, resume play"
         if (this.lostPlayers.length != 0) {
-            let p = this.acquire.formatNameList(players)
+            let p = this.acquire.formatNameList(players);
+            this.stopProcessing = true;
             str = p  + " has lost their connections please wait";
+        }else {
+            this.stopProcessing = false;
         }
         let packet = this.acquire.setAcquirePacket("playerStart", str, "");
         this.acquire.broadCastAll(packet);
@@ -225,7 +229,7 @@ class GameBoard {
     }
     processMsg(cmd) {
         console.log("processCmd "+cmd.action);
-       //if(cmd!= GameBoard.GAMEBOARD_START && this.lostPlayers.length> 0)return;
+       if(this.stopProcessing )return;
         console.log("processCmd2 "+this.lostPlayers.length);
         this.getPlayer(cmd.name).state = 6;
         switch (cmd.action) {
