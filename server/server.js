@@ -311,8 +311,11 @@ wsServer.on('request', function (request) {
 
                                 } else if (acquire.users.length == Acquire.NUMBER_PLAYERS) {
                                     user = acquire.addWatchers(connection, msg.name);
-                                    packet = acquire.setAcquirePacket("newWatcher", "","The game has already has " + acquire.NUMBER_PLAYERS +
+
+                                    packet = acquire.setAcquirePacket("newWatcher",
+                                        "The game has already has " + Acquire.NUMBER_PLAYERS +
                                         " players, but you can still watch the game", "");
+                                    packet.messageType = "newWatcher";
                                     acquire.sendWatcher(msg.name, packet);
                                 } else {
                                     user = acquire.addUser(connection, msg.name);
