@@ -225,11 +225,12 @@ class GameBoard {
     }
     processMsg(cmd) {
         console.log("processCmd "+cmd.action);
-       // if(this.lostPlayers.length> 0)return;
-        console.log("processCmd2 "+cmd.action);
+       if(cmd!= GameBoard.GAMEBOARD_START && this.lostPlayers.length> 0)return;
+        console.log("processCmd2 "+this.lostPlayers.length);
         this.getPlayer(cmd.name).state = 6;
         switch (cmd.action) {
             case GameBoard.GAMEBOARD_START:
+                this.lostPlayers =[];
                 return this.startPlayer(cmd);
             case GameBoard.GAMEBOARD_PLAY_TILE:
                 return this.playTile(cmd);
