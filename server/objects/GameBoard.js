@@ -225,7 +225,7 @@ class GameBoard {
     }
     processMsg(cmd) {
         console.log("processCmd "+cmd.action);
-        if(this.lostPlayers.length> 0)return;
+       // if(this.lostPlayers.length> 0)return;
         console.log("processCmd2 "+cmd.action);
         this.getPlayer(cmd.name).state = 6;
         switch (cmd.action) {
