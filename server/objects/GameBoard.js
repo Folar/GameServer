@@ -224,8 +224,9 @@ class GameBoard {
        return this.players.filter((player) => player.name === id )[0];
     }
     processMsg(cmd) {
-        console.log("processCmd "+cmd);
+        console.log("processCmd "+cmd.action);
         if(this.lostPlayers.length> 0)return;
+        console.log("processCmd2 "+cmd.action);
         this.getPlayer(cmd.name).state = 6;
         switch (cmd.action) {
             case GameBoard.GAMEBOARD_START:
