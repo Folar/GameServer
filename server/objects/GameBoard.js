@@ -230,15 +230,22 @@ class GameBoard {
     }
 
     processMsg(cmd) {
-        console.log("start of processCmd " + cmd.action);
+
         if (this.stopProcessing)
             return;
         if (this.lastCmd == JSON.stringify(cmd)){
+            console.log("dup command " + cmd.name);
+            return;
+        }
+        if (cmd.action == GameBoard.GAMEBOARD_PLAY_TILE &&
+            this.players[this.currentPlayer].state != GameBoard.GAMEBOARD_PLAY_TILE){
+            console.log("try sneak in a tile " + cmd.name);
             return;
         }
         this.lastCmd = JSON.stringify(cmd)
         console.log("processCmd2 " + this.lastCmd);
         this.getPlayer(cmd.name).state = 6;
+
         switch (cmd.action) {
             case GameBoard.GAMEBOARD_START:
                 this.lostPlayers = [];
