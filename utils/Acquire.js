@@ -56,6 +56,7 @@ class Acquire {
         this.gameBoard.stopProcessing = false;
         this.gameBoard.playerNum = 0;
         this.gameBoard.lostPlayers =[];
+        this.gameBoard.lastCmd = "";
         this.gameBoard.initTiles();
         this.gameBoard.initHotels();
         this.setAcquireStarted(false);
