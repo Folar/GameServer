@@ -49,7 +49,7 @@ class Player {
     }
 
     pickFirstTiles() {
-      //  this.pickFirstTilesTesting(); return;
+       // this.pickFirstTilesTesting(); return;
         for (let i = 0; i < 6; i++) {
             this.tiles[i] = this.gameBoard.pickATile();
         }
@@ -61,9 +61,9 @@ class Player {
             this.tiles[i] = this.gameBoard.pickATile();
         }
         this.startingTile = this.gameBoard.pickATile();
-        this.hotels[3] =7;
+        this.hotels[2] =20;
         this.money= 3900;
-        this.gameBoard.hot[3].availShares = 18;
+        this.gameBoard.hot[2].availShares = 5;
     }
 
 
