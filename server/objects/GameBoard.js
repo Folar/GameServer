@@ -180,6 +180,7 @@ class GameBoard {
 
     initTiles() {
         this.tileBag = [];
+        this.tileIndex =0;
         this.tile = [];
         for (let i = 0; i < 9; i++) {
             let k = [];
