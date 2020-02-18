@@ -190,8 +190,8 @@ class GameBoard {
             }
             this.tile.push(k);
         }
-
-      // this.forTesting( this.tile);
+       // this.round(250);
+       // this.forTesting( this.tile);
         this.shuffle();
     }
 
@@ -572,7 +572,8 @@ class GameBoard {
         if ((x % 100) == 0) {
             return x;
         }
-        let q = x / 100;
+        //debugger;
+        let q =Math.floor( x / 100);
         x = q * 100 + 100;
         return x;
     }
