@@ -193,6 +193,11 @@ class GameBoard {
        // this.round(250);
        // this.forTesting( this.tile);
         this.shuffle();
+        // for (let k=0;k<80;k++) {
+        //     let ti = this.pickATile();
+        //     this.tile[ti.row][ti.column].state =9;
+        //
+        // }
     }
 
     shuffle() {
@@ -1132,12 +1137,12 @@ class GameBoard {
         }
         if (row != 0) {
             if (this.tile[row - 1][col].getState() == Tile.ONBOARD) {
-                walkChain(this.tile[row - 1][col], state);
+                this.walkChain(this.tile[row - 1][col], state);
             }
         }
         if (row != 8) {
             if (this.tile[row + 1][col].getState() == Tile.ONBOARD) {
-                walkChain(this.tile[row + 1][col], state);
+                this.walkChain(this.tile[row + 1][col], state);
             }
         }
         if (col != 0) {
