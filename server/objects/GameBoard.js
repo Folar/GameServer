@@ -321,7 +321,7 @@ class GameBoard {
     }
 
     pickATile() {
-        if (this.tileIndex == 107) return null;
+        if (this.tileIndex == 108) return null;
         return this.tileBag[this.tileIndex++]
     }
 
@@ -452,11 +452,15 @@ class GameBoard {
                 break;
             case GameBoard.GAMEBOARD_BUY_HOTEL:
 
-                if (!this.canBuyStocks()) {
+                if (!this.canBuyStocks()&& !this.checkForEnd()) {
                     str = this.players[this.currentPlayer].name + " unable to buy stock now\n" + str;
                     return this.nextPlayer(msg, str);
                 }
-                str = this.players[this.currentPlayer].name + " is buying stock now\n" + str;
+                if (!this.canBuyStocks()){
+                    str = this.players[this.currentPlayer].name + " unable to buy stock now but can end the game.\n" + str;
+                }else {
+                    str = this.players[this.currentPlayer].name + " is buying stock now\n" + str;
+                }
                 break;
 
         }
@@ -1079,7 +1083,7 @@ class GameBoard {
                     playable = true;
                 }
             }
-            if (!this.checkForEnd() || playable || this.canBuyStocks())
+            if (this.checkForEnd() || playable || this.canBuyStocks())
                 break;
         }
 

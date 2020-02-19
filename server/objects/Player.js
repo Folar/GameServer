@@ -135,6 +135,7 @@ class Player {
         let j = 0;
         for (let i = 0; i < 6; i++) {
             if (this.tiles[i].row == -1) {
+                j++;
                 continue;
             }
 
