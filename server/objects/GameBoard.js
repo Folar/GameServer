@@ -153,7 +153,7 @@ class GameBoard {
 
     lostConnection(players) {
         this.lostPlayers = players;
-        let str = "Everyone is reconnected, resume play"
+        let str = "Everyone is reconnected, "+this.players[this.currentPlayer].name +" may resume play"
         if (this.lostPlayers.length != 0) {
             let p = this.acquire.formatNameList(players);
             this.stopProcessing = true;
