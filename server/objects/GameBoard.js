@@ -1252,7 +1252,7 @@ class GameBoard {
 
         let arr = this.acquire.findMinMax()
         str =
-            arr[3] + " is/are the WINNER!!. With the amount of " + arr[2] + "\n" + cmd.name + " ends the Game.\n" + str;
+            arr[3] + " is/are the WINNER!!. With the amount of " + arr[2] + "\n" +str + ". "+ cmd.name + " ends the Game.\n" ;
         let packet = this.acquire.setAcquirePacket("generic", str, "Hit reload to start a new game");
         this.acquire.broadCastAll(packet);
         this.acquire.removeAllConnections();
