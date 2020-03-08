@@ -572,7 +572,7 @@ class GameBoard {
             this.players[this.currentPlayer].setState(GameBoard.GAMEBOARD_CHOOSE_ORDER);
             return true;
         } else {
-            this.setMerge(mergeNum, mergeList, str);
+            this.setMerge(mergeNum, mergeList,"\n" +  str);
         }
         return false;
     }
@@ -746,7 +746,7 @@ class GameBoard {
         }
 
         str = this.players[this.currentPlayer].name + " merges " + dstr +
-            " into " + this.hot[mergeList[0]].name + "\n" + str;
+            " into " + this.hot[mergeList[0]].name + str;
 
         for (let i = 1; i < mergeNum; i++) {
             this.hot[mergeList[i]].calcBonus();
