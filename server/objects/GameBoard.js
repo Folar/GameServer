@@ -746,7 +746,7 @@ class GameBoard {
         }
 
         str = this.players[this.currentPlayer].name + " merges " + dstr +
-            " into " + this.hot[mergeList[0]].name + str;
+            " into " + this.hot[mergeList[0]].name + "\n" + str;
 
         for (let i = 1; i < mergeNum; i++) {
             this.hot[mergeList[i]].calcBonus();
