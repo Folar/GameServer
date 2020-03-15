@@ -479,11 +479,15 @@ class GameBoard {
     startHotel(msg) {
         let str = msg.name + " starts " + this.hot[msg.args.row].name;
         this.startChain(msg.args.row);
-        if (!this.canBuyStocks()) {
+        if (!this.canBuyStocks() && !this.checkForEnd()) {
             str = msg.name + " is unable to buy stock now. \n" + str;
             return this.nextPlayer(msg, str);
         }
-        str = msg.name + " is buying stock now. \n" + str;
+        if (!this.canBuyStocks()){
+            str = this.players[this.currentPlayer].name + " unable to buy stock now but can end the game.\n" + str;
+        } else {
+            str = msg.name + " is buying stock now. \n" + str;
+        }
         let packet = this.acquire.setAcquirePacket("generic", str, "");
 
         this.acquire.broadCastAll(packet);
@@ -831,10 +835,14 @@ class GameBoard {
                 break;
             case GameBoard.GAMEBOARD_BUY_HOTEL:
 
-                if (!this.canBuyStocks()) {
+                if (!this.canBuyStocks() && !this.checkForEnd()) {
                     return this.nextPlayer(msg, this.players[this.currentPlayer].name + " unable to buy stock now\n" + s);
                 }
-                s = this.players[this.currentPlayer].name + " is buying stock now\n" + s;
+                if (!this.canBuyStocks() ){
+                    s = this.players[this.currentPlayer].name + " unable to buy stock now but can end the game.\n" + s;
+                }  else {
+                    s = this.players[this.currentPlayer].name + " is buying stock now\n" + s;
+                }
                 break;
 
         }
