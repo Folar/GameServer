@@ -26,6 +26,7 @@ class PanActions {
         this.lostPlayers = [];
         this.stopProcessing = false;
         this.lastCmd = "";
+        this.initDeck();
         pan.setPanActions(this);
     }
 
@@ -71,7 +72,9 @@ class PanActions {
     static get ANTE() {
         return 101;
     }
-
+    static get GAMEOVER() {
+        return 110;
+    }
 
 
     getGameState() {
@@ -99,7 +102,7 @@ class PanActions {
 
     }
 
-    i
+
 
     initDeck() {
         this.deck = [];
@@ -118,7 +121,7 @@ class PanActions {
     shuffle() {
         // for 1000 turns
         // switch the values of two random cards
-        for (let i = 0; i < 4000; i++) {
+        for (let i = 0; i < 5000; i++) {
             let location1 = Math.floor((Math.random() * this.deck.length));
             let location2 = Math.floor((Math.random() * this.deck.length));
             let tmp = this.deck[location1];

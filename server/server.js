@@ -10,6 +10,8 @@ const {Choice} = require('./../utils/Choice.js');
 const {ChoiceActions} = require('./ChoiceActions.js');
 const {GameBoard} = require('./objects/GameBoard.js');
 const {Acquire} = require('./../utils/Acquire.js');
+const {Pan} = require('./../utils/Pan.js');
+const {PanActions} = require('./PanActions.js');
 
 let acquire = new Acquire();
 let gameBoard = new GameBoard(acquire);
@@ -25,6 +27,9 @@ let diverActions = new DiverActions(diver);
 
 let choice = new Choice();
 let choiceActions = new ChoiceActions(choice);
+
+let pan = new Pan();
+let panActions = new PanActions(pan);
 
 var deck = new Array();
 myTimer = null;
@@ -77,7 +82,7 @@ wsServer.on('request', function (request) {
 
         let packet = takeSixActions.prepareTakeSixPacket("message", "There has been no game activity for " + TakeSix.NUMBER_TlME_WARN
             + " minutes.The Game Server has been restarted. Reload FolarGames in your browser");
-        takeSix.setTakeSixStarted(false) ;
+        takeSix.setTakeSixStarted(false);
         takeSix.broadCastAll(packet);
         takeSix.removeAllConnections();
 
@@ -87,21 +92,27 @@ wsServer.on('request', function (request) {
         acquire.broadCastAll(packet);
         acquire.removeAllConnections();
 
+        packet = pan.setPanPacket("message", "There has been no game activity for " + TakeSix.NUMBER_TlME_WARN
+            + " minutes.The Game Server has been restarted. Reload FolarGames in your browser", "Reload");
+        pan.setPanStarted(false);
+        pan.broadCastAll(packet);
+        pan.removeAllConnections();
+
         packet = choice.setChoicePacket("message", "There has been no game activity for " + TakeSix.NUMBER_TlME_WARN
             + " minutes.The Game Server has been restarted. Reload FolarGames in your browser", "Reload");
         choice.setChoiceStarted(false);
         choice.broadCastAll(packet);
         choice.removeAllConnections();
-        
+
         packet = bocaDice.setBocaDicePacket("message", "There has been no game activity for " + TakeSix.NUMBER_TlME_WARN
             + " minutes.The Game Server has been restarted. Reload FolarGames in your browser", "Reload");
         bocaDice.setBocaStarted(false);
         bocaDice.broadCastAll(packet);
         bocaDice.removeAllConnections();
-        
+
         diver.setDiverStarted(false);
-        packet =diver.setDiverPacket("message", "There has been no game activity for " + TakeSix.NUMBER_TlME_WARN
-            + " minutes.The Game Server has been restarted. Reload FolarGames in your browser", "Reload","");
+        packet = diver.setDiverPacket("message", "There has been no game activity for " + TakeSix.NUMBER_TlME_WARN
+            + " minutes.The Game Server has been restarted. Reload FolarGames in your browser", "Reload", "");
 
         diver.broadCastAll(packet);
         diver.removeAllConnections();
@@ -141,6 +152,8 @@ wsServer.on('request', function (request) {
             resetTimer();
             switch (msg.type) {
                 case "ACQ":
+                    panActions.processMsg(msg);
+                case "ACQ":
                     gameBoard.processMsg(msg);
                     break;
                 case "BOCA":
@@ -159,7 +172,6 @@ wsServer.on('request', function (request) {
                 case "restartTake6":
                     restartGame();
                     break;
-
 
 
                 case "newUser":
@@ -197,7 +209,7 @@ wsServer.on('request', function (request) {
                         case 3:
                             if (choice.chkForDuplicateName(msg.name)) {
                                 packet = choice.setChoicePacket("dupUser",
-                                    msg.name + " has already signed on, please choose another","");
+                                    msg.name + " has already signed on, please choose another", "");
                                 packet.messageType = "dupUser";
                                 connection.send(JSON.stringify(packet));
                                 break;
@@ -206,14 +218,14 @@ wsServer.on('request', function (request) {
                                 if (choice.hasChoiceStarted()) {
                                     user = choice.addWatchers(connection, msg.name);
                                     packet = choice.setChoicePacket("newWatcher",
-                                        "The game has already started, but you can still watch the game","");
+                                        "The game has already started, but you can still watch the game", "");
                                     choice.sendWatcher(msg.name, packet);
 
                                 } else {
                                     user = choice.addUser(connection, msg.name);
 
                                     packet = choice.setChoicePacket("newUser",
-                                        "Welcome! Press the Start button when all the players have joined","Start");
+                                        "Welcome! Press the Start button when all the players have joined", "Start");
                                     packet.messageType = "newPlayer";
                                     choice.send(msg.name, packet);
                                     packet.messageType = "newPlayer";
@@ -258,7 +270,7 @@ wsServer.on('request', function (request) {
                             break;
                         case 5:
                             if (diver.chkForDuplicateName(msg.name)) {
-                                packet = diver.prepareDiverPacket("dupUser", msg.name + " has already signed on, please choose another","");
+                                packet = diver.prepareDiverPacket("dupUser", msg.name + " has already signed on, please choose another", "");
 
                                 packet.messageType = "dupUser";
                                 connection.send(JSON.stringify(packet));
@@ -267,20 +279,20 @@ wsServer.on('request', function (request) {
                                 let user = null
                                 if (diver.hasDiverStarted()) {
                                     user = diver.addWatchers(connection, msg.name);
-                                    packet = diver.setDiverPacket("newWatcher", "The game has already started, but you can still watch the game", "","");
+                                    packet = diver.setDiverPacket("newWatcher", "The game has already started, but you can still watch the game", "", "");
                                     packet.messageType = "newWatcher";
                                     diver.sendWatcher(msg.name, packet);
 
                                 } else if (diver.users.length == diver.NUMBER_PLAYERS) {
                                     user = diver.addWatchers(connection, msg.name);
                                     packet = diver.setdiverPacket("newWatcher", "The game has already has " + diver.NUMBER_PLAYERS +
-                                        " players, but you can still watch the game", "","");
+                                        " players, but you can still watch the game", "", "");
                                     diver.sendWatcher(msg.name, packet);
                                 } else {
                                     user = diver.addUser(connection, msg.name);
                                     packet = diver.setDiverPacket("newUser",
                                         "Welcome! Press the Start button when all the players have joined",
-                                        "Start","");
+                                        "Start", "");
                                     diver.send(msg.name, packet);
                                     packet.messageType = "newPlayer";
                                     packet.message = msg.name + " is now Playing\n\n";
@@ -288,16 +300,15 @@ wsServer.on('request', function (request) {
                                 }
                             }
                             break;
-
                         case 6:
                             if (acquire.chkForDuplicateName(msg.name)) {
-                                if(acquire.chkForReconnect(msg.name) == -1) {
+                                if (acquire.chkForReconnect(msg.name) == -1) {
                                     packet = acquire.prepareAcquirePacket("dupUser", msg.name + " has already signed on, please choose another", "");
 
                                     packet.messageType = "dupUser";
                                     connection.send(JSON.stringify(packet));
-                                }else{
-                                    acquire.reconnectUser(connection,msg.name);
+                                } else {
+                                    acquire.reconnectUser(connection, msg.name);
 
                                 }
                                 break;
@@ -305,7 +316,7 @@ wsServer.on('request', function (request) {
                                 let user = null
                                 if (acquire.hasAcquireStarted()) {
                                     user = acquire.addWatchers(connection, msg.name);
-                                    packet = acquire.setAcquirePacket("newWatcher", "The game has already started, but you can still watch the game", "","");
+                                    packet = acquire.setAcquirePacket("newWatcher", "The game has already started, but you can still watch the game", "", "");
                                     packet.messageType = "newWatcher";
                                     acquire.sendWatcher(msg.name, packet);
 
@@ -319,14 +330,56 @@ wsServer.on('request', function (request) {
                                     acquire.sendWatcher(msg.name, packet);
                                 } else {
                                     user = acquire.addUser(connection, msg.name);
-                                    packet = acquire.setAcquirePacket("newUser","",
+                                    packet = acquire.setAcquirePacket("newUser", "",
                                         "xxx",
                                         "Start");
                                     acquire.send(msg.name, packet);
                                     packet.messageType = "newPlayer";
-                                    packet.instructions ="";
+                                    packet.instructions = "";
                                     packet.message = msg.name + " is now Playing\n\n";
                                     acquire.broadCastMessage(msg.name, packet);
+                                }
+                            }
+                            break;
+
+                        case 7:
+                            if (pan.chkForDuplicateName(msg.name)) {
+                                if (pan.chkForReconnect(msg.name) == -1) {
+                                    packet = acquire.preparePanPacket("dupUser", msg.name + " has already signed on, please choose another", "");
+
+                                    packet.messageType = "dupUser";
+                                    connection.send(JSON.stringify(packet));
+                                } else {
+                                    pan.reconnectUser(connection, msg.name);
+
+                                }
+                                break;
+                            } else {
+                                let user = null
+                                if (pan.hasPanStarted()) {
+                                    user = pan.addWatchers(connection, msg.name);
+                                    packet = pan.setPanPacket("newWatcher", "The game has already started, but you can still watch the game", "", "");
+                                    packet.messageType = "newWatcher";
+                                    pan.sendWatcher(msg.name, packet);
+
+                                } else if (pan.users.length == Pan.NUMBER_PLAYERS) {
+                                    user = pan.addWatchers(connection, msg.name);
+
+                                    packet = pan.setPanPacket("newWatcher",
+                                        "The game has already has " + Pan.NUMBER_PLAYERS +
+                                        " players, but you can still watch the game", "");
+                                    packet.messageType = "newWatcher";
+                                    pan.sendWatcher(msg.name, packet);
+                                } else {
+                                    user = pan.addUser(connection, msg.name);
+                                    packet = pan.setPanPacket("newUser", "",
+                                        "xxx",
+                                        "Start");
+                                    pan.send(msg.name, packet,false);
+                                    packet.messageType = "newPlayer";
+                                    packet.instructions = "";
+                                    packet.journal = msg.name + " is now Playing\n\n";
+                                    pan.broadCastMessage(msg.name, packet);
                                 }
                             }
                             break;
@@ -355,6 +408,7 @@ wsServer.on('request', function (request) {
         //     takeSix.removeAllConnections();
         // }
         acquire.lookForDropConnection();
+        pan.lookForDropConnection();
         console.log((new Date()) + ' Peer ' + connection.remoteAddress + ' disconnected.');
     });
 });
