@@ -379,7 +379,7 @@ wsServer.on('request', function (request) {
                                     packet.messageType = "newPlayer";
                                     packet.instructions = "";
                                     packet.journal = msg.name + " is now Playing";
-                                    packet = pan.setPanPacket("newUser",  msg.name + " is now Playing\n",
+                                    packet = pan.setPanPacket("newUser",  msg.name + " is now Playing",
                                         "xxx",
                                         "Start");
                                     pan.broadCastMessage(msg.name, packet);
