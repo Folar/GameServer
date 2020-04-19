@@ -345,7 +345,7 @@ wsServer.on('request', function (request) {
                         case 7:
                             if (pan.chkForDuplicateName(msg.name)) {
                                 if (pan.chkForReconnect(msg.name) == -1) {
-                                    packet = acquire.preparePanPacket("dupUser", msg.name + " has already signed on, please choose another", "");
+                                    packet = pan.preparePanPacket("dupUser", msg.name + " has already signed on, please choose another", "");
 
                                     packet.messageType = "dupUser";
                                     connection.send(JSON.stringify(packet));
@@ -372,13 +372,16 @@ wsServer.on('request', function (request) {
                                     pan.sendWatcher(msg.name, packet);
                                 } else {
                                     user = pan.addUser(connection, msg.name);
-                                    packet = pan.setPanPacket("newUser", "",
+                                    packet = pan.setPanPacket("newUser", "Welcome to Panguingue",
                                         "xxx",
                                         "Start");
                                     pan.send(msg.name, packet,false);
                                     packet.messageType = "newPlayer";
                                     packet.instructions = "";
-                                    packet.journal = msg.name + " is now Playing\n\n";
+                                    packet.journal = msg.name + " is now Playing";
+                                    packet = pan.setPanPacket("newUser",  msg.name + " is now Playing\n",
+                                        "xxx",
+                                        "Start");
                                     pan.broadCastMessage(msg.name, packet);
                                 }
                             }

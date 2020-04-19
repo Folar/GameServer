@@ -1,4 +1,4 @@
-const {PanCard} = require('../server/objects/PanCard');
+const {PanPlayer} = require('../server/objects/PanPlayer.js');
 const {PanActions} = require('../server/PanActions.js');
 class Pan {
 
@@ -14,7 +14,7 @@ class Pan {
     }
 
     static get NUMBER_PLAYERS() {
-        return 6;
+        return 8;
     }
 
     setPanStarted(f) {
@@ -57,8 +57,7 @@ class Pan {
         this.panActions.playerNum = 0;
         this.panActions.lostPlayers =[];
         this.panActions.lastCmd = "";
-        this.panActions.initTiles();
-        this.panActions.initHotels();
+        this.hand=[];
         this.setPanStarted(false);
         this.panData = this.preparePanPacket();
 
@@ -152,9 +151,9 @@ class Pan {
     setPanPacket(type, message, instructions, buttonText) {
 
         this.panData.messageTypeype = type;
-        this.panData.message = message;
+        this.panData.journal = message;
         this.panData.instructions = instructions;
-        this.panData.state = 0;
+        this.panData.state = 100;
         this.panData.buttonText = buttonText;
         return this.panData;
     }
@@ -167,11 +166,11 @@ class Pan {
             type:0,
             playerId:0,
             currentPlayer:0,
-            state:1,
+            state:100,
             otherState:5,
             kitty:0,
             oldInstructions:"",
-            instructions:"You can now draw a card. ",
+            instructions:"Press the start button after all then pan players have joined. ",
             instructionColor:"black",
             journal:"Welcome to Panguingue",
             currentCard: {
@@ -200,30 +199,31 @@ class Pan {
     }
 
     fillInPacket(packet) {
-        packet.tiles=this.panActions.tile;
-        packet.canEnd = false;
-        packet.dlgType = 0;
+
         this.panData.players = new Array();
         for (let i in this.panActions.players) {
             let p = this.panActions.players[i];
-            this.panData.players.push({name: p.name, hotels: p.hotels, money: p.money, playing: p.playing,state:p.state});
+            this.panData.players.push({name: p.name, current: p.current, total: p.total, playing:p.playing,atTable:true,
+                state:p.state,forfeit:p.forfeit,sitOut:p.sitOut,playerId: p.playerId,cards:p.cards, hand:[]});
+            this.users[i].player= {name: p.name, current: p.current, total: p.total, playing:p.playing,atTable:true,
+                state:p.state,forfeit:p.forfeit,sitOut:p.sitOut,playerId: p.playerId,cards:p.cards, hand:[]};
         }
-        for (let i in this.panActions.hot) {
-            let h = this.panActions.hot[i];
-            this.panData.hotels[i].available = h.availShares;
-            this.panData.hotels[i].price = h.price();
-            this.panData.hotels[i].size = h.count();
-        }
-        this.panData.currentPlayer = this.panActions.currentPlayer;
-        this.panData.currentSwapPlayer = this.panActions.currentSwapPlayer;
 
+        this.panData.currentPlayer = this.panActions.currentPlayer;
+
+    }
+    addPlayer(name) {
+        let p = new PanPlayer(name,  this.panActions);
+        this.panActions.playerNum++;
+        this.panActions.players.push(p);
+        return p;
     }
 
     addUser(connection, name) {
         var user = {
             connection: connection,
             name: name,
-            player: this.panActions.addPlayer(name)
+            player: this.addPlayer(name)
         }
         this.users.push(user);
         return user;
@@ -233,7 +233,8 @@ class Pan {
         var user = {
             connection: connection,
             name: name,
-            playing: false
+            playing: false,
+            player:{atTable:false}
         };
         this.watchers.push(user);
         return user;
@@ -306,93 +307,20 @@ class Pan {
         });
     }
 
-    sendPacket(lst, packet, loadTiles = false) {
+    sendPacket(lst, packet, loadCards = false) {
         let pkt = packet;
         lst.map((u) => {
             if(u.connection.state == "open") {
-                if (loadTiles && u.player.playing) {
+                if ( u.player.atTable) {
+
+
+                    packet.hand = [];
+
+                    for(let i=0;i<u.player.hand.length;i++)
+                        packet.hand.push(u.player.hand[i]);
+                    packet.state = u.player.state;
+                    packet.playerId = u.player.playerId;
                     pkt = JSON.parse(JSON.stringify(packet));
-                    let r = u.player.getRack(pkt);
-                    pkt.rack = r;
-                    pkt.gameState = u.player.state;
-                    if (u.player.state == 6)
-                        pkt.instructions = "";
-                    else if (u.player.state == 101) {
-                        if (this.panActions.checkForEnd())
-                            pkt.canEnd = true;
-                    } else if (u.player.state == 106) {
-                        pkt.dlgType = 1;
-                        let st = this.panActions.stockTransaction;
-                        let p = this.panActions.players[st.player];
-                        pkt.stk.keep = p.hotels[st.defunct];
-                        pkt.stk.player = st.player;
-                        pkt.stk.title = st.title;
-                        pkt.stk.survivor = Hotel.HOTELS[st.survivor];
-                        pkt.stk.defunct = Hotel.HOTELS[st.defunct];
-                        pkt.stk.survivorColor = Hotel.HOTEL_COLORS[st.survivor];
-                        pkt.stk.defunctColor = Hotel.HOTEL_COLORS[st.defunct];
-                        pkt.stk.defunctPrice = this.panActions.hot[st.defunct].first / 10;
-                        pkt.stk.playerMoneyBase = p.money;
-                        pkt.stk.total = p.hotels[st.defunct];
-                        pkt.stk.playerSurvivorBase = p.hotels[st.survivor];
-                        pkt.stk.playerDefunctBase = p.hotels[st.defunct];
-                        pkt.stk.hotelAvailDefunctBase = pkt.hotels[st.defunct].available;
-                        pkt.stk.hotelAvailSurvivorBase = pkt.hotels[st.survivor].available;
-                        let str = "\nA share of " + pkt.stk.survivor + " is now worth " + pkt.hotels[st.survivor].price +
-                            ". There are " + pkt.stk.hotelAvailSurvivorBase + " available.\n";
-                        str += "A share of " + pkt.stk.defunct + " was worth " + pkt.stk.defunctPrice +
-                            ". You have " + p.hotels[st.defunct] + " shares."
-                        pkt.stk.info = st.bonusStr + str;
-
-                    } else if (u.player.state == 109) {
-                        pkt.dlgType = 2;
-                        let oneTouch = true;
-                        pkt.merger.info = "Select one of the hotels to switch the order"
-                        let hotels = [];
-                        let sizes = [];
-                        let colors = [];
-                        for (let i = 0; i < this.panActions.split.length; i++) {
-                            let grp = this.panActions.split[i];
-                            for (let j = 0; j < grp.length; j++) {
-
-                                hotels.push(Hotel.HOTELS[grp[j]]);
-                                colors.push(Hotel.HOTEL_COLORS[grp[j]]);
-                                sizes.push(this.panData.hotels[grp[j]].size);
-                            }
-                            if (grp.length > 2) {
-                                oneTouch = false;
-                                pkt.merger.info = "Choose the hotel that you want to switch";
-                                //info:"Select either hotel to switch the order
-                            }
-
-                        }
-                        pkt.merger.oneTouch = oneTouch;
-                        pkt.merger.hotelColors = colors;
-                        pkt.merger.hotels = hotels;
-                        pkt.merger.hotelSizes = sizes;
-                    } else if (u.player.state == 102) {
-                        pkt.dlgType = 3;
-                        let hotels = [];
-                        let colors = [];
-                        for (let i = 0; i < 7; i++) {
-
-                            if (this.panActions.canBuyStock(i)) {
-                                hotels.push(Hotel.HOTELS[i]);
-                                colors.push(Hotel.HOTEL_COLORS[i]);
-                            }
-                        }
-                        if (this.panActions.checkForEnd())
-                            pkt.canEnd = true;
-                        pkt.buy.error = "";
-                        pkt.buy.hotelColors = colors;
-                        pkt.buy.hotels = hotels;
-                        pkt.buy.playerBaseMoney = u.player.money;
-                        pkt.buy.amt = [0, 0, 0, 0, 0, 0, 0];
-                        pkt.buy.total = 0;
-                    } else if (u.player.state == PanActions.GAMEOVER) {
-                        pkt.over = true;
-                        pkt.dlgType = 0;
-                    }
                 }
                 u.connection.send(JSON.stringify(pkt));
                 pkt = packet;
@@ -428,10 +356,10 @@ class Pan {
         lst[0].playing = true;
     }
 
-    send(id, packet, loadTiles = false) {
+    send(id, packet, loadCards = false) {
         this.fillInPacket(packet);
         let lst = this.users.filter((user) => user.name === id);
-        this.sendPacket(lst, packet, false);
+        this.sendPacket(lst, packet, loadCards);
     }
 
     sendWatcher(id, packet) {
