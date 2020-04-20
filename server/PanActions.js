@@ -41,7 +41,7 @@ class PanActions {
         return 2
     };
 
-    static get PICKUP_OR_PASS() {
+    static get PICKUP() {
         return 3
     };
 
@@ -145,24 +145,82 @@ class PanActions {
             console.log("dup command " + cmd.name);
             return;
         }
-        if (cmd.action == PanActions.PanActions_PLAY_TILE &&
-            this.players[this.currentPlayer].state != PanActions.PanActions_PLAY_TILE){
-            console.log("try sneak in a tile " + cmd.name);
-            return;
-        }
         this.lastCmd = JSON.stringify(cmd)
         console.log("processCmd2 " + this.lastCmd);
-        this.getPlayer(cmd.name).state = 6;
+
 
         switch (cmd.action) {
             case PanActions.START:
                 this.lostPlayers = [];
                 return this.startPlayer(cmd);
 
+            case PanActions.DRAW:
+                return this.draw(cmd);
+
+            case PanActions.PICKUP:
+                return this.pickup(cmd);
+
         }
         return null;
     }
+    getCardString(c){
+        let suit ="";
+        let rank = "";
 
+        switch (c.suit) {
+            case 's':
+                suit = "Spades";
+                break;
+            case 'h':
+                suit = "Hearts";
+                break;
+            case 'd':
+                suit = "Diamonds";
+                break;
+            case 'c':
+                suit = "Clubs";
+                break;
+        }
+        rank = c.rank;
+        switch (c.rank) {
+            case 1:
+                rank = "Ace";
+                break;
+            case 11:
+                rank = "Jack";
+                break;
+            case 12:
+                rank = "Queen";
+                break;
+            case 13:
+                rank = "King";
+                break;
+        }
+        return rank + " of " + suit;
+    }
+    draw(msg){
+        let c = this.pickACard();
+        let packet = this.pan.setPanPacket("draw", msg.name +" draws the " + this.getCardString(c), "");
+        let lst = this.players.filter((player) => player.name === msg.name);
+        let p = lst[0];
+        p.state = msg.args.newState;
+        p.hand = msg.args.hand;
+        p.cards = msg.args.cards;
+        packet.currentCard = c;
+        this.pan.broadCastAll(packet);
+    }
+    pickup(msg){
+        let  c = this.pan.getCurrentPacket().currentCard;
+        let packet = this.pan.setPanPacket("pickup", msg.name +" picks up the " + this.getCardString(c), "");
+        let lst = this.players.filter((player) => player.name === msg.name);
+        let p = lst[0];
+        p.state = msg.args.newState;
+        p.hand = msg.args.hand;
+        p.cards = msg.args.cards;
+        packet.currentCard.rank = 'card_back';
+        packet.currentCard.suit = '';
+        this.pan.broadCastAll(packet);
+    }
 
     setPlay(id) {
         let lst = this.players.filter((player) => player.name === id);
