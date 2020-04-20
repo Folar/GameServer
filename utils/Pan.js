@@ -206,7 +206,7 @@ class Pan {
             this.panData.players.push({name: p.name, current: p.current, total: p.total, playing:p.playing,atTable:true,
                 state:p.state,forfeit:p.forfeit,sitOut:p.sitOut,playerId: p.playerId,cards:p.cards, hand:[]});
             this.users[i].player= {name: p.name, current: p.current, total: p.total, playing:p.playing,atTable:true,
-                state:p.state,forfeit:p.forfeit,sitOut:p.sitOut,playerId: p.playerId,cards:p.cards, hand:[]};
+                state:p.state,forfeit:p.forfeit,sitOut:p.sitOut,playerId: p.playerId,cards:p.cards, hand:p.playing? p.hand :[]};
         }
 
         this.panData.currentPlayer = this.panActions.currentPlayer;

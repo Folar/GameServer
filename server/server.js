@@ -151,8 +151,9 @@ wsServer.on('request', function (request) {
             let str;
             resetTimer();
             switch (msg.type) {
-                case "ACQ":
+                case "PAN":
                     panActions.processMsg(msg);
+                    break;
                 case "ACQ":
                     gameBoard.processMsg(msg);
                     break;

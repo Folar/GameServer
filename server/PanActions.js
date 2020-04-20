@@ -155,28 +155,10 @@ class PanActions {
         this.getPlayer(cmd.name).state = 6;
 
         switch (cmd.action) {
-            case PanActions.PanActions_START:
+            case PanActions.START:
                 this.lostPlayers = [];
                 return this.startPlayer(cmd);
-            case PanActions.PanActions_PLAY_TILE:
-                return this.playTile(cmd);
-            case PanActions.PanActions_BUY_HOTEL:
-                return this.buyStockAction(cmd);
-            case PanActions.PanActions_START_HOTEL:
-                return this.startHotel(cmd);
-            case PanActions.PanActions_NEXT_TRANSACTION:
-                let str = this.trade(cmd);
-                return this.nextTrans(str);
-            case PanActions.PanActions_MERGE_HOTEL:
-                let s = "";
-                let o = [];
-                for (let i = 0; i < cmd.args.order.length; i++) {
-                    let h = Hotel.HOTELS.indexOf(cmd.args.order[i]);
-                    o.push(h);
-                }
-                return this.setMerge(cmd.args.cnt, o, s);
-            case PanActions.PanActions_END_GAME:
-                return this.chooseWinner(cmd);
+
         }
         return null;
     }
@@ -185,8 +167,7 @@ class PanActions {
     setPlay(id) {
         let lst = this.players.filter((player) => player.name === id);
         let p = lst[0];
-        let t = p.startingTile;
-        this.tile[t.row][t.column].state = 9;
+        p.state = PanActions.OTHER;
         p.playing = true;
     }
 
@@ -209,9 +190,9 @@ class PanActions {
             let num = Math.floor(Math.random() * players.length);
             str = "Let the games begin! " +
                 players[num].name + " was randomly chosen to roll first";
-            let packet = this.pan.setPanPacket("playerStart", str, "Pick a tile from the rack or click on an eligible tile on the board");
+            let packet = this.pan.setPanPacket("playerStart", str, "");
             this.currentPlayer = num;
-            players[num].state = PanActions.PanActions_PLAY_TILE;
+            players[num].state = PanActions.FIRST_PLAYER_DRAW;
             this.pan.broadCastAll(packet);
 
         } else {
