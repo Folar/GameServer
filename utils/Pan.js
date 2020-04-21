@@ -165,7 +165,7 @@ class Pan {
         return {
             type:0,
             playerId:0,
-            currentPlayer:0,
+            currentPlayer:10,
             state:100,
             otherState:5,
             kitty:0,
@@ -323,6 +323,8 @@ class Pan {
                     pkt = JSON.parse(JSON.stringify(packet));
                 }
                 u.connection.send(JSON.stringify(pkt));
+                packet.hand = [];
+                packet.state = 0;
                 pkt = packet;
             }
         });

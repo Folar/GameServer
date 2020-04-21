@@ -58,12 +58,17 @@ class PanActions {
         return 6
     };
 
-  // 7 IS DEFUNCT
+    static get PASS() {
+        return 7
+    };
 
     static get FORFEIT() {
         return 8
     };
 
+    static get WAITING() {
+        return 10
+    };
 
     static get START() {
         return 100;
@@ -160,9 +165,18 @@ class PanActions {
             case PanActions.PICKUP:
                 return this.pickup(cmd);
 
+            case PanActions.PASS:
+                return this.pass(cmd)
         }
         return null;
     }
+    transfer(target, source) {
+        target.suit = source.suit;
+        target.rank = source.rank;
+        target.ordinal = source.ordinal;
+        target.rankOrdinal = source.rankOrdinal
+    }
+
     getCardString(c){
         let suit ="";
         let rank = "";
@@ -221,11 +235,48 @@ class PanActions {
         packet.currentCard.suit = '';
         this.pan.broadCastAll(packet);
     }
+    pass(msg) {
+        let packet = this.pan.getCurrentPacket();
+        this.transfer(packet.passCard, packet.currentCard);
+        packet.currentCard.rank = 'card_back';
+        packet.currentCard.suit = '';
+        let lst = this.players.filter((player) => player.name === msg.name);
+        let p = lst[0];
+        p.hand = msg.args.hand;
+        p.cards = msg.args.cards;
+        p.state = 0;
+        packet.currentPlayer++
+        if (packet.currentPlayer == packet.players.length)
+            packet.currentPlayer = 0;
+        this.players[packet.currentPlayer].state = 5;
+        let cards = this.players[packet.currentPlayer].cards;
 
+        this.currentPlayer =  packet.currentPlayer;
+        packet.journal =  this.players[packet.currentPlayer].name + " can pickup the " + this.getCardString(packet.passCard) + " or draw a card from the deck" ;
+        this.createDropSpot(cards);
+        this.pan.broadCastAll(packet);
+    }
+    createDropSpot(cards) {
+
+        if (cards.length > 0 && cards[cards.length - 1].money == -1)
+            return;
+        cards.push({
+            str:"",
+            group: cards.length,
+            sels: [false, false, false, false, false, false, false, false, false, false],
+            money: -1,
+            cards: [
+                {
+                    rank: "empty"
+                }
+            ]
+
+        });
+    }
     setPlay(id) {
         let lst = this.players.filter((player) => player.name === id);
         let p = lst[0];
-        p.state = PanActions.OTHER;
+        p.state = PanActions.WAITING;
         p.playing = true;
     }
 
