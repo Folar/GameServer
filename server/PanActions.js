@@ -166,7 +166,10 @@ class PanActions {
                 return this.pickup(cmd);
 
             case PanActions.PASS:
-                return this.pass(cmd)
+                return this.pass(cmd);
+
+            case PanActions.PLAY_AND_MUCK:
+                return this.muck(cmd)
         }
         return null;
     }
@@ -258,6 +261,30 @@ class PanActions {
         this.createDropSpot(cards);
         this.pan.broadCastAll(packet);
     }
+
+    muck(msg) {
+        let packet = this.pan.getCurrentPacket();
+
+        packet.currentCard.rank = 'card_back';
+        packet.currentCard.suit = '';
+
+        let lst = this.players.filter((player) => player.name === msg.name);
+        let p = lst[0];
+        p.hand = msg.args.hand;
+        p.cards = msg.args.cards;
+        p.state = 0;
+        packet.currentPlayer++
+        if (packet.currentPlayer == packet.players.length)
+            packet.currentPlayer = 0;
+        this.players[packet.currentPlayer].state = 2;
+        let cards = this.players[packet.currentPlayer].cards;
+
+        this.currentPlayer =  packet.currentPlayer;
+        packet.journal = msg.name +" has "+ msg.args.txt ;
+
+        this.pan.broadCastAll(packet);
+    }
+
     createDropSpot(cards) {
 
         if (cards.length > 0 && cards[cards.length - 1].money == -1)
@@ -303,6 +330,8 @@ class PanActions {
                 players[num].name + " was randomly chosen to roll first";
             let packet = this.pan.setPanPacket("playerStart", str, "");
             this.currentPlayer = num;
+            for(let i = 0;i<players.length;i++)
+                players[i].state = 0;
             players[num].state = PanActions.FIRST_PLAYER_DRAW;
             this.pan.broadCastAll(packet);
 
