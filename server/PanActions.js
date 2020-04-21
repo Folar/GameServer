@@ -237,9 +237,11 @@ class PanActions {
     }
     pass(msg) {
         let packet = this.pan.getCurrentPacket();
+
         this.transfer(packet.passCard, packet.currentCard);
         packet.currentCard.rank = 'card_back';
         packet.currentCard.suit = '';
+
         let lst = this.players.filter((player) => player.name === msg.name);
         let p = lst[0];
         p.hand = msg.args.hand;
