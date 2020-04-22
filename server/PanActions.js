@@ -66,6 +66,10 @@ class PanActions {
         return 8
     };
 
+    static get ERROR() {
+        return 9
+    };
+
     static get WAITING() {
         return 10
     };
@@ -177,6 +181,12 @@ class PanActions {
 
             case PanActions.MOVE:
                 return this.move(cmd)
+
+            case PanActions.ERROR:
+                return this.error(cmd);
+
+            case PanActions.FORFEIT:
+                return this.forfeit(cmd)
         }
         return null;
     }
@@ -279,6 +289,52 @@ class PanActions {
         this.pan.broadCastAll(packet);
     }
 
+    error(msg) {
+        let packet = this.pan.getCurrentPacket();
+
+        let lst = this.players.filter((player) => player.name === msg.name);
+        let p = lst[0];
+        p.hand = msg.args.hand;
+        p.cards = msg.args.cards;
+        this.players[packet.currentPlayer].state = 8;
+        packet.journal = msg.name +" has the illegal melds: "+ msg.args.txt ;
+        this.pan.broadCastAll(packet);
+    }
+
+    forfeit(msg) {
+        let packet = this.pan.getCurrentPacket();
+
+        packet.currentCard.rank = 'card_back';
+        packet.currentCard.suit = '';
+        let money = 0;
+        let lst = this.players.filter((player) => player.name === msg.name);
+        let p = lst[0];
+        p.hand = msg.args.hand;
+        p.cards = msg.args.cards;
+        p.state = 0;
+        p.forfeit = true;
+        if(this.players.length>1){
+            money = p.current/(this.players.length -1);
+            let others = this.players.filter((player) => player.name != msg.name);
+            for(let i = 0;i<others.length;i++){
+                others[i].total += money;
+                others[i].current += money;
+            }
+
+        }
+        p.total -= money *  this.players.length -1;
+        p.current =0;
+        packet.currentPlayer++
+        if (packet.currentPlayer == packet.players.length)
+            packet.currentPlayer = 0;
+        this.players[packet.currentPlayer].state = 2;
+
+        this.currentPlayer =  packet.currentPlayer;
+        packet.journal = msg.name +" refunds every one "+ money + " chips" ;
+
+        this.pan.broadCastAll(packet);
+    }
+
     muck(msg) {
         let packet = this.pan.getCurrentPacket();
 
@@ -290,6 +346,17 @@ class PanActions {
         p.hand = msg.args.hand;
         p.cards = msg.args.cards;
         p.state = 0;
+
+        let money =  msg.args.money;
+        let others = this.players.filter((player) => player.name != msg.name);
+        for(let i = 0;i<others.length;i++){
+            others[i].total -= money;
+            others[i].current -= money;
+        }
+
+
+        p.total += money * ( this.players.length -1);
+        p.current += money *  (this.players.length -1);
         packet.currentPlayer++
         if (packet.currentPlayer == packet.players.length)
             packet.currentPlayer = 0;
@@ -311,6 +378,7 @@ class PanActions {
             group: cards.length,
             sels: [false, false, false, false, false, false, false, false, false, false],
             money: -1,
+            error:false,
             cards: [
                 {
                     rank: "empty"
