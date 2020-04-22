@@ -70,6 +70,10 @@ class PanActions {
         return 10
     };
 
+    static get MOVE() {
+        return 11
+    };
+
     static get START() {
         return 100;
     }
@@ -169,7 +173,10 @@ class PanActions {
                 return this.pass(cmd);
 
             case PanActions.PLAY_AND_MUCK:
-                return this.muck(cmd)
+                return this.muck(cmd);
+
+            case PanActions.MOVE:
+                return this.move(cmd)
         }
         return null;
     }
@@ -259,6 +266,16 @@ class PanActions {
         this.currentPlayer =  packet.currentPlayer;
         packet.journal =  this.players[packet.currentPlayer].name + " can pickup the " + this.getCardString(packet.passCard) + " or draw a card from the deck" ;
         this.createDropSpot(cards);
+        this.pan.broadCastAll(packet);
+    }
+
+    move(msg) {
+        let packet = this.pan.getCurrentPacket();
+
+        let lst = this.players.filter((player) => player.name === msg.name);
+        let p = lst[0];
+        p.hand = msg.args.hand;
+        p.cards = msg.args.cards;
         this.pan.broadCastAll(packet);
     }
 
