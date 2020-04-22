@@ -267,13 +267,9 @@ class PanActions {
         p.hand = msg.args.hand;
         p.cards = msg.args.cards;
         p.state = 0;
-        packet.currentPlayer++
-        if (packet.currentPlayer == packet.players.length)
-            packet.currentPlayer = 0;
-        this.players[packet.currentPlayer].state = 5;
+        this.nextPlayer(packet,5);
         let cards = this.players[packet.currentPlayer].cards;
 
-        this.currentPlayer =  packet.currentPlayer;
         packet.journal =  this.players[packet.currentPlayer].name + " can pickup the " + this.getCardString(packet.passCard) + " or draw a card from the deck" ;
         this.createDropSpot(cards);
         this.pan.broadCastAll(packet);
@@ -300,6 +296,13 @@ class PanActions {
         packet.journal = msg.name +" has the illegal melds: "+ msg.args.txt ;
         this.pan.broadCastAll(packet);
     }
+    nextPlayer(packet,state){
+        packet.currentPlayer++
+        if (packet.currentPlayer == packet.players.length)
+            packet.currentPlayer = 0;
+        this.players[packet.currentPlayer].state = state;
+        this.currentPlayer =  packet.currentPlayer;
+    }
 
     forfeit(msg) {
         let packet = this.pan.getCurrentPacket();
@@ -318,18 +321,14 @@ class PanActions {
             let others = this.players.filter((player) => player.name != msg.name);
             for(let i = 0;i<others.length;i++){
                 others[i].total += money;
-                others[i].current += money;
             }
 
         }
         p.total -= money *  this.players.length -1;
         p.current =0;
-        packet.currentPlayer++
-        if (packet.currentPlayer == packet.players.length)
-            packet.currentPlayer = 0;
-        this.players[packet.currentPlayer].state = 2;
 
-        this.currentPlayer =  packet.currentPlayer;
+        this.nextPlayer(packet,2);
+
         packet.journal = msg.name +" refunds every one "+ money + " chips" ;
 
         this.pan.broadCastAll(packet);
@@ -351,19 +350,14 @@ class PanActions {
         let others = this.players.filter((player) => player.name != msg.name);
         for(let i = 0;i<others.length;i++){
             others[i].total -= money;
-            others[i].current -= money;
+            others[i].current;
         }
 
 
         p.total += money * ( this.players.length -1);
         p.current += money *  (this.players.length -1);
-        packet.currentPlayer++
-        if (packet.currentPlayer == packet.players.length)
-            packet.currentPlayer = 0;
-        this.players[packet.currentPlayer].state = 2;
-        let cards = this.players[packet.currentPlayer].cards;
+        this.nextPlayer(packet,2);
 
-        this.currentPlayer =  packet.currentPlayer;
         packet.journal = msg.name +" has "+ msg.args.txt ;
 
         this.pan.broadCastAll(packet);
@@ -440,20 +434,6 @@ class PanActions {
         };
         return this.deck[this.deckIndex++]
     }
-
-
-
-    nextPlayer(arg, str) {
-
-
-        return;
-    }
-
-
-
-
-
-
 
 }
 
