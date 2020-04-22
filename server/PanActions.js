@@ -155,7 +155,7 @@ class PanActions {
             return;
         }
         this.lastCmd = JSON.stringify(cmd)
-        console.log("processCmd2 " + this.lastCmd);
+
 
 
         switch (cmd.action) {
