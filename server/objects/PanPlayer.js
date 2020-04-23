@@ -36,9 +36,12 @@ class PanPlayer {
         for (let i = 0; i < 10; i++) {
             this.hand.push(this.panActions.pickACard()) ;
         }
+        this.hand.sort(this.compare);
 
     }
-
+    compare(a, b) {
+        return (a.ordinal - b.ordinal);
+    }
 
 
 }

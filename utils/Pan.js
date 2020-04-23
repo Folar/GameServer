@@ -279,7 +279,7 @@ class Pan {
         let lst = this.users;
         let players = [];
         lst.map((u) => {
-            if (u.player.state != PanActions.GAMEOVER) {
+            if (true) {
 
                    let state = u.connection.state;
                    if(state == "closed"){
