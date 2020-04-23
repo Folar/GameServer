@@ -297,11 +297,16 @@ class PanActions {
         this.pan.broadCastAll(packet);
     }
     nextPlayer(packet,state){
-        packet.currentPlayer++
-        if (packet.currentPlayer == packet.players.length)
-            packet.currentPlayer = 0;
-        this.players[packet.currentPlayer].state = state;
-        this.currentPlayer =  packet.currentPlayer;
+        do {
+            packet.currentPlayer++
+            if (packet.currentPlayer == packet.players.length)
+                packet.currentPlayer = 0;
+            if( this.players[packet.currentPlayer].sitOut || this.players[packet.currentPlayer].forfeit )
+                continue;
+            this.players[packet.currentPlayer].state = state;
+            this.currentPlayer = packet.currentPlayer;
+            break;
+        } while (true);
     }
 
     forfeit(msg) {
@@ -316,22 +321,44 @@ class PanActions {
         p.cards = msg.args.cards;
         p.state = 0;
         p.forfeit = true;
-        if(this.players.length>1){
-            money = p.current/(this.players.length -1);
+        let cnt = 1;
+        if(this.players.length>1){ // 1 only for testing
+            cnt =0;
+            let lastPlayer = 0;
+            for(let j = 0;j<this.players.length;j++){
+                if(!this.players[j].forfeit && !this.players[j].sitOut){
+                    cnt++;
+                    lastPlayer = j;
+                }
+            }
+
+            if(cnt == 1){
+                others[lastPlayer].total = p.current;
+                return this.panByDefault(others[lastPlayer]) ;
+
+            }
+
+            money = Math.floor(p.current/cnt);
+            packet.kitty += p.current % cnt;
             let others = this.players.filter((player) => player.name != msg.name);
             for(let i = 0;i<others.length;i++){
-                others[i].total += money;
+                if(!this.players[i].forfeit && !this.players[i].sitOut) {
+                    others[i].total += money;
+                }
             }
 
         }
-        p.total -= money *  this.players.length -1;
+        p.total -= money *  cnt;
         p.current =0;
 
         this.nextPlayer(packet,2);
 
-        packet.journal = msg.name +" refunds every one "+ money + " chips" ;
+        packet.journal = msg.name +" refunds everyone "+ money + " chip(s)" ;
 
         this.pan.broadCastAll(packet);
+    }
+    panByDefault(player){
+
     }
 
     muck(msg) {
@@ -348,14 +375,18 @@ class PanActions {
 
         let money =  msg.args.money;
         let others = this.players.filter((player) => player.name != msg.name);
+        let cnt = 0;
+
         for(let i = 0;i<others.length;i++){
+            if (others[i].sitOut) continue;
+            cnt++;
             others[i].total -= money;
             others[i].current;
         }
 
 
-        p.total += money * ( this.players.length -1);
-        p.current += money *  (this.players.length -1);
+        p.total += money * cnt;
+        p.current += money *  cnt;
         this.nextPlayer(packet,2);
 
         packet.journal = msg.name +" has "+ msg.args.txt ;
