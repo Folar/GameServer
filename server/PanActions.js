@@ -245,6 +245,8 @@ class PanActions {
     }
     pickup(msg){
         let  c = this.pan.getCurrentPacket().currentCard;
+        if(c.rank == 'card_back')
+            c = this.pan.getCurrentPacket().passCard
         let packet = this.pan.setPanPacket("pickup", msg.name +" picks up the " + this.getCardString(c), "");
         let lst = this.players.filter((player) => player.name === msg.name);
         let p = lst[0];
