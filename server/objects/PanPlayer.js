@@ -31,8 +31,15 @@ class PanPlayer {
         return this.name;
     }
 
+    resetPlayer(){
+        this.forfeit = false;
+        this.sitOut = false;
+        this.pickHand();
+        this.cards = [];
+        this.current = 0;
+    }
     pickHand() {
-
+        this.hand = [];
         for (let i = 0; i < 10; i++) {
             this.hand.push(this.panActions.pickACard()) ;
         }

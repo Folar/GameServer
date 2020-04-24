@@ -437,6 +437,11 @@ class PanActions {
     getPlaying() {
         return this.players.filter((player) => player.playing === true);
     }
+    resetPlayers(){
+        for(let i= 0;i<this.players.length;i++){
+            this.players[i].resetPlayer();
+        }
+    }
     ante(msg){
 
         let str ;
@@ -446,6 +451,7 @@ class PanActions {
         p.hand = msg.args.hand;
         p.cards = msg.args.cards;
         let packet = this.pan.getCurrentPacket();
+
         if(msg.args.play){
             if (msg.args.oldState == PanActions.ANTE){
                 packet.kitty += PanActions.TOPS;
@@ -456,12 +462,37 @@ class PanActions {
         }else{
             p.sitOut = true;
             str =  msg.name +" has chosen to sit out this round. ";
+            let cnt = 0;
+            for(let i= 0;i<this.players.length;i++){
+                if(!this.players[i].sitOut){
+                    cnt++;
+                }
+            }
+            if( cnt == 1) { //redeal
+                this.resetPlayers();
+                packet.currentPlayer = packet.dealer;
+                this.currentPlayer = packet.dealer;
+                this.nextPlayer(packet,102);
+                packet.dealer = this.currentPlayer;
+                packet.kitty += PanActions.TOPS;
+                this.players[this.currentPlayer].total -= PanActions.TOPS;
+                str = this.players[packet.currentPlayer].name + " will redeal, since only 1 player wants to play. " + str;
+                packet = this.pan.setPanPacket("ante",str, "");
+                this.pan.broadCastAll(packet);
+                return;
+            }
         }
 
         this.nextPlayer(packet,101,false);
         if(this.currentPlayer == packet.dealer){
-           str = this.players[packet.currentPlayer].name + " can now start by drawing a card. " + str;
-            this.players[packet.currentPlayer].state =PanActions.FIRST_PLAYER_DRAW;
+            packet.currentPlayer = packet.winner;
+            this.currentPlayer = packet.winner;
+
+                if( this.players[packet.currentPlayer].sitOut){
+                    this.nextPlayer(packet,1)
+                }
+                str = this.players[packet.currentPlayer].name + " can now start by drawing a card. " + str;
+                this.players[packet.currentPlayer].state = PanActions.FIRST_PLAYER_DRAW
         } else {
             str = this.players[packet.currentPlayer].name + " can now decide if he/she wants to play. " + str;
 
@@ -483,6 +514,7 @@ class PanActions {
                 players[num].name + " was randomly chosen to bid and deal first. "+ players[num].name + " puts in the tops of "+
                 PanActions.TOPS + " chips";
             let packet = this.pan.setPanPacket("playerStart", str, "");
+
             this.currentPlayer = num;
             packet.dealer = num;
             packet.winner = num;
