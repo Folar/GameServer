@@ -85,10 +85,16 @@ class PanActions {
     static get ANTE() {
         return 101;
     }
+    static get FIRST_ANTE() {
+        return 102;
+    }
     static get GAMEOVER() {
         return 110;
     }
 
+    static get TOPS() {
+        return 2;
+    }
 
     getGameState() {
         return this.gameState;
@@ -186,7 +192,10 @@ class PanActions {
                 return this.error(cmd);
 
             case PanActions.FORFEIT:
-                return this.forfeit(cmd)
+                return this.forfeit(cmd);
+
+            case PanActions.ANTE:
+                return this.ante(cmd)
         }
         return null;
     }
@@ -298,12 +307,12 @@ class PanActions {
         packet.journal = msg.name +" has the illegal melds: "+ msg.args.txt ;
         this.pan.broadCastAll(packet);
     }
-    nextPlayer(packet,state){
+    nextPlayer(packet,state,chkForSitOutOrForfeit = true){
         do {
             packet.currentPlayer++
             if (packet.currentPlayer == packet.players.length)
                 packet.currentPlayer = 0;
-            if( this.players[packet.currentPlayer].sitOut || this.players[packet.currentPlayer].forfeit )
+            if( chkForSitOutOrForfeit &&( this.players[packet.currentPlayer].sitOut || this.players[packet.currentPlayer].forfeit) )
                 continue;
             this.players[packet.currentPlayer].state = state;
             this.currentPlayer = packet.currentPlayer;
@@ -428,7 +437,38 @@ class PanActions {
     getPlaying() {
         return this.players.filter((player) => player.playing === true);
     }
+    ante(msg){
 
+        let str ;
+        let lst = this.players.filter((player) => player.name === msg.name);
+        let p = lst[0];
+        p.state = 0;
+        p.hand = msg.args.hand;
+        p.cards = msg.args.cards;
+        let packet = this.pan.getCurrentPacket();
+        if(msg.args.play){
+            if (msg.args.oldState == PanActions.ANTE){
+                packet.kitty += PanActions.TOPS;
+                p.total -= PanActions.TOPS;
+            }
+            str =  msg.name +" has chosen to play this round. ";
+
+        }else{
+            p.sitOut = true;
+            str =  msg.name +" has chosen to sit out this round. ";
+        }
+
+        this.nextPlayer(packet,101,false);
+        if(this.currentPlayer == packet.dealer){
+           str = this.players[packet.currentPlayer].name + " can now start by drawing a card. " + str;
+            this.players[packet.currentPlayer].state =PanActions.FIRST_PLAYER_DRAW;
+        } else {
+            str = this.players[packet.currentPlayer].name + " can now decide if he/she wants to play. " + str;
+
+        }
+        packet = this.pan.setPanPacket("ante",str, "");
+        this.pan.broadCastAll(packet);
+    }
     startPlayer(msg) {
         this.setPlay(msg.name);
         let ulst = this.getNonPlaying();
@@ -438,13 +478,19 @@ class PanActions {
             this.pan.setPanStarted(true);
             let players = this.getPlaying();
             let num = Math.floor(Math.random() * players.length);
+
             str = "Let the games begin! " +
-                players[num].name + " was randomly chosen to roll first";
+                players[num].name + " was randomly chosen to bid and deal first. "+ players[num].name + " puts in the tops of "+
+                PanActions.TOPS + " chips";
             let packet = this.pan.setPanPacket("playerStart", str, "");
             this.currentPlayer = num;
+            packet.dealer = num;
+            packet.winner = num;
             for(let i = 0;i<players.length;i++)
                 players[i].state = 0;
-            players[num].state = PanActions.FIRST_PLAYER_DRAW;
+            players[num].state = PanActions.FIRST_ANTE;
+            players[num].total -= PanActions.TOPS;
+            packet.kitty = PanActions.TOPS;
             this.pan.broadCastAll(packet);
 
         } else {
