@@ -301,8 +301,9 @@ class Pan {
 
     sendWatcherPacket(lst, packet) {
         lst.map((u) => {
-            packet.state = 6;
-            packet.users = this.getUserList();
+            packet.state = 0;
+            packet.playerId = 10;
+            //packet.users = this.getUserList();
             u.connection.send(JSON.stringify(packet));
         });
     }
@@ -367,14 +368,14 @@ class Pan {
     sendWatcher(id, packet) {
         this.fillInPacket(packet)
         let lst = this.watchers.filter((user) => user.name === id);
-        this.sendPacket(lst, packet);
+        this.sendWatcherPacket(lst, packet);
     }
 
     broadCastMessage(id, packet) {
         let lst = this.users.filter((user) => user.name !== id);
         this.sendPacket(lst, packet);
         lst = this.watchers;
-        this.sendPacket(lst, packet);
+        this.sendWatcherPacket( lst,packet);
     }
 
     getUser(id) {
