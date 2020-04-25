@@ -10,6 +10,7 @@ class PanPlayer {
         this.state = 100;
         this.sitOut = false;
         this.forfeit = false;
+        this.winner = false;
         this.atTable = false;
         this.playing = false;
         this.hand = [];
@@ -34,9 +35,11 @@ class PanPlayer {
     resetPlayer(){
         this.forfeit = false;
         this.sitOut = false;
+        this.state = 0;
         this.pickHand();
         this.cards = [];
         this.current = 0;
+        this.winner = false;
     }
     pickHand() {
         this.hand = [];
