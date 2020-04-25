@@ -166,6 +166,8 @@ class Pan {
             type:0,
             playerId:0,
             currentPlayer:10,
+            winner:0,
+            dealer:0,
             state:100,
             otherState:5,
             kitty:0,
@@ -203,9 +205,9 @@ class Pan {
         this.panData.players = new Array();
         for (let i in this.panActions.players) {
             let p = this.panActions.players[i];
-            this.panData.players.push({name: p.name, current: p.current, total: p.total, playing:p.playing,atTable:true,
+            this.panData.players.push({name: p.name, current: p.current, total: p.total, playing:p.playing,atTable:true,winner:p.winner,
                 state:p.state,forfeit:p.forfeit,sitOut:p.sitOut,playerId: p.playerId,cards:p.cards, hand:[]});
-            this.users[i].player= {name: p.name, current: p.current, total: p.total, playing:p.playing,atTable:true,
+            this.users[i].player= {name: p.name, current: p.current, total: p.total, playing:p.playing,atTable:true,winner:p.winner,
                 state:p.state,forfeit:p.forfeit,sitOut:p.sitOut,playerId: p.playerId,cards:p.cards, hand:p.playing? p.hand :[]};
         }
 
