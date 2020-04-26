@@ -19,7 +19,7 @@ class PanActions {
         this.playing = false;
         this.gameStarted = false;
 
-        this.gameInfo = "";
+        this.lastAnte = 0;
         this.panStarted = false;
 
 
@@ -364,9 +364,10 @@ class PanActions {
 
         }
         p.total -= money *  cnt;
+        p.round -= p.current;
         p.current =0;
         if(cnt == 1){
-            return this.makePan(packet,this.players[lastPlayer], this.players[lastPlayer].name +
+            return this.makePan(packet,this.players[lastPlayer], "\n"+this.players[lastPlayer].name +
                 " WINS the ROUND because everyone else has forfeit. "+msg.name +" refunds everyone "+ money + " chip(s)") ;
 
         }
@@ -389,7 +390,7 @@ class PanActions {
             money += player.cards[i].money;
         }
         if(money) {
-            str = "Everyone should pay " + player.name + " " + money + " chip(s) ";
+            str += "\nEveryone should pay " + player.name + " " + money + " chip(s) ";
             let others = this.players.filter((p) => p.name != player.name);
             let cnt = 0;
 
@@ -397,14 +398,17 @@ class PanActions {
                 if (others[i].sitOut) continue;
                 cnt++;
                 others[i].total -= money;
+                others[i].round -= money;
             }
 
 
             player.total += money * cnt;
             player.current += money * cnt;
+            player.round += money * cnt;
         }
         player.total += packet.kitty;
-        str = player.name + " collects "+ packet.kitty + " chips from the kitty. " + str;
+        player.round += packet.kitty;
+        str += "\n" + player.name + " collects "+ packet.kitty + " chips from the kitty.\n " + str;
         packet.kitty = 0;
         packet.winner =  player.playerId;
         packet.currentPlayer = packet.dealer;
@@ -436,13 +440,15 @@ class PanActions {
             if (others[i].sitOut) continue;
             cnt++;
             others[i].total -= money;
+            others[i].round -= money;
         }
 
 
         p.total += money * cnt;
         p.current += money *  cnt;
+        p.round += money *  cnt;
         if(msg.args.pan){
-            return this.makePan(packet,p,msg.name +" has PAN!! While making the meld(s) "+ msg.args.txt)
+            return this.makePan(packet,p,msg.name +" has PAN!! While making the meld(s) "+ msg.args.txt+"\n")
         }
         this.nextPlayer(packet,2);
 
@@ -504,6 +510,8 @@ class PanActions {
             if (msg.args.oldState == PanActions.ANTE){
                 packet.kitty += PanActions.TOPS;
                 p.total -= PanActions.TOPS;
+                p.round -= PanActions.TOPS;
+                this.lastAnte = p.playerId;
             }
             str =  msg.name +" has chosen to play this round. ";
 
@@ -522,9 +530,13 @@ class PanActions {
                 this.currentPlayer = packet.dealer;
                 this.nextPlayer(packet,PanActions.FIRST_ANTE);
                 packet.dealer = this.currentPlayer;
-                packet.kitty += PanActions.TOPS;
+                packet.kitty = PanActions.TOPS;
+                this.players[this.lastAnte].total += PanActions.TOPS;
                 this.players[this.currentPlayer].total -= PanActions.TOPS;
-                str = this.players[packet.currentPlayer].name + " will redeal, since only 1 player wants to play. " + str;
+                this.players[this.currentPlayer].round -= PanActions.TOPS;
+                this.lastAnte = this.currentPlayer;
+
+                str = this.players[packet.currentPlayer].name + " will redeal, since only 1 player wants to play.\n" + str;
                 packet = this.pan.setPanPacket("ante",str, "");
                 this.pan.broadCastAll(packet);
                 return;
@@ -539,10 +551,10 @@ class PanActions {
                 if( this.players[packet.currentPlayer].sitOut){
                     this.nextPlayer(packet,1)
                 }
-                str = this.players[packet.currentPlayer].name + " can now start by drawing a card. " + str;
+                str = this.players[packet.currentPlayer].name + " can now start by drawing a card.\n" + str;
                 this.players[packet.currentPlayer].state = PanActions.FIRST_PLAYER_DRAW
         } else {
-            str = this.players[packet.currentPlayer].name + " can now decide if he/she wants to play. " + str;
+            str = this.players[packet.currentPlayer].name + " can now decide if he/she wants to play.\n" + str;
 
         }
         packet = this.pan.setPanPacket("ante",str, "");
@@ -556,6 +568,8 @@ class PanActions {
         this.players[packet.currentPlayer].state = PanActions.FIRST_ANTE;
         packet.kitty = PanActions.TOPS;
         this.players[this.currentPlayer].total -= PanActions.TOPS;
+        this.players[this.currentPlayer].round -= PanActions.TOPS;
+        this.lastAnte = this.currentPlayer;
         packet = this.pan.setPanPacket("ante",this.players[this.currentPlayer].name+ " started the next round. ", "");
         this.pan.broadCastAll(packet);
     }
@@ -583,6 +597,8 @@ class PanActions {
             players[num].state = PanActions.FIRST_ANTE;
             players[num].total -= PanActions.TOPS;
             packet.kitty = PanActions.TOPS;
+            this.players[this.currentPlayer].round -= PanActions.TOPS;
+            this.lastAnte = this.currentPlayer;
             this.pan.broadCastAll(packet);
 
         } else {

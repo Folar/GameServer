@@ -5,6 +5,7 @@ class PanPlayer {
     constructor(name = null, pa = null, id=-1, total = 100) {
         this.total = total;
         this.current = 0;
+        this.round = 0;
         this.name = name;
         this.panActions = pa;
         this.state = 100;
@@ -39,6 +40,7 @@ class PanPlayer {
         this.pickHand();
         this.cards = [];
         this.current = 0;
+        this.round = 0;
         this.winner = false;
     }
     pickHand() {
