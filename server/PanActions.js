@@ -145,7 +145,7 @@ class PanActions {
     shuffle() {
         // for 1000 turns
         // switch the values of two random cards
-        for (let i = 0; i < 5000; i++) {
+        for (let i = 0; i < 6000; i++) {
             let location1 = Math.floor((Math.random() * this.deck.length));
             let location2 = Math.floor((Math.random() * this.deck.length));
             let tmp = this.deck[location1];
@@ -251,7 +251,11 @@ class PanActions {
     }
     draw(msg){
         let c = this.pickACard();
-        let packet = this.pan.setPanPacket("draw", msg.name +" draws the " + this.getCardString(c), "");
+        let str = "draws the " + this.getCardString(c);
+        if (msg.args.firstDraw){
+            str =  "makes the first draw of " + this.getCardString(c);
+        }
+        let packet = this.pan.setPanPacket("draw", str, "");
         let lst = this.players.filter((player) => player.name === msg.name);
         let p = lst[0];
         p.state = msg.args.newState;
@@ -289,7 +293,10 @@ class PanActions {
         this.nextPlayer(packet,5);
         let cards = this.players[packet.currentPlayer].cards;
 
-        packet.journal =  this.players[packet.currentPlayer].name + " can pickup the " + this.getCardString(packet.passCard) + " or draw a card from the deck" ;
+        packet.journal = this.players[packet.currentPlayer].name + " can pickup the " + this.getCardString(packet.passCard) +
+            " or draw a card from the deck\n\n" +msg.name + " passes the " + this.getCardString(packet.passCard) + " to " +
+            this.players[packet.currentPlayer].name ;
+        ;
         this.createDropSpot(cards);
         this.pan.broadCastAll(packet);
     }
@@ -368,29 +375,32 @@ class PanActions {
         p.current =0;
         if(cnt == 1){
             return this.makePan(packet,this.players[lastPlayer], "\n"+this.players[lastPlayer].name +
-                " WINS the ROUND because everyone else has forfeit. "+msg.name +" refunds everyone "+ money + " chip(s)") ;
+                " WINS the ROUND because everyone else has forfeit.\n","\n"+ msg.name +" refunds everyone "+ money + " chip(s)") ;
 
         }
         this.nextPlayer(packet,2);
 
-        packet.journal = msg.name +" refunds everyone "+ money + " chip(s)" ;
+        packet.journal = "\n"+msg.name +" refunds everyone "+ money + " chip(s)" ;
 
         this.pan.broadCastAll(packet);
     }
 
 
-    makePan(packet,player,txt){
+    makePan(packet,player,txt,postTxt = ""){
         let  str ="";
         let money = 0;
         player.winner = true;
         for (let i = 0;i<player.cards.length;i++){
+            if ( player.cards[i].money == 0)
+                continue;
             str += player.cards[i].str + " is worth " + player.cards[i].money;
             if(i!= player.cards.length-1)
-                str += ";";
+                str += "\n";
             money += player.cards[i].money;
         }
         if(money) {
-            str += "\nEveryone should pay " + player.name + " " + money + " chip(s) ";
+            str ="\nAll players must pay "+ player.name +" for the following money melds:\n"+ str;
+            str = str+ "\nEveryone should pay " + player.name + " " + money + " chip(s)\n";
             let others = this.players.filter((p) => p.name != player.name);
             let cnt = 0;
 
@@ -408,14 +418,16 @@ class PanActions {
         }
         player.total += packet.kitty;
         player.round += packet.kitty;
-        str += "\n" + player.name + " collects "+ packet.kitty + " chips from the kitty.\n " + str;
+        str =  str + player.name + " collects "+ packet.kitty + " chips from the kitty.\n";
         packet.kitty = 0;
         packet.winner =  player.playerId;
         packet.currentPlayer = packet.dealer;
         this.currentPlayer = packet.dealer;
         this.nextPlayer(packet,PanActions.DEAL,false);
         packet.dealer = this.currentPlayer;
-        str +=txt;
+        str =txt + str ;
+        if(postTxt.length>0)
+            str = str +postTxt;
         packet = this.pan.setPanPacket("ante",str, "");
         this.pan.broadCastAll(packet);
     }
@@ -447,14 +459,18 @@ class PanActions {
         p.total += money * cnt;
         p.current += money *  cnt;
         p.round += money *  cnt;
+        msg.args.txt  = msg.args.txt.slice(0,-1);
+        msg.args.txt = msg.args.txt.replace(/;/g, "\n");
         if(msg.args.pan){
-            return this.makePan(packet,p,msg.name +" has PAN!! While making the meld(s) "+ msg.args.txt+"\n")
+
+            return this.makePan(packet,p,msg.name +" has PAN!! While making  "+ msg.args.txt);
         }
         this.nextPlayer(packet,2);
 
 
 
-        packet.journal = msg.name +" has "+ msg.args.txt ;
+        packet.journal = "\n"+msg.name +" has made "+ msg.args.txt;
+
 
         this.pan.broadCastAll(packet);
     }
@@ -513,11 +529,11 @@ class PanActions {
                 p.round -= PanActions.TOPS;
                 this.lastAnte = p.playerId;
             }
-            str =  msg.name +" has chosen to play this round. ";
+            str =  "\n" +msg.name +" has chosen to play this round. ";
 
         }else{
             p.sitOut = true;
-            str =  msg.name +" has chosen to sit out this round. ";
+            str = "\n" + msg.name +" has chosen to sit out this round. ";
             let cnt = 0;
             for(let i= 0;i<this.players.length;i++){
                 if(!this.players[i].sitOut){
