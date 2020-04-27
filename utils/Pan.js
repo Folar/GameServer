@@ -14,7 +14,7 @@ class Pan {
     }
 
     static get NUMBER_PLAYERS() {
-        return 8;
+        return 7;
     }
 
     setPanStarted(f) {

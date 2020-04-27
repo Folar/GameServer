@@ -251,9 +251,9 @@ class PanActions {
     }
     draw(msg){
         let c = this.pickACard();
-        let str = "draws the " + this.getCardString(c);
+        let str = msg.name+" draws the " + this.getCardString(c);
         if (msg.args.firstDraw){
-            str =  "makes the first draw of " + this.getCardString(c);
+            str =  msg.name+ " makes the first draw of " + this.getCardString(c);
         }
         let packet = this.pan.setPanPacket("draw", str, "");
         let lst = this.players.filter((player) => player.name === msg.name);
@@ -418,18 +418,31 @@ class PanActions {
         }
         player.total += packet.kitty;
         player.round += packet.kitty;
-        str =  str + player.name + " collects "+ packet.kitty + " chips from the kitty.\n";
+        str =  str +"\n" + player.name + " collects "+ packet.kitty + " chips from the kitty.";
+        if(postTxt.length>0)
+            str +="\n";
         packet.kitty = 0;
         packet.winner =  player.playerId;
         packet.currentPlayer = packet.dealer;
         this.currentPlayer = packet.dealer;
         this.nextPlayer(packet,PanActions.DEAL,false);
         packet.dealer = this.currentPlayer;
-        str =txt + str ;
+        str = this.removeDoubleReturns(txt +str) ;
         if(postTxt.length>0)
             str = str +postTxt;
         packet = this.pan.setPanPacket("ante",str, "");
         this.pan.broadCastAll(packet);
+    }
+    removeDoubleReturns(str){
+        let strA =  str.split("");
+        let trg = strA[0];
+
+        for(let i = 1;i<str.length;i++){
+            if(strA[i-1] == strA[i] && strA[i] == '\n') continue;
+            trg += strA[i];
+        }
+        return trg;
+
     }
 
     muck(msg) {
@@ -461,6 +474,7 @@ class PanActions {
         p.round += money *  cnt;
         msg.args.txt  = msg.args.txt.slice(0,-1);
         msg.args.txt = msg.args.txt.replace(/;/g, "\n");
+        msg.args.txt = this.removeDoubleReturns(msg.args.txt);
         if(msg.args.pan){
 
             return this.makePan(packet,p,msg.name +" has PAN!! While making  "+ msg.args.txt);
