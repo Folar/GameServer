@@ -98,7 +98,7 @@ class PanActions {
     }
 
     static get TOPS() {
-        return 2;
+        return 1;
     }
 
     getGameState() {
@@ -145,7 +145,7 @@ class PanActions {
     shuffle() {
         // for 1000 turns
         // switch the values of two random cards
-        for (let i = 0; i < 6000; i++) {
+        for (let i = 0; i < 8000; i++) {
             let location1 = Math.floor((Math.random() * this.deck.length));
             let location2 = Math.floor((Math.random() * this.deck.length));
             let tmp = this.deck[location1];
