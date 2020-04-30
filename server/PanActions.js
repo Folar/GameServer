@@ -162,7 +162,6 @@ class PanActions {
     }
 
     processMsg(cmd) {
-        console.log("test  ing  command " + JSON.stringify(cmd))
         if (this.stopProcessing)
             return;
         if (this.lastCmd == JSON.stringify(cmd)){

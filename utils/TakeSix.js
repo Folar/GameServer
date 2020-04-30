@@ -12,7 +12,7 @@ class TakeSix {
     }
 
     static get NUMBER_TlME_WARN() {
-        return 60;
+        return 30;
     }
     static get NUMBER_DEALT() {
         return 10;

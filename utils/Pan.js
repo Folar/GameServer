@@ -288,9 +288,9 @@ class Pan {
                        players.push(u.player.name);
                    }
             }
-
         });
         if (players.length!=0 || force){
+              console.log("lookƒor drop force="+force+"  players " + JSON.stringify(players))
             this.panActions.lostConnection(players);
         }
     }
