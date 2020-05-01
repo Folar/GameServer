@@ -113,6 +113,12 @@ class PanActions {
 
     lostConnection(players) {
         this.lostPlayers = players;
+        if(this.players[this.currentPlayer].name == undefined) {
+            console.log("in lostConnection this.currentPlayer ="+ this.currentPlayer);
+            console.log(JSON.stringify(this.players));
+            pan.removeAllConnections();
+            return;
+        }
         let str = "Everyone is reconnected, "+this.players[this.currentPlayer].name +" may resume play"
         if (this.lostPlayers.length != 0) {
             let p = this.pan.formatNameList(players);
