@@ -114,7 +114,7 @@ class PanActions {
     lostConnection(players) {
         this.lostPlayers = players;
         if(this.players[this.currentPlayer].name == undefined) {
-            console.log("in lostConnection this.currentPlayer ="+ this.currentPlayer);
+            console.log("XXX in lostConnection this.currentPlayer ="+ this.currentPlayer);
             console.log(JSON.stringify(this.players));
             pan.removeAllConnections();
             return;
@@ -168,8 +168,10 @@ class PanActions {
     }
 
     processMsg(cmd) {
-        if (this.stopProcessing)
+        if (this.stopProcessing) {
+            console.log(" WWWW stop process");
             return;
+        }
         if (this.lastCmd == JSON.stringify(cmd)){
             console.log("dup command " + cmd.name);
             return;
