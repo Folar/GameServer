@@ -141,7 +141,6 @@ wsServer.on('request', function (request) {
     var connection = request.accept('echo-protocol', request.origin);
     console.log((new Date()) + ' Connection accepted.');
     connection.on('message', function (message) {
-        console.log('xReceived Message: ' + message.type);
         if (message.type === 'utf8') {
 
             msg = JSON.parse(message.utf8Data);
