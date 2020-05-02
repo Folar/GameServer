@@ -653,14 +653,14 @@ class PanActions {
 
     pickACard() {
         if (this.deckIndex == 280){
-            //this.shuffle();
             this.deckIndex =0;
-        };
+        }
         let i=Math.floor( Math.random()* (320 - this.deckIndex));
 
         let tmp = this.deck[this.deckIndex];
-        this.deck[this.deckIndex] = this.deck[i];
+        this.deck[this.deckIndex] = this.deck[i+this.deckIndex];
         this.deck[i+this.deckIndex] = tmp;
+
         return this.deck[this.deckIndex++]
     }
 

@@ -195,7 +195,18 @@ class Pan {
                 ordinal:0,
                 rankOrdinal:0
             },
-            hand:[],
+            hand:[
+                {suit:'', rank:"card_back"},
+                {suit:'', rank:"card_back"},
+                {suit:'', rank:"card_back"},
+                {suit:'', rank:"card_back"},
+                {suit:'', rank:"card_back"},
+                {suit:'', rank:"card_back"},
+                {suit:'', rank:"card_back"},
+                {suit:'', rank:"card_back"},
+                {suit:'', rank:"card_back"},
+                {suit:'', rank:"card_back"}
+            ],
             players:[]
         }
     }
@@ -203,12 +214,36 @@ class Pan {
     fillInPacket(packet) {
 
         this.panData.players = new Array();
+        let h = [
+                {suit:'', rank:"card_back"},
+                {suit:'', rank:"card_back"},
+                {suit:'', rank:"card_back"},
+                {suit:'', rank:"card_back"},
+                {suit:'', rank:"card_back"},
+                {suit:'', rank:"card_back"},
+                {suit:'', rank:"card_back"},
+                {suit:'', rank:"card_back"},
+                {suit:'', rank:"card_back"},
+                {suit:'', rank:"card_back"}
+            ];
+
         for (let i in this.panActions.players) {
             let p = this.panActions.players[i];
+            if(p.playing){
+                h =[];
+                for(let i=0;i<p.hand.length;i++){
+                    if(p.hand[i].suit.length ==0){
+                        console.log("BUG?GG? deckIndex="+ this.panActions.deckIndex);
+                        console.log(JSON.stringify(this.panActions.deck));
+                        p.hand[i] = this.panActions.pickACard();
+                    }
+                    h.push(p.hand[i]);
+                }
+            }
             this.panData.players.push({name: p.name, current: p.current, total: p.total, playing:p.playing,atTable:true,winner:p.winner,
                 round:p.round, state:p.state,forfeit:p.forfeit,sitOut:p.sitOut,playerId: p.playerId,cards:p.cards, hand:[]});
             this.users[i].player= {name: p.name, current: p.current, total: p.total, playing:p.playing,atTable:true,winner:p.winner,
-                round:p.round,state:p.state,forfeit:p.forfeit,sitOut:p.sitOut,playerId: p.playerId,cards:p.cards, hand:p.playing? p.hand :[]};
+                round:p.round,state:p.state,forfeit:p.forfeit,sitOut:p.sitOut,playerId: p.playerId,cards:p.cards, hand:h};
         }
 
         this.panData.currentPlayer = this.panActions.currentPlayer;

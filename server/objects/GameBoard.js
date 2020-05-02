@@ -192,7 +192,7 @@ class GameBoard {
         }
        // this.round(250);
        // this.forTesting( this.tile);
-        this.shuffle();
+        //this.shuffle();
         // for (let k=0;k<80;k++) {
         //     let ti = this.pickATile();
         //     this.tile[ti.row][ti.column].state =9;
@@ -327,6 +327,10 @@ class GameBoard {
 
     pickATile() {
         if (this.tileIndex == 108) return null;
+        let i=Math.floor( Math.random()* (108 - this.tileIndex));
+        let tmp = this.tileBag[this.tileIndex];
+        this.tileBag[this.tileIndex] = this.tileBag[i+this.tileIndex];
+        this.tileBag[i+this.tileIndex] = tmp;
         return this.tileBag[this.tileIndex++]
     }
 
