@@ -150,7 +150,7 @@ wsServer.on('request', function (request) {
             let ulst;
             let str;
             resetTimer();
-            console.log("test  ing  command " + JSON.stringify(msg));
+            console.log("testing  name=" + msg.name+ " action="+msg.action);
             switch (msg.type) {
                 case "PAN":
                     panActions.processMsg(msg);

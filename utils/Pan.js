@@ -150,7 +150,7 @@ class Pan {
 
     setPanPacket(type, message, instructions, buttonText) {
 
-        this.panData.messageTypeype = type;
+        this.panData.messageType = type;
         this.panData.journal = message;
         this.panData.instructions = instructions;
         this.panData.state = 100;
@@ -332,7 +332,8 @@ class Pan {
 
     closeSockets(lst) {
         lst.map((u) => {
-            u.connection.close();
+            if(u.connection.state == "open")
+                u.connection.close();
         });
     }
 
