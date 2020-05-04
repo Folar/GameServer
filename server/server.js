@@ -177,7 +177,7 @@ wsServer.on('request', function (request) {
 
                 case "PING":
                     if(pingTimer == null) {
-                        if(pongCnt ==12) {
+                        if(pongCnt >= 0) {
                             pongCnt = 0;
                             console.log("PING PONZG");
                         }
