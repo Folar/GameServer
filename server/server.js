@@ -34,6 +34,7 @@ let panActions = new PanActions(pan);
 var deck = new Array();
 myTimer = null;
 
+pingTimer = null;
 const port = process.env.PORT || 9081;
 
 
@@ -74,6 +75,7 @@ wsServer.on('request', function (request) {
 
 
     let canReset = true;
+    let pongCnt = 0;
 
     function restartGame() {
         canReset = false;
@@ -119,9 +121,26 @@ wsServer.on('request', function (request) {
         if (myTimer != null) {
             clearTimeout(myTimer);
         }
+        if (pingTimer != null) {
+            clearTimeout(pingTimer);
+        }
         myTimer = null;
+        pingTimer = null;
         canReset = true;
         console.log("end of restartgame");
+    }
+    function clearPingTimer(){
+        clearTimeout(pingTimer);
+        pingTimer =null;
+    }
+
+    function pingClient() {
+        let packet = pan.getCurrentPacket();
+        packet.type ="ping";
+        pan.broadCastPing(packet);
+        packet.type ="not+ping";
+        pingTimer = null;
+
     }
 
     function resetTimer() {
@@ -149,10 +168,26 @@ wsServer.on('request', function (request) {
             let pkt = null;
             let ulst;
             let str;
-            resetTimer();
-            console.log("testing  name=" + msg.name+ " action="+msg.action);
-            switch (msg.type) {
+
+            if (msg.type != "PING") {
+                resetTimer();
+                console.log("Start of action routing=" + msg.name + " action=" + msg.action);
+            }
+                switch (msg.type) {
+
+                case "PING":
+                    if(pingTimer == null) {
+                        if(pongCnt ==12) {
+                            pongCnt = 0;
+                            console.log("PING PONZG");
+                        }
+                        pongCnt++;
+                        pingTimer = setTimeout(pingClient.bind(this), 10000);
+                    }
+                    break;
+
                 case "PAN":
+                    clearPingTimer();
                     panActions.processMsg(msg);
                     break;
                 case "ACQ":
@@ -413,7 +448,9 @@ wsServer.on('request', function (request) {
         //     takeSix.removeAllConnections();
         // }
         acquire.lookForDropConnection();
-        pan.lookForDropConnection();
+        if(pan.panStarted)
+            pan.lookForDropConnection();
+
         console.log((new Date()) + ' Peer ' + connection.remoteAddress + ' disconnected.');
     });
 });

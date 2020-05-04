@@ -337,12 +337,18 @@ class Pan {
         });
     }
 
+    sendPingPacket(lst,packet) {
+        lst.map((u) => {
+            if(u.connection.state == "open")
+                u.connection.send(JSON.stringify(packet));
+        });
+    }
     sendWatcherPacket(lst, packet) {
         lst.map((u) => {
             packet.state = 0;
             packet.playerId = 10;
-            //packet.users = this.getUserList();
-            u.connection.send(JSON.stringify(packet));
+            if(u.connection.state == "open")
+                u.connection.send(JSON.stringify(packet));
         });
     }
 
@@ -377,6 +383,14 @@ class Pan {
         this.sendPacket(lst, packet, true);
         lst = this.watchers;
         this.sendWatcherPacket(lst, packet);
+    }
+
+    broadCastPing(packet) {
+
+        let lst = this.users;
+        this.sendPingPacket(lst,packet);
+        lst = this.watchers;
+        this.sendPingPacket(lst,packet);
     }
 
     sendCustomPacket(id, packet) {

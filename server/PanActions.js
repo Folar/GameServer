@@ -113,7 +113,8 @@ class PanActions {
 
     lostConnection(players) {
         this.lostPlayers = players;
-        if(this.players == undefined || this.players[this.currentPlayer].name == undefined) {
+
+        if(this.currentPlayer  == undefined ||this.currentPlayer <0 || this.players[this.currentPlayer].name == undefined) {
             console.log("XXX in lostConnection this.currentPlayer ="+ this.currentPlayer);
             console.log(JSON.stringify(this.players));
             pan.removeAllConnections();
