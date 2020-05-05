@@ -654,6 +654,7 @@ class PanActions {
 
     pickACard() {
         if (this.deckIndex == 280){
+            console.log("YYYYY reset index");
             this.deckIndex =0;
         }
         let i=Math.floor( Math.random()* (320 - this.deckIndex));
@@ -661,6 +662,9 @@ class PanActions {
         let tmp = this.deck[this.deckIndex];
         this.deck[this.deckIndex] = this.deck[i+this.deckIndex];
         this.deck[i+this.deckIndex] = tmp;
+        if(this.deck[this.deckIndex].rank == "card_back"){
+            console.log("XXXXXX deckIndex="+this.deckIndex + " i="+i);
+        }
 
         return this.deck[this.deckIndex++]
     }
