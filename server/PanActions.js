@@ -269,7 +269,7 @@ class PanActions {
         p.state = msg.args.newState;
         p.hand = msg.args.hand;
         p.cards = msg.args.cards;
-        packet.currentCard = c;
+        packet.currentCard =  JSON.parse(JSON.stringify(c));    // fix BUG
         this.pan.broadCastAll(packet);
     }
     pickup(msg){
@@ -284,7 +284,15 @@ class PanActions {
         p.cards = msg.args.cards;
         packet.currentCard.rank = 'card_back';
         packet.currentCard.suit = '';
+
         this.pan.broadCastAll(packet);
+    }
+
+    examineDeck(){
+        for (let i = 0;i<this.deck.length;i++){
+            if(this.deck[i].suit.length == 0)
+                debugger;
+        }
     }
     pass(msg) {
         let packet = this.pan.getCurrentPacket();
@@ -292,6 +300,7 @@ class PanActions {
         this.transfer(packet.passCard, packet.currentCard);
         packet.currentCard.rank = 'card_back';
         packet.currentCard.suit = '';
+        //this.examineDeck();
 
         let lst = this.players.filter((player) => player.name === msg.name);
         let p = lst[0];
@@ -561,6 +570,23 @@ class PanActions {
                 if(!this.players[i].sitOut){
                     cnt++;
                 }
+            }
+            if(cnt == 0){
+                this.resetPlayers();
+                packet.currentPlayer = 0;
+                this.players[0].state = PanActions.FIRST_ANTE;
+                this.nextPlayer(packet,PanActions.FIRST_ANTE);
+                packet.dealer = 0;
+                packet.kitty = PanActions.TOPS;
+                this.players[0].total += PanActions.TOPS;
+                this.players[0].total -= PanActions.TOPS;
+                this.players[0].round -= PanActions.TOPS;
+                this.lastAnte = 0;
+
+                str = this.players[packet.currentPlayer].name + " will redeal, since only 1 player wants to play.\n" + str;
+                packet = this.pan.setPanPacket("ante",str, "");
+                this.pan.broadCastAll(packet);
+                return;
             }
             if( cnt == 1) { //redeal
                 this.resetPlayers();
