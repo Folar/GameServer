@@ -416,7 +416,7 @@ class PanActions {
             money += player.cards[i].money;
         }
         if(money) {
-            str ="\nAll players must pay "+ player.name +" for the following money melds:\n"+ str;
+            str ="\nAll players must pay "+ player.name +" for the following conditions:\n"+ str;
             str = str+ "\nEveryone should pay " + player.name + " " + money + " chip(s)\n";
             let others = this.players.filter((p) => p.name != player.name);
             let cnt = 0;

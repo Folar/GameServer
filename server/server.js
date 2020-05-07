@@ -177,10 +177,10 @@ wsServer.on('request', function (request) {
 
                 case "PING":
                     if(pingTimer == null) {
-                        if(pongCnt >= 100) {
-                            pongCnt = 0;
-                            console.log("PING PONZG");
-                        }
+                        // if(pongCnt >= 100) {
+                        //     pongCnt = 0;
+                        //     console.log("PING PONZG");
+                        // }
                         pongCnt++;
                         pingTimer = setTimeout(pingClient.bind(this), 10000);
                     }
@@ -408,6 +408,7 @@ wsServer.on('request', function (request) {
                                     packet.messageType = "newWatcher";
                                     pan.sendWatcher(msg.name, packet);
                                 } else {
+                                    console.log(msg.name +" has entered pan");
                                     user = pan.addUser(connection, msg.name);
                                     packet = pan.setPanPacket("newUser", "Welcome to Panguingue",
                                         "xxx",
@@ -421,6 +422,7 @@ wsServer.on('request', function (request) {
                                         "Start");
                                     pan.broadCastMessage(msg.name, packet);
                                 }
+                                console.log(msg.name +" end of signon");
                             }
                             break;
                     }
