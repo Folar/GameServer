@@ -52,6 +52,7 @@ class Pan {
         this.closeSockets(lst);
         this.watchers = [];
         this.users = [];
+        this.panActions.currentPlayer = 0;
         this.panActions.players = [];
         this.panActions.stopProcessing = false;
         this.panActions.playerNum = 0;
@@ -263,6 +264,7 @@ class Pan {
             player: this.addPlayer(name)
         }
         this.users.push(user);
+        //console.log("end of addUser name="+name);
         return user;
     }
 

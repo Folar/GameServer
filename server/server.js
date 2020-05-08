@@ -93,7 +93,6 @@ wsServer.on('request', function (request) {
         acquire.setAcquireStarted(false);
         acquire.broadCastAll(packet);
         acquire.removeAllConnections();
-
         packet = pan.setPanPacket("message", "There has been no game activity for " + TakeSix.NUMBER_TlME_WARN
             + " minutes.The Game Server has been restarted. Reload FolarGames in your browser", "Reload");
         pan.setPanStarted(false);
@@ -422,7 +421,7 @@ wsServer.on('request', function (request) {
                                         "Start");
                                     pan.broadCastMessage(msg.name, packet);
                                 }
-                                console.log(msg.name +" end of signon");
+                               // console.log(msg.name +" end of signon");
                             }
                             break;
                     }
@@ -450,9 +449,10 @@ wsServer.on('request', function (request) {
         //     takeSix.removeAllConnections();
         // }
         acquire.lookForDropConnection();
-        if(pan.panStarted)
+        if(pan.panStarted) {
+          //  console.log("lookForDrop");
             pan.lookForDropConnection();
-
+        }
         console.log((new Date()) + ' Peer ' + connection.remoteAddress + ' disconnected.');
     });
 });
