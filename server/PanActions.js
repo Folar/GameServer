@@ -355,6 +355,7 @@ class PanActions {
     }
 
     forfeit(msg) {
+        console.log("in forfiet");
         let packet = this.pan.getCurrentPacket();
 
         packet.currentCard.rank = 'card_back';
