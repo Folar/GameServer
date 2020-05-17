@@ -399,7 +399,7 @@ class PanActions {
         p.total -= money *  cnt;
         p.round -= p.current;
         p.current =0;
-        if(cnt2 == 1){
+        if(cnt2 == 0  || cnt2 == 1){
             return this.makePan(packet,this.players[lastPlayer], "\n"+this.players[lastPlayer].name +
                 " WINS the ROUND because everyone else has forfeit.\n","\n"+ msg.name +" refunds everyone "+ money + " chip(s)") ;
 
